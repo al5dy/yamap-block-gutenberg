@@ -1,6 +1,6 @@
-# Gutenberg Yandex Map
+# Yandex Map for Gutenberg
 
-![Gutenberg Yandex Map Banner](https://res.cloudinary.com/al5dy/image/upload/v1530454579/gutenberg-yandex-map.png)
+![Yandex Map for Gutenberg Banner](https://res.cloudinary.com/al5dy/image/upload/v1530454579/gutenberg-yandex-map.png)
 
 [This plugin](https://wordpress.org/plugins/yamap-block-gutenberg/) adds a simple Yandex Map to your page using the Gutenberg plugin.
 
@@ -32,7 +32,7 @@ Automatic installation (or you can download the latest version from this repo)
 
 1. Log into your WordPress admin area
 2. Go to Plugins -> Add New
-3. Search for Gutenberg Yandex Map -> Install Now (under Gutenberg Yandex Map)
+3. Search for Yandex Map for Gutenberg -> Install Now (under Yandex Map for Gutenberg)
 4. Activate the plugin
 5. Until Gutenberg gets merged into WordPress core, it requires the [Gutenberg plugin](https://wordpress.org/plugins/gutenberg/).
 
