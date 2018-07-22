@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Gutenberg Yandex Map
+ * Plugin Name: Gutenberg Yandex Maps
  * Description: Yandex Maps For Gutenberg
  * Version: 1.0.0
  * Author: al5dy
@@ -12,7 +12,7 @@
  * Text Domain: guyamap
  * Domain Path: /languages/
  *
- * @package Gutenberg Yandex Map
+ * @package Gutenberg Yandex Maps
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
