@@ -2,13 +2,11 @@
 /**
  * Plugin Name: Gutenberg Yandex Maps
  * Description: Yandex Maps For Gutenberg
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: al5dy
  * Author URI: https://ziscod.com
- *
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
-
  * Text Domain: guyamap
  * Domain Path: /languages/
  *
@@ -31,7 +29,7 @@ final class GuYaMap {
 	 *
 	 * @var string
 	 */
-	public $version = '1.0.0';
+	public $version = '1.0.1';
 
 	/**
 	 * The single instance of the class.
@@ -44,7 +42,6 @@ final class GuYaMap {
 
 	/**
 	 * Main GuYaMap Instance.
-	 *
 	 * Ensures only one instance of GuYaMap is loaded or can be loaded.
 	 *
 	 * @since 1.0.0
@@ -66,7 +63,7 @@ final class GuYaMap {
 	 */
 	public function __construct() {
 
-		$description  = __( 'Yandex Maps For Gutenberg', 'guyamap' ); // translate plugin description
+		$description = __( 'Yandex Maps For Gutenberg', 'guyamap' ); // translate plugin description
 
 
 		// Define GUYAMAP_PLUGIN_FILE.
@@ -86,7 +83,7 @@ final class GuYaMap {
 		}
 
 		add_action( 'init', array( $this, 'init' ), 0 );
-		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_assets' ) );
+		add_action( 'init', array( $this, 'editor_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'load_assets' ) );
 		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
 	}
@@ -94,33 +91,84 @@ final class GuYaMap {
 
 	/**
 	 * Include Gutenberg Editor Assets
+	 *
+	 * @since 1.0.1
 	 */
 	public function editor_assets() {
-
-		if(function_exists('gutenberg_get_jed_locale_data')) {
-			// Get All Translations @al5dy hack
-			$locale_data = gutenberg_get_jed_locale_data( 'guyamap' );
-			wp_add_inline_script(
-				'wp-i18n',
-				'wp.i18n.setLocaleData( ' . json_encode( $locale_data ) . ',  \'guyamap\' );'
-			);
+		if ( ! function_exists( 'register_block_type' ) ) {
+			// Gutenberg is not active.
+			return;
 		}
 
-		wp_enqueue_script(
+
+		wp_register_script(
 			'guyamap-editor-script',
 			$this->plugin_url() . '/assets/block-editor.build.js',
-			array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components' ),
+			array( 'wp-i18n', 'wp-blocks', 'wp-element', 'wp-components', 'wp-editor' ),
 			filemtime( $this->plugin_path() . '/assets/block-editor.build.js' )
 		);
 
-		wp_enqueue_style(
+
+		wp_register_style(
 			'guyamap-editor-style',
 			$this->plugin_url() . '/assets/block-editor.build.css',
-			array( 'wp-blocks' ),
+			array( 'wp-edit-blocks' ),
 			filemtime( $this->plugin_path() . '/assets/block-editor.build.css' )
 		);
 
 
+		register_block_type( 'gutenberg-yandex-block/map', array(
+			'editor_script' => 'guyamap-editor-script',
+			'editor_style'  => 'guyamap-editor-style'
+		) );
+
+
+		if(function_exists('wp_set_script_translations')) {
+			/*
+			 * Pass already loaded translations to our JavaScript.
+			 *
+			 * This happens _before_ our JavaScript runs, afterwards it's too late.
+			 */
+			wp_add_inline_script(
+				'guyamap-editor-script',
+				sprintf(
+					'var guyamap_editor_script = { localeData: %s };',
+					json_encode( wp_set_script_translations( 'guyamap-editor-script', 'guyamap', $this->plugin_path() . '/languages' ) )
+				),
+				'before'
+			);
+		} else {
+			// Get All Translations @al5dy hack
+			$locale_data = $this->get_jed_locale_data( 'guyamap' );
+			wp_add_inline_script(
+				'guyamap-editor-script',
+				'(function( translations ){translations.locale_data.messages[""].domain = "guyamap";wp.i18n.setLocaleData( translations.locale_data.messages, "guyamap" );})({"domain": "messages","locale_data": {"messages": ' . json_encode( $locale_data ) . '}});',
+				'before'
+			);
+
+		}
+
+	}
+
+	public function get_jed_locale_data( $domain ) {
+		$translations = get_translations_for_domain( $domain );
+
+		$locale = array(
+			'' => array(
+				'domain' => $domain,
+				'lang'   => is_admin() ? get_user_locale() : get_locale(),
+			),
+		);
+
+		if ( ! empty( $translations->headers['Plural-Forms'] ) ) {
+			$locale['']['plural_forms'] = $translations->headers['Plural-Forms'];
+		}
+
+		foreach ( $translations->entries as $msgid => $entry ) {
+			$locale[ $msgid ] = $entry->translations;
+		}
+
+		return $locale;
 	}
 
 	/**
@@ -169,9 +217,7 @@ final class GuYaMap {
 
 	/**
 	 * Load Localisation files.
-	 *
 	 * Note: the first-loaded translation file overrides any following ones if the same translation is present.
-	 *
 	 * Locales found in:
 	 *      - WP_LANG_DIR/guyamap/guyamap-LOCALE.mo
 	 *      - WP_LANG_DIR/plugins/guyamap-LOCALE.mo
@@ -183,6 +229,8 @@ final class GuYaMap {
 		unload_textdomain( 'guyamap' );
 		load_textdomain( 'guyamap', WP_LANG_DIR . '/guyamap/guyamap-' . $locale . '.mo' );
 		load_plugin_textdomain( 'guyamap', false, plugin_basename( dirname( GUYAMAP_PLUGIN_FILE ) ) . '/languages' );
+
+
 	}
 
 
@@ -198,7 +246,7 @@ final class GuYaMap {
 
 		if ( GUYAMAP_PLUGIN_BASENAME === $file ) {
 			$row_meta = array(
-				'donate' => '<a href="' . esc_url('https://www.paypal.me/al5dy/5usd') . '" target="_blank" title="' . esc_attr__( 'Send money to me', 'guyamap' ) . '"><strong style="color:red;">' . esc_html__( 'Donate', 'guyamap' ) . '</strong></a>'
+				'donate' => '<a href="' . esc_url( 'https://money.yandex.ru/to/410012328678499' ) . '" target="_blank" title="' . esc_attr__( 'Send money to me', 'guyamap' ) . '"><strong style="color:red;">' . esc_html__( 'Donate', 'guyamap' ) . '</strong></a>'
 			);
 
 			return array_merge( $links, $row_meta );
@@ -212,7 +260,6 @@ final class GuYaMap {
 
 /**
  * Main instance of GuYaMap.
- *
  * Returns the main instance of GuYaMap to prevent the need to use globals.
  *
  * @since  1.0.0

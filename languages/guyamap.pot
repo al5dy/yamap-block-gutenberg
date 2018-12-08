@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Gutenberg Yandex Map\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-02 22:11+0300\n"
+"POT-Creation-Date: 2018-12-08 17:11+0300\n"
 "PO-Revision-Date: 2017-10-10 14:30+0300\n"
 "Last-Translator: Anton L <someemail@someemail.com>\n"
 "Language-Team: Ziscod\n"
@@ -15,71 +15,78 @@ msgstr ""
 "esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;"
 "_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
 "X-Poedit-Basepath: ..\n"
-"X-Generator: Poedit 2.0.8\n"
+"X-Generator: Poedit 2.2\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: src/node_modules\n"
 
-#: src/block/block-editor.js:22
-msgid "Yandex Map"
-msgstr ""
-
-#: src/block/block-editor.js:28
-msgid "Block showing a Yandex Map"
-msgstr ""
-
-#: src/block/block-editor.js:43
-msgid "Settings"
-msgstr ""
-
-#: src/block/block-editor.js:49
-msgid "Width"
-msgstr ""
-
-#: src/block/block-editor.js:59
-msgid "Height"
-msgstr ""
-
-#: src/block/block-editor.js:68
-msgid "You can get latitude and longitude here:"
-msgstr ""
-
-#: src/block/block-editor.js:72 src/block/block-editor.js:120
-msgid "Latitude"
-msgstr ""
-
-#: src/block/block-editor.js:83 src/block/block-editor.js:131
-msgid "Longitude"
-msgstr ""
-
-#: src/block/block-editor.js:94
-msgid "Zoom"
-msgstr ""
-
-#: src/block/block-editor.js:106
-msgid "Add Placemark"
-msgstr ""
-
-#: src/block/block-editor.js:115
-msgid "Placemark"
-msgstr ""
-
-#: src/block/block-editor.js:143
-msgid "Hint"
-msgstr ""
-
-#: src/block/block-editor.js:151
-msgid "Content"
-msgstr ""
-
-#: yamap-block-gutenberg.php:69
+#: git/yamap-block-gutenberg.php:69 svn/trunk/yamap-block-gutenberg.php:69
+#: yamap-block-gutenberg.php:66
 msgid "Yandex Maps For Gutenberg"
 msgstr ""
 
-#: yamap-block-gutenberg.php:201
+#: git/yamap-block-gutenberg.php:201 svn/trunk/yamap-block-gutenberg.php:201
+#: yamap-block-gutenberg.php:232
 msgid "Send money to me"
 msgstr ""
 
-#: yamap-block-gutenberg.php:201
+#: git/yamap-block-gutenberg.php:201 svn/trunk/yamap-block-gutenberg.php:201
+#: yamap-block-gutenberg.php:232
 msgid "Donate"
+msgstr ""
+
+#: src/block/block-editor.js:40
+msgid "Yandex Map"
+msgstr ""
+
+#: src/block/block-editor.js:46
+msgid "Block showing a Yandex Map"
+msgstr ""
+
+#: src/block/block-editor.js:61
+msgid "Settings"
+msgstr ""
+
+#: src/block/block-editor.js:67
+msgid "Width"
+msgstr ""
+
+#: src/block/block-editor.js:77
+msgid "Height"
+msgstr ""
+
+#: src/block/block-editor.js:86
+msgid "You can get latitude and longitude here:"
+msgstr ""
+
+#: src/block/block-editor.js:90 src/block/block-editor.js:138
+msgid "Latitude"
+msgstr ""
+
+#: src/block/block-editor.js:101 src/block/block-editor.js:149
+msgid "Longitude"
+msgstr ""
+
+#: src/block/block-editor.js:112
+msgid "Zoom"
+msgstr ""
+
+#: src/block/block-editor.js:124
+msgid "Add Placemark"
+msgstr ""
+
+#: src/block/block-editor.js:133
+msgid "Placemark"
+msgstr ""
+
+#: src/block/block-editor.js:161
+msgid "Hint"
+msgstr ""
+
+#: src/block/block-editor.js:169
+msgid "Content"
+msgstr ""
+
+#: src/block/block-editor.js:191
+msgid "Click here to activate"
 msgstr ""

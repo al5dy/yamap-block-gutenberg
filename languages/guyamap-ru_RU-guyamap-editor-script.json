@@ -1,0 +1,63 @@
+{
+   "domain": "messages",
+   "locale_data": {
+      "messages": {
+         "": {
+            "domain": "messages",
+            "plural_forms": "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);",
+            "lang": "ru_RU"
+         },
+         "Yandex Maps For Gutenberg": [
+            "Яндекс Карты для редактора Gutenberg"
+         ],
+         "Send money to me": [
+            "Пожертвовать на развитие плагина"
+         ],
+         "Donate": [
+            "Пожертвовать"
+         ],
+         "Yandex Map": [
+            "Яндекс Карта"
+         ],
+         "Block showing a Yandex Map": [
+            "Блок для вывода Яндекс Карты"
+         ],
+         "Settings": [
+            "Настройки"
+         ],
+         "Width": [
+            "Ширина"
+         ],
+         "Height": [
+            "Высота"
+         ],
+         "You can get latitude and longitude here:": [
+            "Значения широты и долготы вы можете взять по ссылке:"
+         ],
+         "Latitude": [
+            "Широта"
+         ],
+         "Longitude": [
+            "Долгота"
+         ],
+         "Zoom": [
+            "Масштаб"
+         ],
+         "Add Placemark": [
+            "Добавить метку"
+         ],
+         "Placemark": [
+            "Метка"
+         ],
+         "Hint": [
+            "Подсказка"
+         ],
+         "Content": [
+            "Текст"
+         ],
+         "Click here to activate": [
+            "Щелкните тут для активации"
+         ]
+      }
+   }
+}
