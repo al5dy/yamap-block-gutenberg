@@ -7,7 +7,7 @@ const packagePath = path.join( projectRoot, 'package.json' );
 const packageData = JSON.parse( fs.readFileSync( packagePath, 'utf8' ) );
 const rootFolder = packageData.name;
 const outputPath = path.join( projectRoot, `${ rootFolder }.zip` );
-const entries = new Set( [ 'package.json', 'package-lock.json' ] );
+const entries = new Set();
 
 const addEntry = ( relativePath ) => {
 	const normalized = path.normalize( relativePath ).replace( /[\\/]+$/, '' );

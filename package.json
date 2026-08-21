@@ -7,14 +7,10 @@
 	"files": [
 		"assets/icons/",
 		"build/",
-		"docs/",
 		"includes/",
 		"languages/",
 		"LICENSES/",
-		"src/",
-		"package-lock.json",
 		"readme.txt",
-		"scripts/plugin-zip.js",
 		"third-party-notices.txt",
 		"uninstall.php",
 		"yamap-block-gutenberg.php"

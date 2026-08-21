@@ -4,6 +4,7 @@
 /.phpunit.result.cache
 /playwright-report/
 /test-results/
+/production/
 /gutenberg-yandex-maps.zip
 npm-debug.log*
 yarn-error.log*
