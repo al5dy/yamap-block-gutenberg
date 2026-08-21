@@ -1,0 +1,189 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "gutenberg-yandex-block/map",
+	"version": "2.0.0",
+	"title": "Yandex Map",
+	"category": "widgets",
+	"icon": "location-alt",
+	"description": "A fast, accessible Yandex map with markers and clustering.",
+	"keywords": [ "map", "yandex", "location" ],
+	"textdomain": "yamap-block-gutenberg",
+	"attributes": {
+		"schemaVersion": {
+			"type": "number",
+			"default": 2
+		},
+		"center": {
+			"type": "object",
+			"default": {
+				"latitude": 55.751244,
+				"longitude": 37.618423
+			}
+		},
+		"zoom": {
+			"type": "number",
+			"default": 12
+		},
+		"zoomRange": {
+			"type": "object",
+			"default": {
+				"min": 1,
+				"max": 21
+			}
+		},
+		"camera": {
+			"type": "object",
+			"default": {
+				"tilt": 0,
+				"azimuth": 0
+			}
+		},
+		"height": {
+			"type": "string",
+			"default": "480px"
+		},
+		"width": {
+			"type": "string",
+			"default": "100%"
+		},
+		"minHeight": {
+			"type": "string",
+			"default": "280px"
+		},
+		"aspectRatio": {
+			"type": "string",
+			"default": ""
+		},
+		"mapMode": {
+			"type": "string",
+			"default": "auto",
+			"enum": [ "auto", "raster", "vector" ]
+		},
+		"theme": {
+			"type": "string",
+			"default": "auto",
+			"enum": [ "auto", "light", "dark" ]
+		},
+		"behaviors": {
+			"type": "array",
+			"default": [ "drag", "scrollZoom", "pinchZoom", "dblClick" ],
+			"items": {
+				"type": "string"
+			}
+		},
+		"controls": {
+			"type": "object",
+			"default": {
+				"zoom": true,
+				"geolocation": true,
+				"fullscreen": true,
+				"position": "right"
+			}
+		},
+		"mapOptions": {
+			"type": "object",
+			"default": {
+				"copyrightsPosition": "bottom right",
+				"showScaleInCopyrights": true,
+				"zoomRounding": "auto",
+				"zoomStrategy": "zoomToPointer",
+				"restrictMapArea": false,
+				"margin": [ 0, 0, 0, 0 ]
+			}
+		},
+		"customization": {
+			"type": "array",
+			"default": []
+		},
+		"markers": {
+			"type": "array",
+			"default": [],
+			"items": {
+				"type": "object"
+			}
+		},
+		"cluster": {
+			"type": "object",
+			"default": {
+				"enabled": true,
+				"gridSize": 64,
+				"maxZoom": 18,
+				"color": "#ff4433"
+			}
+		},
+		"loading": {
+			"type": "object",
+			"default": {
+				"lazy": true,
+				"rootMargin": "300px",
+				"clickToActivate": false
+			}
+		},
+		"ariaLabel": {
+			"type": "string",
+			"default": "Interactive map"
+		},
+		"fallbackText": {
+			"type": "string",
+			"default": "Open this location in Yandex Maps"
+		},
+		"templateId": {
+			"type": "number",
+			"default": 0
+		},
+		"overrides": {
+			"type": "object",
+			"default": {}
+		},
+		"extensions": {
+			"type": "object",
+			"default": {}
+		},
+		"blockAlignment": {
+			"type": "string"
+		},
+		"lat": {
+			"type": "number"
+		},
+		"lon": {
+			"type": "number"
+		},
+		"pm_lat": {
+			"type": "number"
+		},
+		"pm_lon": {
+			"type": "number"
+		},
+		"pm_balloon": {
+			"type": "string"
+		},
+		"pm_hint": {
+			"type": "string"
+		},
+		"has_placemark": {
+			"type": "boolean"
+		}
+	},
+	"supports": {
+		"align": [ "wide", "full" ],
+		"anchor": true,
+		"className": true,
+		"html": false,
+		"multiple": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"border": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"viewScript": "file:./view.js"
+}

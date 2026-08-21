@@ -1,0 +1,415 @@
+.wp-block-gutenberg-yandex-block-map.guyamap-map,
+.wp-block-gutenberg-yandex-block-map.guyamap-block-editor {
+	--guyamap-height: 480px;
+	--guyamap-min-height: 280px;
+	--guyamap-width: 100%;
+	--guyamap-radius: 0;
+
+	box-sizing: border-box;
+	inline-size: min(100%, var(--guyamap-width));
+	block-size: var(--guyamap-height);
+	min-block-size: var(--guyamap-min-height);
+	margin-inline: auto;
+	overflow: hidden;
+	position: relative;
+	isolation: isolate;
+	border-radius: var(--guyamap-radius);
+	background: #eef1f5;
+
+	&[data-guyamap-aspect-ratio] {
+		block-size: auto;
+		aspect-ratio: var(--guyamap-aspect-ratio);
+	}
+
+	&.alignfull {
+		inline-size: 100%;
+	}
+
+	.guyamap-map__canvas {
+		position: relative;
+		inline-size: 100%;
+		block-size: 100%;
+		min-block-size: 0;
+		overflow: hidden;
+		background:
+			linear-gradient(135deg, rgb(255 255 255 / 45%), transparent),
+			#e7ebf0;
+	}
+
+	.guyamap-map__canvas:fullscreen {
+		position: fixed;
+		inset: 0;
+		inline-size: 100vw;
+		block-size: 100vh;
+	}
+
+	.guyamap-map__canvas[data-state="loading"]::before {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		content: "";
+		background: linear-gradient(90deg, transparent, rgb(255 255 255 / 55%), transparent);
+		animation: guyamap-loading 1.3s ease-in-out infinite;
+		transform: translateX(-100%);
+	}
+
+	.guyamap-map__config {
+		display: none !important;
+	}
+
+	.guyamap-map__fallback,
+	.guyamap-map__error {
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		z-index: 2;
+		max-inline-size: calc(100% - 48px);
+		padding: 10px 14px;
+		border-radius: 8px;
+		background: rgb(255 255 255 / 94%);
+		box-shadow: 0 4px 24px rgb(0 0 0 / 12%);
+		color: #1e1e1e;
+		font:
+			500 14px/1.4 system-ui,
+			sans-serif;
+		text-align: center;
+		transform: translate(-50%, -50%);
+	}
+
+	&[data-guyamap-ready="true"] .guyamap-map__fallback {
+		display: none;
+	}
+
+	.guyamap-map__activation {
+		position: absolute;
+		inset: 0;
+		z-index: 1000;
+		display: grid;
+		place-items: center;
+		background: rgb(238 241 245 / 72%);
+		backdrop-filter: blur(2px);
+	}
+
+	.guyamap-map__activation-button {
+		padding: 11px 18px;
+		border: 0;
+		border-radius: 8px;
+		background: #1e1e1e;
+		color: #fff;
+		font:
+			600 14px/1.3 system-ui,
+			sans-serif;
+		cursor: pointer;
+	}
+
+	.guyamap-map__fullscreen {
+		position: absolute;
+		inset-block-start: 10px;
+		inset-inline-end: 10px;
+		z-index: 900;
+		display: grid;
+		place-items: center;
+		inline-size: 40px;
+		block-size: 40px;
+		padding: 0;
+		border: 0;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+		color: #222;
+		font:
+			22px/1 system-ui,
+			sans-serif;
+		cursor: pointer;
+	}
+
+	.guyamap-map__controls {
+		position: absolute;
+		z-index: 900;
+		display: flex;
+		gap: 6px;
+		padding: 4px;
+		border-radius: 10px;
+		background: rgb(255 255 255 / 94%);
+		box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+
+		&[data-position="right"] {
+			inset-block-start: 50%;
+			inset-inline-end: 10px;
+			flex-direction: column;
+			transform: translateY(-50%);
+		}
+
+		&[data-position="left"] {
+			inset-block-start: 50%;
+			inset-inline-start: 10px;
+			flex-direction: column;
+			transform: translateY(-50%);
+		}
+
+		&[data-position="top"] {
+			inset-block-start: 10px;
+			inset-inline-start: 50%;
+			flex-direction: row;
+			transform: translateX(-50%);
+		}
+
+		&[data-position="bottom"] {
+			inset-block-end: 28px;
+			inset-inline-start: 50%;
+			flex-direction: row;
+			transform: translateX(-50%);
+		}
+	}
+
+	.guyamap-map__control {
+		display: grid;
+		place-items: center;
+		inline-size: 38px;
+		block-size: 38px;
+		padding: 0;
+		border: 0;
+		border-radius: 7px;
+		background: #fff;
+		color: #1e1e1e;
+		font:
+			600 22px/1 system-ui,
+			sans-serif;
+		cursor: pointer;
+
+		&:disabled {
+			cursor: wait;
+			opacity: 0.58;
+		}
+	}
+
+	.guyamap-map__screen-reader-status {
+		position: absolute !important;
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.guyamap-default-marker {
+		position: relative;
+		color: var(--guyamap-marker-color, #f43);
+	}
+
+	.guyamap-default-marker--normal {
+		inline-size: 46px;
+		block-size: 61px;
+		transform: translate(-50%, -100%);
+	}
+
+	.guyamap-default-marker--small {
+		inline-size: 28px;
+		block-size: 28px;
+		transform: translate(-50%, -50%);
+	}
+
+	.guyamap-default-marker--micro {
+		inline-size: 14px;
+		block-size: 14px;
+		transform: translate(-50%, -50%);
+	}
+
+	.guyamap-default-marker__trigger {
+		position: relative;
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		cursor: default;
+	}
+
+	.guyamap-default-marker__button {
+		cursor: pointer;
+	}
+
+	.guyamap-default-marker__visual {
+		position: absolute;
+		inset: 0;
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		pointer-events: none;
+	}
+
+	.guyamap-default-marker--small .guyamap-default-marker__visual,
+	.guyamap-default-marker--micro .guyamap-default-marker__visual {
+		box-sizing: border-box;
+		border: 2px solid rgb(255 255 255 / 90%);
+		border-radius: 50%;
+		background: currentcolor;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 26%);
+	}
+
+	.guyamap-default-marker__pin {
+		display: block;
+		inline-size: 46px;
+		block-size: 61px;
+		filter: drop-shadow(0 3px 4px rgb(0 0 0 / 25%));
+	}
+
+	.guyamap-default-marker__icon {
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		display: block;
+		transform: translate(-50%, -50%);
+	}
+
+	.guyamap-default-marker--normal .guyamap-default-marker__icon {
+		inset-block-start: 23px;
+		inline-size: 24px;
+		block-size: 24px;
+	}
+
+	.guyamap-default-marker--small .guyamap-default-marker__icon {
+		inline-size: 14px;
+		block-size: 14px;
+		filter: brightness(0) invert(1);
+	}
+
+	.guyamap-default-marker__popup {
+		position: absolute;
+		inset-block-end: calc(100% + 12px);
+		inset-inline-start: 50%;
+		transform: translateX(-50%);
+	}
+
+	.guyamap-image-marker {
+		position: relative;
+		transform: translate(var(--guyamap-marker-offset-x), var(--guyamap-marker-offset-y));
+	}
+
+	.guyamap-image-marker__trigger {
+		display: block;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		cursor: default;
+	}
+
+	.guyamap-image-marker__button {
+		cursor: pointer;
+	}
+
+	.guyamap-image-marker--error .guyamap-image-marker__trigger {
+		border: 2px solid rgb(255 255 255 / 90%);
+		background: var(--guyamap-marker-color, #f43);
+		box-shadow: 0 2px 8px rgb(0 0 0 / 26%);
+	}
+
+	.guyamap-image-marker__image {
+		display: block;
+		max-inline-size: none;
+	}
+
+	.guyamap-image-marker__popup {
+		position: absolute;
+		inset-block-end: calc(100% + 12px);
+		inset-inline-start: 50%;
+		transform: translateX(-50%);
+	}
+
+	.guyamap-popup {
+		box-sizing: border-box;
+		inline-size: max-content;
+		max-inline-size: min(320px, calc(100vw - 40px));
+		padding: 14px;
+		border-radius: 10px;
+		background: #fff;
+		box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
+		color: #1e1e1e;
+		font-family: system-ui, sans-serif;
+	}
+
+	.guyamap-popup__title {
+		margin: 0;
+		font-size: 16px;
+		line-height: 1.3;
+	}
+
+	.guyamap-popup__description {
+		margin: 8px 0 0;
+		font-size: 14px;
+		line-height: 1.45;
+		white-space: pre-line;
+	}
+
+	.guyamap-popup__address {
+		margin: 8px 0 0;
+		color: #646970;
+		font-size: 13px;
+		line-height: 1.4;
+	}
+
+	.guyamap-popup__link {
+		display: inline-block;
+		margin-block-start: 10px;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	.guyamap-cluster {
+		display: grid;
+		place-items: center;
+		min-inline-size: 44px;
+		block-size: 44px;
+		padding: 0 10px;
+		border: 4px solid rgb(255 255 255 / 86%);
+		border-radius: 999px;
+		background: var(--guyamap-cluster-color, #f43);
+		box-shadow: 0 3px 12px rgb(0 0 0 / 24%);
+		color: #fff;
+		font:
+			700 13px/1 system-ui,
+			sans-serif;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+	}
+
+	.guyamap-map__fallback:focus-visible,
+	.guyamap-map__activation-button:focus-visible,
+	.guyamap-map__fullscreen:focus-visible,
+	.guyamap-map__control:focus-visible,
+	.guyamap-default-marker__trigger:focus-visible,
+	.guyamap-image-marker__trigger:focus-visible,
+	.guyamap-cluster:focus-visible {
+		outline: 3px solid #3858e9;
+		outline-offset: 2px;
+	}
+
+	&:fullscreen {
+		inline-size: 100%;
+		block-size: 100%;
+		border-radius: 0;
+	}
+}
+
+@keyframes guyamap-loading {
+
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.wp-block-gutenberg-yandex-block-map.guyamap-map
+	.guyamap-map__canvas[data-state="loading"]::before,
+	.wp-block-gutenberg-yandex-block-map.guyamap-block-editor
+	.guyamap-map__canvas[data-state="loading"]::before {
+		animation: none;
+	}
+}

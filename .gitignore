@@ -1,0 +1,7 @@
+/.idea/
+/node_modules/
+/vendor/
+/.phpunit.result.cache
+/gutenberg-yandex-maps.zip
+npm-debug.log*
+yarn-error.log*

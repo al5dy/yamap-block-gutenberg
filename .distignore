@@ -1,0 +1,13 @@
+/.git
+/.github
+/.idea
+/node_modules
+/vendor
+/tests
+/.distignore
+/.gitignore
+/composer.lock
+/phpcs.xml.dist
+/phpunit.xml.dist
+/webpack.config.js
+npm-debug.log*

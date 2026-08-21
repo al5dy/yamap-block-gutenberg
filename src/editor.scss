@@ -1,0 +1,117 @@
+.wp-block-gutenberg-yandex-block-map {
+
+	.guyamap-editor-preview {
+		position: relative;
+		inline-size: 100%;
+		block-size: 100%;
+		min-block-size: 0;
+		overflow: hidden;
+	}
+
+	.guyamap-editor-preview__canvas {
+		position: relative;
+		inline-size: 100%;
+		block-size: 100%;
+		min-block-size: 0;
+		background: #eef1f5;
+	}
+
+	.guyamap-editor-preview__placeholder {
+		box-sizing: border-box;
+		min-block-size: 280px;
+	}
+
+	.guyamap-editor-preview__status {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		align-content: center;
+		gap: 8px;
+		background: rgb(255 255 255 / 72%);
+		text-align: center;
+	}
+
+	.guyamap-editor-preview__pick-hint {
+		position: absolute;
+		inset-block-start: 12px;
+		inset-inline-start: 50%;
+		z-index: 1000;
+		padding: 8px 12px;
+		border-radius: 6px;
+		background: #1e1e1e;
+		color: #fff;
+		font-size: 13px;
+		pointer-events: none;
+		transform: translateX(-50%);
+	}
+
+	&.is-selected {
+		box-shadow: 0 0 0 2px var(--wp-admin-theme-color, #3858e9);
+	}
+}
+
+.guyamap-control-grid {
+	display: grid;
+	gap: 12px;
+}
+
+.guyamap-control-grid--two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.guyamap-marker-editor__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-block: 8px 16px;
+}
+
+.guyamap-marker-editor__list {
+	display: grid;
+	gap: 4px;
+	max-block-size: 260px;
+	margin-block: 12px;
+	overflow-y: auto;
+}
+
+.guyamap-marker-editor__list-button {
+	justify-content: flex-start;
+	inline-size: 100%;
+	block-size: auto;
+	min-block-size: 44px;
+	text-align: start;
+
+	.components-button__text,
+	span,
+	small {
+		display: block;
+		inline-size: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	small {
+		margin-block-start: 2px;
+		opacity: 0.72;
+		font-size: 11px;
+	}
+}
+
+.guyamap-marker-editor__fields {
+	padding-block-start: 16px;
+	border-block-start: 1px solid #ddd;
+}
+
+.guyamap-json-control textarea {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+}
+
+@media (max-width: 480px) {
+
+	.guyamap-control-grid--two {
+		grid-template-columns: 1fr;
+	}
+}

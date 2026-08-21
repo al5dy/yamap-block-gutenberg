@@ -1,0 +1,22 @@
+THIRD-PARTY NOTICES
+===================
+
+Map Block for Yandex includes production code from:
+
+* @yandex/ymaps3-clusterer 0.0.12 - Copyright 2023 Yandex authors.
+
+This package is distributed under the Apache License, Version 2.0. A copy is
+included in LICENSES/Apache-2.0.txt.
+
+The plugin also includes unmodified marker icon SVG artwork in assets/icons/
+from @yandex/ymaps3-default-ui-theme 0.0.25 - Copyright 2024 Yandex authors.
+The artwork is distributed under the Apache License, Version 2.0; the upstream
+license and notices are preserved alongside the files.
+
+Export control notice from @yandex/ymaps3-default-ui-theme
+----------------------------------------------------------
+
+It is necessary to comply with the applicable export control laws and
+regulations. The upstream project declares that it complies with the
+applicable export control laws and regulations for the published software and
+expects users and contributors to comply with them as well.
