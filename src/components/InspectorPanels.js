@@ -12,6 +12,7 @@ import { __ } from '@wordpress/i18n';
 import JsonControl from './JsonControl';
 import MarkerEditor from './MarkerEditor';
 import NumericControl from './NumericControl';
+import Preloader from './Preloader';
 
 const BEHAVIOR_OPTIONS = [
 	{ label: __( 'Drag', 'yamap-block-gutenberg' ), value: 'drag' },
@@ -151,11 +152,21 @@ export default function InspectorPanels( {
 		zoom,
 		zoomRange = {},
 	} = attributes;
+	const preloader = loading.preloader ?? {};
 
 	const updateObjectAttribute = ( attributeName, patch ) => {
 		setAttributes( {
 			[ attributeName ]: {
 				...( attributes[ attributeName ] ?? {} ),
+				...patch,
+			},
+		} );
+	};
+
+	const updatePreloader = ( patch ) => {
+		updateObjectAttribute( 'loading', {
+			preloader: {
+				...preloader,
 				...patch,
 			},
 		} );
@@ -791,6 +802,136 @@ export default function InspectorPanels( {
 						updateObjectAttribute( 'loading', { clickToActivate } )
 					}
 				/>
+				<ToggleControl
+					__nextHasNoMarginBottom
+					checked={ Boolean( preloader.enabled ) }
+					help={ __(
+						'When disabled, the map is shown immediately without a loading overlay.',
+						'yamap-block-gutenberg'
+					) }
+					label={ __( 'Show preloader', 'yamap-block-gutenberg' ) }
+					onChange={ ( enabled ) => updatePreloader( { enabled } ) }
+				/>
+				{ preloader.enabled && (
+					<>
+						<Preloader
+							className="guyamap-preloader--preview"
+							label={ __(
+								'Loading map…',
+								'yamap-block-gutenberg'
+							) }
+							preloader={ preloader }
+						/>
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __(
+								'Preloader style',
+								'yamap-block-gutenberg'
+							) }
+							onChange={ ( type ) => updatePreloader( { type } ) }
+							options={ [
+								{
+									label: __(
+										'Spinner',
+										'yamap-block-gutenberg'
+									),
+									value: 'spinner',
+								},
+								{
+									label: __(
+										'Bouncing dots',
+										'yamap-block-gutenberg'
+									),
+									value: 'dots',
+								},
+								{
+									label: __(
+										'Pulse',
+										'yamap-block-gutenberg'
+									),
+									value: 'pulse',
+								},
+							] }
+							value={ preloader.type ?? 'spinner' }
+						/>
+						<div className="guyamap-control-grid guyamap-control-grid--two">
+							<TextControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label={ __(
+									'Loader color',
+									'yamap-block-gutenberg'
+								) }
+								onChange={ ( color ) =>
+									updatePreloader( { color } )
+								}
+								type="color"
+								value={ preloader.color ?? '#3858e9' }
+							/>
+							<TextControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label={ __(
+									'Background color',
+									'yamap-block-gutenberg'
+								) }
+								onChange={ ( backgroundColor ) =>
+									updatePreloader( { backgroundColor } )
+								}
+								type="color"
+								value={ preloader.backgroundColor ?? '#eef1f5' }
+							/>
+						</div>
+						<RangeControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __(
+								'Loader size',
+								'yamap-block-gutenberg'
+							) }
+							max={ 96 }
+							min={ 24 }
+							onChange={ ( size ) => updatePreloader( { size } ) }
+							step={ 1 }
+							value={ preloader.size ?? 48 }
+						/>
+						<RangeControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							help={ __(
+								'Fade-in duration in milliseconds.',
+								'yamap-block-gutenberg'
+							) }
+							label={ __(
+								'Transition duration',
+								'yamap-block-gutenberg'
+							) }
+							max={ 2000 }
+							min={ 0 }
+							onChange={ ( transitionDuration ) =>
+								updatePreloader( { transitionDuration } )
+							}
+							step={ 50 }
+							value={ preloader.transitionDuration ?? 300 }
+						/>
+						<TextControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __(
+								'Accessible loading text',
+								'yamap-block-gutenberg'
+							) }
+							onChange={ ( label ) =>
+								updatePreloader( { label } )
+							}
+							value={
+								preloader.label ??
+								__( 'Loading map…', 'yamap-block-gutenberg' )
+							}
+						/>
+					</>
+				) }
 			</PanelBody>
 
 			<PanelBody
@@ -813,7 +954,7 @@ export default function InspectorPanels( {
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 					label={ __(
-						'Fallback link text',
+						'Error and no-JavaScript link text',
 						'yamap-block-gutenberg'
 					) }
 					onChange={ ( nextFallbackText ) =>

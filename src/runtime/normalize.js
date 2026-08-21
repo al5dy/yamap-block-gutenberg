@@ -248,6 +248,7 @@ export function normalizeConfig( input = {} ) {
 	const mapOptions = input.mapOptions || {};
 	const cluster = input.cluster || {};
 	const loading = input.loading || {};
+	const preloader = loading.preloader || {};
 	const markers = Array.isArray( input.markers ) ? input.markers : [];
 	const theme = [ 'auto', 'light', 'dark' ].includes( input.theme )
 		? input.theme
@@ -334,6 +335,26 @@ export function normalizeConfig( input = {} ) {
 			lazy: booleanValue( loading.lazy, true ),
 			rootMargin: normalizeRootMargin( loading.rootMargin ),
 			clickToActivate: booleanValue( loading.clickToActivate ),
+			preloader: {
+				enabled: booleanValue( preloader.enabled ),
+				type: [ 'spinner', 'dots', 'pulse' ].includes( preloader.type )
+					? preloader.type
+					: 'spinner',
+				color: normalizeColor( preloader.color, '#3858e9' ),
+				backgroundColor: normalizeColor(
+					preloader.backgroundColor,
+					'#eef1f5'
+				),
+				size: Math.round( numberInRange( preloader.size, 48, 24, 96 ) ),
+				transitionDuration: Math.round(
+					numberInRange( preloader.transitionDuration, 300, 0, 2000 )
+				),
+				label: stringValue(
+					preloader.label,
+					input.i18n?.loading || 'Loading map…',
+					160
+				),
+			},
 		},
 		ariaLabel: stringValue( input.ariaLabel, 'Interactive map', 300 ),
 		fallbackText: stringValue(

@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Map Block for Yandex 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yamap-block-"
 "gutenberg\n"
-"POT-Creation-Date: 2026-08-21T16:25:32+02:00\n"
+"POT-Creation-Date: 2026-08-21T17:48:49+02:00\n"
 "PO-Revision-Date: 2026-08-21T10:46:30+03:00\n"
 "Last-Translator: al5dy\n"
 "Language-Team: Russian\n"
@@ -45,8 +45,8 @@ msgstr "al5dy"
 
 #. Author URI of the plugin
 #: yamap-block-gutenberg.php
-msgid "https://ziscod.com"
-msgstr "https://ziscod.com"
+msgid "https://lokotkov.ru"
+msgstr "https://lokotkov.ru"
 
 #: includes/Admin/Settings.php:52
 msgid "Global settings for Map Block for Yandex."
@@ -171,53 +171,56 @@ msgstr "Иврит"
 msgid "English (Israel)"
 msgstr "Английский (Израиль)"
 
-#: includes/Block/Map_Block.php:249 includes/Support/Config_Normalizer.php:229
-msgid "Interactive map"
-msgstr "Интерактивная карта"
-
-#: includes/Block/Map_Block.php:250 includes/Support/Config_Normalizer.php:234
-msgid "Open this location in Yandex Maps"
-msgstr "Открыть это место в Яндекс Картах"
-
-#: includes/Block/Map_Block.php:448
-msgid "Activate map"
-msgstr "Активировать карту"
-
-#: includes/Block/Map_Block.php:449
-msgid "Toggle fullscreen map"
-msgstr "Переключить полноэкранный режим карты"
-
-#: includes/Block/Map_Block.php:450
+#: includes/Block/Map_Block.php:244 includes/Block/Map_Block.php:478
+#: includes/Support/Config_Normalizer.php:732
+#: src/components/InspectorPanels.js:819 src/components/InspectorPanels.js:930
+#: src/components/MapPreview.js:52
 msgid "Loading map…"
 msgstr "Загрузка карты…"
 
-#: includes/Block/Map_Block.php:451
+#: includes/Block/Map_Block.php:268 includes/Support/Config_Normalizer.php:229
+msgid "Interactive map"
+msgstr "Интерактивная карта"
+
+#: includes/Block/Map_Block.php:269 includes/Support/Config_Normalizer.php:234
+msgid "Open this location in Yandex Maps"
+msgstr "Открыть это место в Яндекс Картах"
+
+#: includes/Block/Map_Block.php:476
+msgid "Activate map"
+msgstr "Активировать карту"
+
+#: includes/Block/Map_Block.php:477
+msgid "Toggle fullscreen map"
+msgstr "Переключить полноэкранный режим карты"
+
+#: includes/Block/Map_Block.php:479
 msgid "The map could not be loaded."
 msgstr "Не удалось загрузить карту."
 
-#: includes/Block/Map_Block.php:452
+#: includes/Block/Map_Block.php:480
 msgid "Map marker"
 msgstr "Маркер на карте"
 
 #. translators: %d: Marker count.
-#: includes/Block/Map_Block.php:454
+#: includes/Block/Map_Block.php:482
 #, php-format
 msgid "Cluster of %d map markers"
 msgstr "Маркеров в кластере: %d"
 
-#: includes/Block/Map_Block.php:455
+#: includes/Block/Map_Block.php:483
 msgid "Zoom in"
 msgstr "Увеличить масштаб"
 
-#: includes/Block/Map_Block.php:456
+#: includes/Block/Map_Block.php:484
 msgid "Zoom out"
 msgstr "Уменьшить масштаб"
 
-#: includes/Block/Map_Block.php:457
+#: includes/Block/Map_Block.php:485
 msgid "Show my location"
 msgstr "Показать моё местоположение"
 
-#: includes/Block/Map_Block.php:458
+#: includes/Block/Map_Block.php:486
 msgid "Your location could not be determined."
 msgstr "Не удалось определить ваше местоположение."
 
@@ -233,158 +236,158 @@ msgstr "Для блока карт Яндекса требуется PHP 7.4 и�
 msgid "Map Block for Yandex requires WordPress 6.6 or newer."
 msgstr "Для блока карт Яндекса требуется WordPress 6.6 или новее."
 
-#: src/components/InspectorPanels.js:17
+#: src/components/InspectorPanels.js:18
 msgid "Drag"
 msgstr "Перетаскивание"
 
-#: src/components/InspectorPanels.js:19
+#: src/components/InspectorPanels.js:20
 msgid "Mouse-wheel zoom"
 msgstr "Масштабирование колёсиком мыши"
 
-#: src/components/InspectorPanels.js:22
+#: src/components/InspectorPanels.js:23
 msgid "Pinch zoom"
 msgstr "Масштабирование сведением пальцев"
 
-#: src/components/InspectorPanels.js:24
+#: src/components/InspectorPanels.js:25
 msgid "Double-click zoom"
 msgstr "Масштабирование двойным щелчком"
 
-#: src/components/InspectorPanels.js:27
+#: src/components/InspectorPanels.js:28
 msgid "Mouse tilt"
 msgstr "Наклон карты мышью"
 
-#: src/components/InspectorPanels.js:29
+#: src/components/InspectorPanels.js:30
 msgid "Mouse rotation"
 msgstr "Вращение карты мышью"
 
-#: src/components/InspectorPanels.js:32
+#: src/components/InspectorPanels.js:33
 msgid "Magnifier"
 msgstr "Лупа"
 
-#: src/components/InspectorPanels.js:34
+#: src/components/InspectorPanels.js:35
 msgid "One-finger zoom"
 msgstr "Масштабирование одним пальцем"
 
-#: src/components/InspectorPanels.js:38
+#: src/components/InspectorPanels.js:39
 msgid "Pinch rotation"
 msgstr "Вращение двумя пальцами"
 
-#: src/components/InspectorPanels.js:41
+#: src/components/InspectorPanels.js:42
 msgid "Pan and tilt"
 msgstr "Панорамирование и наклон"
 
-#: src/components/InspectorPanels.js:198
+#: src/components/InspectorPanels.js:209
 msgid "Viewport"
 msgstr "Область просмотра"
 
-#: src/components/InspectorPanels.js:202
+#: src/components/InspectorPanels.js:213
 msgid "Center latitude"
 msgstr "Широта центра"
 
-#: src/components/InspectorPanels.js:215
+#: src/components/InspectorPanels.js:226
 msgid "Center longitude"
 msgstr "Долгота центра"
 
-#: src/components/InspectorPanels.js:231
+#: src/components/InspectorPanels.js:242
 msgid "Zoom"
 msgstr "Масштаб"
 
-#: src/components/InspectorPanels.js:242
+#: src/components/InspectorPanels.js:253
 msgid "Minimum zoom"
 msgstr "Минимальный масштаб"
 
-#: src/components/InspectorPanels.js:255
+#: src/components/InspectorPanels.js:266
 msgid "Maximum zoom"
 msgstr "Максимальный масштаб"
 
-#: src/components/InspectorPanels.js:270
+#: src/components/InspectorPanels.js:281
 msgid "Camera tilt"
 msgstr "Наклон камеры"
 
-#: src/components/InspectorPanels.js:282
+#: src/components/InspectorPanels.js:293
 msgid "Camera azimuth"
 msgstr "Азимут камеры"
 
-#: src/components/InspectorPanels.js:295
+#: src/components/InspectorPanels.js:306
 msgid "Container"
 msgstr "Контейнер"
 
-#: src/components/InspectorPanels.js:300
+#: src/components/InspectorPanels.js:311
 msgid "Use a valid CSS length, for example 100% or 960px."
 msgstr "Укажите допустимую длину в формате CSS, например 100% или 960px."
 
-#: src/components/InspectorPanels.js:304
+#: src/components/InspectorPanels.js:315
 msgid "Width"
 msgstr "Ширина"
 
-#: src/components/InspectorPanels.js:313
+#: src/components/InspectorPanels.js:324
 msgid "Use a valid CSS length, for example 480px or 60vh."
 msgstr "Укажите допустимую длину в формате CSS, например 480px или 60vh."
 
-#: src/components/InspectorPanels.js:317
+#: src/components/InspectorPanels.js:328
 msgid "Height"
 msgstr "Высота"
 
-#: src/components/InspectorPanels.js:326
+#: src/components/InspectorPanels.js:337
 msgid "Minimum height"
 msgstr "Минимальная высота"
 
-#: src/components/InspectorPanels.js:335
+#: src/components/InspectorPanels.js:346
 msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9."
 msgstr ""
 "Оставьте пустым для произвольной высоты или укажите соотношение, например "
 "16 / 9."
 
-#: src/components/InspectorPanels.js:339
+#: src/components/InspectorPanels.js:350
 msgid "Aspect ratio"
 msgstr "Соотношение сторон"
 
-#: src/components/InspectorPanels.js:349
+#: src/components/InspectorPanels.js:360
 msgid "Map appearance"
 msgstr "Внешний вид карты"
 
-#: src/components/InspectorPanels.js:354
+#: src/components/InspectorPanels.js:365
 msgid "Rendering mode"
 msgstr "Режим отрисовки"
 
-#: src/components/InspectorPanels.js:360 src/components/InspectorPanels.js:383
-#: src/components/InspectorPanels.js:555
+#: src/components/InspectorPanels.js:371 src/components/InspectorPanels.js:394
+#: src/components/InspectorPanels.js:566
 msgid "Automatic"
 msgstr "Автоматически"
 
-#: src/components/InspectorPanels.js:364
+#: src/components/InspectorPanels.js:375
 msgid "Raster"
 msgstr "Растровый"
 
-#: src/components/InspectorPanels.js:368
+#: src/components/InspectorPanels.js:379
 msgid "Vector"
 msgstr "Векторный"
 
-#: src/components/InspectorPanels.js:377
+#: src/components/InspectorPanels.js:388
 msgid "Map theme"
 msgstr "Тема карты"
 
-#: src/components/InspectorPanels.js:387
+#: src/components/InspectorPanels.js:398
 msgid "Light"
 msgstr "Светлая"
 
-#: src/components/InspectorPanels.js:391
+#: src/components/InspectorPanels.js:402
 msgid "Dark"
 msgstr "Тёмная"
 
-#: src/components/InspectorPanels.js:399
+#: src/components/InspectorPanels.js:410
 msgid "Advanced Yandex map customization rules."
 msgstr "Расширенные правила оформления карты Яндекса."
 
-#: src/components/InspectorPanels.js:403
+#: src/components/InspectorPanels.js:414
 msgid "Customization JSON"
 msgstr "JSON настроек оформления"
 
-#: src/components/InspectorPanels.js:416
+#: src/components/InspectorPanels.js:427
 msgid "Behaviors"
 msgstr "Взаимодействие с картой"
 
-#: src/components/InspectorPanels.js:419
+#: src/components/InspectorPanels.js:430
 msgid ""
 "These behaviors apply on the frontend. The editor preview is intentionally "
 "controlled only from this sidebar."
@@ -392,181 +395,229 @@ msgstr ""
 "Эти способы взаимодействия действуют на опубликованной карте. Предпросмотр в "
 "редакторе намеренно управляется только из этой боковой панели."
 
-#: src/components/InspectorPanels.js:439
+#: src/components/InspectorPanels.js:450
 msgid "Controls"
 msgstr "Элементы управления"
 
-#: src/components/InspectorPanels.js:444
+#: src/components/InspectorPanels.js:455
 msgid "Zoom control"
 msgstr "Элемент управления масштабом"
 
-#: src/components/InspectorPanels.js:454
+#: src/components/InspectorPanels.js:465
 msgid "Geolocation control"
 msgstr "Элемент управления геолокацией"
 
-#: src/components/InspectorPanels.js:465
+#: src/components/InspectorPanels.js:476
 msgid "Fullscreen control"
 msgstr "Элемент полноэкранного режима"
 
-#: src/components/InspectorPanels.js:476
+#: src/components/InspectorPanels.js:487
 msgid "Controls position"
 msgstr "Положение элементов управления"
 
-#: src/components/InspectorPanels.js:482
+#: src/components/InspectorPanels.js:493
 msgid "Right"
 msgstr "Справа"
 
-#: src/components/InspectorPanels.js:486
+#: src/components/InspectorPanels.js:497
 msgid "Left"
 msgstr "Слева"
 
-#: src/components/InspectorPanels.js:496
+#: src/components/InspectorPanels.js:507
 msgid "Advanced map options"
 msgstr "Расширенные параметры карты"
 
-#: src/components/InspectorPanels.js:501
+#: src/components/InspectorPanels.js:512
 msgid "Copyrights position"
 msgstr "Положение сведений об авторских правах"
 
-#: src/components/InspectorPanels.js:512
+#: src/components/InspectorPanels.js:523
 msgid "Bottom right"
 msgstr "Справа внизу"
 
-#: src/components/InspectorPanels.js:519
+#: src/components/InspectorPanels.js:530
 msgid "Bottom left"
 msgstr "Слева внизу"
 
-#: src/components/InspectorPanels.js:523
+#: src/components/InspectorPanels.js:534
 msgid "Top right"
 msgstr "Справа вверху"
 
-#: src/components/InspectorPanels.js:527
+#: src/components/InspectorPanels.js:538
 msgid "Top left"
 msgstr "Слева вверху"
 
-#: src/components/InspectorPanels.js:536
+#: src/components/InspectorPanels.js:547
 msgid "Show scale in copyrights"
 msgstr "Показывать масштаб в блоке авторских прав"
 
-#: src/components/InspectorPanels.js:549
+#: src/components/InspectorPanels.js:560
 msgid "Zoom rounding"
 msgstr "Округление масштаба"
 
-#: src/components/InspectorPanels.js:559
+#: src/components/InspectorPanels.js:570
 msgid "Smooth"
 msgstr "Плавное"
 
-#: src/components/InspectorPanels.js:563
+#: src/components/InspectorPanels.js:574
 msgid "Snap"
 msgstr "По шагам"
 
-#: src/components/InspectorPanels.js:572
+#: src/components/InspectorPanels.js:583
 msgid "Zoom strategy"
 msgstr "Стратегия масштабирования"
 
-#: src/components/InspectorPanels.js:578
+#: src/components/InspectorPanels.js:589
 msgid "Zoom to pointer"
 msgstr "Масштабирование относительно указателя"
 
-#: src/components/InspectorPanels.js:585
+#: src/components/InspectorPanels.js:596
 msgid "Zoom to center"
 msgstr "Масштабирование относительно центра"
 
-#: src/components/InspectorPanels.js:597
+#: src/components/InspectorPanels.js:608
 msgid "Restrict map area"
 msgstr "Ограничить область карты"
 
-#: src/components/InspectorPanels.js:609
+#: src/components/InspectorPanels.js:620
 msgid "West longitude"
 msgstr "Западная долгота"
 
-#: src/components/InspectorPanels.js:622
+#: src/components/InspectorPanels.js:633
 msgid "North latitude"
 msgstr "Северная широта"
 
-#: src/components/InspectorPanels.js:635
+#: src/components/InspectorPanels.js:646
 msgid "East longitude"
 msgstr "Восточная долгота"
 
-#: src/components/InspectorPanels.js:648
+#: src/components/InspectorPanels.js:659
 msgid "South latitude"
 msgstr "Южная широта"
 
-#: src/components/InspectorPanels.js:665
+#: src/components/InspectorPanels.js:676
 msgid "Fit viewport to markers"
 msgstr "Вписать маркеры в область просмотра"
 
-#: src/components/InspectorPanels.js:675
+#: src/components/InspectorPanels.js:686
 msgid "Top margin"
 msgstr "Отступ сверху"
 
-#: src/components/InspectorPanels.js:676
+#: src/components/InspectorPanels.js:687
 msgid "Right margin"
 msgstr "Отступ справа"
 
-#: src/components/InspectorPanels.js:677
+#: src/components/InspectorPanels.js:688
 msgid "Bottom margin"
 msgstr "Отступ снизу"
 
-#: src/components/InspectorPanels.js:678
+#: src/components/InspectorPanels.js:689
 msgid "Left margin"
 msgstr "Отступ слева"
 
-#: src/components/InspectorPanels.js:696
+#: src/components/InspectorPanels.js:707
 msgid "Markers"
 msgstr "Маркеры"
 
-#: src/components/InspectorPanels.js:711
+#: src/components/InspectorPanels.js:722
 msgid "Clustering"
 msgstr "Кластеризация"
 
-#: src/components/InspectorPanels.js:716
+#: src/components/InspectorPanels.js:727
 msgid "Enable clustering"
 msgstr "Включить кластеризацию"
 
-#: src/components/InspectorPanels.js:722
+#: src/components/InspectorPanels.js:733
 msgid "Cluster grid size"
 msgstr "Размер сетки кластеризации"
 
-#: src/components/InspectorPanels.js:732
+#: src/components/InspectorPanels.js:743
 msgid "Maximum clustering zoom"
 msgstr "Максимальный масштаб кластеризации"
 
-#: src/components/InspectorPanels.js:747
+#: src/components/InspectorPanels.js:758
 msgid "Cluster color"
 msgstr "Цвет кластера"
 
-#: src/components/InspectorPanels.js:757
+#: src/components/InspectorPanels.js:768
 msgid "Loading and interaction"
 msgstr "Загрузка и взаимодействие"
 
-#: src/components/InspectorPanels.js:765
+#: src/components/InspectorPanels.js:776
 msgid "Lazy-load the map"
 msgstr "Отложенная загрузка карты"
 
-#: src/components/InspectorPanels.js:773
+#: src/components/InspectorPanels.js:784
 msgid "Intersection Observer margin, for example 300px."
 msgstr "Отступ Intersection Observer, например 300px."
 
-#: src/components/InspectorPanels.js:777
+#: src/components/InspectorPanels.js:788
 msgid "Preload distance"
 msgstr "Расстояние предварительной загрузки"
 
-#: src/components/InspectorPanels.js:786
+#: src/components/InspectorPanels.js:797
 msgid "Require click to activate"
 msgstr "Активировать карту только по нажатию"
 
-#: src/components/InspectorPanels.js:798
+#: src/components/InspectorPanels.js:808
+msgid "When disabled, the map is shown immediately without a loading overlay."
+msgstr "Если отключено, карта отображается сразу без индикатора загрузки."
+
+#: src/components/InspectorPanels.js:812
+msgid "Show preloader"
+msgstr "Показывать прелоадер"
+
+#: src/components/InspectorPanels.js:828
+msgid "Preloader style"
+msgstr "Стиль прелоадера"
+
+#: src/components/InspectorPanels.js:835
+msgid "Spinner"
+msgstr "Круговой индикатор"
+
+#: src/components/InspectorPanels.js:842
+msgid "Bouncing dots"
+msgstr "Прыгающие точки"
+
+#: src/components/InspectorPanels.js:849
+msgid "Pulse"
+msgstr "Пульсация"
+
+#: src/components/InspectorPanels.js:862
+msgid "Loader color"
+msgstr "Цвет индикатора"
+
+#: src/components/InspectorPanels.js:875
+msgid "Background color"
+msgstr "Цвет фона"
+
+#: src/components/InspectorPanels.js:889
+msgid "Loader size"
+msgstr "Размер индикатора"
+
+#: src/components/InspectorPanels.js:902
+msgid "Fade-in duration in milliseconds."
+msgstr "Длительность плавного появления в миллисекундах."
+
+#: src/components/InspectorPanels.js:906
+msgid "Transition duration"
+msgstr "Длительность перехода"
+
+#: src/components/InspectorPanels.js:921
+msgid "Accessible loading text"
+msgstr "Доступный текст загрузки"
+
+#: src/components/InspectorPanels.js:939
 msgid "Accessibility and fallback"
 msgstr "Специальные возможности и резервный вариант"
 
-#: src/components/InspectorPanels.js:806
+#: src/components/InspectorPanels.js:947
 msgid "Accessible label"
 msgstr "Метка для специальных возможностей"
 
-#: src/components/InspectorPanels.js:815
-msgid "Fallback link text"
-msgstr "Текст резервной ссылки"
+#: src/components/InspectorPanels.js:956
+msgid "Error and no-JavaScript link text"
+msgstr "Текст ссылки при ошибке и отключённом JavaScript"
 
 #: src/components/JsonControl.js:42
 msgid "The value must be a JSON array."
@@ -580,29 +631,29 @@ msgstr "Значение должно быть объектом JSON."
 msgid "Enter valid JSON before applying this value."
 msgstr "Перед применением введите корректный JSON."
 
-#: src/components/MapPreview.js:87 src/components/MapPreview.js:103
-#: src/components/MapPreview.js:140
+#: src/components/MapPreview.js:92 src/components/MapPreview.js:108
+#: src/components/MapPreview.js:145
 msgid "The map preview could not be loaded."
 msgstr "Не удалось загрузить предпросмотр карты."
 
-#: src/components/MapPreview.js:157
+#: src/components/MapPreview.js:162
 msgid "Add a Yandex Maps API key to display the interactive preview."
 msgstr ""
 "Добавьте ключ API Яндекс Карт, чтобы отобразить интерактивный предпросмотр."
 
-#: src/components/MapPreview.js:161
+#: src/components/MapPreview.js:166
 msgid "Yandex Map"
 msgstr "Карта Яндекса"
 
-#: src/components/MapPreview.js:165
+#: src/components/MapPreview.js:170
 msgid "Open map settings"
 msgstr "Открыть настройки карты"
 
-#: src/components/MapPreview.js:187
+#: src/components/MapPreview.js:188
 msgid "Loading map preview…"
 msgstr "Загрузка предпросмотра карты…"
 
-#: src/components/MapPreview.js:203
+#: src/components/MapPreview.js:204
 msgid "Retry map preview"
 msgstr "Повторить загрузку карты"
 
@@ -797,3 +848,9 @@ msgstr "яндекс"
 msgctxt "block keyword"
 msgid "location"
 msgstr "местоположение"
+
+#~ msgid "https://ziscod.com"
+#~ msgstr "https://ziscod.com"
+
+#~ msgid "Fallback link text"
+#~ msgstr "Текст резервной ссылки"

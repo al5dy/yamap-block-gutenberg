@@ -220,7 +220,8 @@ final class Map_Block {
 		if ( is_array( $filtered_config ) ) {
 			$config = array_merge( $this->normalizer->revalidate( $filtered_config ), $runtime_config );
 		}
-		$config = $this->normalizer->enforce_render_budget( $config );
+		$config['fallbackUrl'] = $this->get_fallback_url( $config );
+		$config                = $this->normalizer->enforce_render_budget( $config );
 
 		$json = $this->encode_json( $config );
 
@@ -235,27 +236,54 @@ final class Map_Block {
 			$style_variables[] = '--guyamap-aspect-ratio:' . $aspect_ratio;
 		}
 
+		$preloader         = isset( $config['loading']['preloader'] ) && is_array( $config['loading']['preloader'] )
+			? $config['loading']['preloader']
+			: array();
+		$preloader_enabled = true === ( $preloader['enabled'] ?? false );
+		$preloader_type    = sanitize_html_class( (string) ( $preloader['type'] ?? 'spinner' ) );
+		$preloader_label   = sanitize_text_field( (string) ( $preloader['label'] ?? __( 'Loading map…', 'yamap-block-gutenberg' ) ) );
+
+		if ( $preloader_enabled ) {
+			$style_variables[] = '--guyamap-preloader-color:' . (string) ( $preloader['color'] ?? '#3858e9' );
+			$style_variables[] = '--guyamap-preloader-background:' . (string) ( $preloader['backgroundColor'] ?? '#eef1f5' );
+			$style_variables[] = '--guyamap-preloader-size:' . (string) ( $preloader['size'] ?? 48 ) . 'px';
+			$style_variables[] = '--guyamap-transition-duration:' . (string) ( $preloader['transitionDuration'] ?? 300 ) . 'ms';
+		}
+
 		$wrapper_attributes = array(
 			'class'               => 'guyamap-map',
 			'data-guyamap-map'    => '',
 			'data-guyamap-schema' => (string) Config_Normalizer::SCHEMA_VERSION,
+			'data-guyamap-state'  => 'pending',
 			'style'               => safecss_filter_attr( implode( ';', $style_variables ) . ';' ),
 		);
 
 		if ( '' !== $aspect_ratio ) {
 			$wrapper_attributes['data-guyamap-aspect-ratio'] = $aspect_ratio;
 		}
+		if ( $preloader_enabled ) {
+			$wrapper_attributes['data-guyamap-preloader'] = $preloader_type;
+		}
 
-		$aria_label    = sanitize_text_field( (string) ( $config['ariaLabel'] ?? __( 'Interactive map', 'yamap-block-gutenberg' ) ) );
-		$fallback_text = sanitize_text_field( (string) ( $config['fallbackText'] ?? __( 'Open this location in Yandex Maps', 'yamap-block-gutenberg' ) ) );
-		$fallback_url  = $this->get_fallback_url( $config );
+		$aria_label     = sanitize_text_field( (string) ( $config['ariaLabel'] ?? __( 'Interactive map', 'yamap-block-gutenberg' ) ) );
+		$fallback_text  = sanitize_text_field( (string) ( $config['fallbackText'] ?? __( 'Open this location in Yandex Maps', 'yamap-block-gutenberg' ) ) );
+		$fallback_url   = (string) ( $config['fallbackUrl'] ?? $this->get_fallback_url( $config ) );
+		$preloader_html = '';
+		if ( $preloader_enabled ) {
+			$preloader_html = sprintf(
+				'<div class="guyamap-map__preloader guyamap-preloader guyamap-preloader--%1$s" role="status" aria-live="polite"><span class="guyamap-preloader__visual" aria-hidden="true"><span></span><span></span><span></span></span><span class="guyamap-preloader__label">%2$s</span></div>',
+				esc_attr( $preloader_type ),
+				esc_html( $preloader_label )
+			);
+		}
 
 		$html = sprintf(
-			'<div %1$s><guyamap-map-view id="%2$s" class="guyamap-map__canvas" role="region" aria-label="%3$s"></guyamap-map-view><script type="application/json" class="guyamap-map__config">%4$s</script><a class="guyamap-map__fallback" href="%5$s" target="_blank" rel="noopener noreferrer external">%6$s</a></div>',
+			'<div %1$s><guyamap-map-view id="%2$s" class="guyamap-map__canvas" role="region" aria-label="%3$s"></guyamap-map-view><script type="application/json" class="guyamap-map__config">%4$s</script>%5$s<noscript><a class="guyamap-map__noscript-fallback" href="%6$s" target="_blank" rel="noopener noreferrer external">%7$s</a></noscript></div>',
 			get_block_wrapper_attributes( $wrapper_attributes ),
 			esc_attr( $instance_id ),
 			esc_attr( $aria_label ),
 			$json,
+			$preloader_html,
 			esc_url( $fallback_url ),
 			esc_html( $fallback_text )
 		);

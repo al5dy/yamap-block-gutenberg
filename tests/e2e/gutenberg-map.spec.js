@@ -3,6 +3,7 @@ const { expect, test } = require( '@playwright/test' );
 const username = process.env.GUYAMAP_E2E_USERNAME;
 const password = process.env.GUYAMAP_E2E_PASSWORD;
 const postId = process.env.GUYAMAP_E2E_POST_ID || '2';
+const layoutPostId = process.env.GUYAMAP_E2E_LAYOUT_POST_ID;
 
 const dismissWelcomeGuide = async ( page ) => {
 	const welcome = page.locator( '.components-modal__frame' ).filter( {
@@ -245,6 +246,46 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 		),
 		readyCount: window.__guyamapE2E.readyEvents.length,
 	} ) );
+
+	const loadingPanel = page.getByRole( 'button', {
+		name: 'Loading and interaction',
+	} );
+	await expect( loadingPanel ).toBeVisible();
+	if ( ( await loadingPanel.getAttribute( 'aria-expanded' ) ) !== 'true' ) {
+		await loadingPanel.click();
+	}
+	const preloaderToggle = page.getByRole( 'checkbox', {
+		name: 'Show preloader',
+	} );
+	await expect( preloaderToggle ).not.toBeChecked();
+	await preloaderToggle.check();
+	const preloaderPreview = page.locator( '.guyamap-preloader--preview' );
+	await expect( preloaderPreview ).toBeVisible();
+	await page.getByLabel( 'Preloader style' ).selectOption( 'dots' );
+	await page.getByRole( 'slider', { name: 'Loader size' } ).fill( '60' );
+	await expect( preloaderPreview ).toHaveClass( /guyamap-preloader--dots/ );
+	const livePreloader = await page.evaluate( ( clientId ) => {
+		const attributes = window.wp.data
+			.select( 'core/block-editor' )
+			.getBlock( clientId ).attributes;
+		const preview = document.querySelector( '.guyamap-preloader--preview' );
+
+		return {
+			enabled: attributes.loading.preloader.enabled,
+			size: attributes.loading.preloader.size,
+			type: attributes.loading.preloader.type,
+			previewSize: window
+				.getComputedStyle( preview )
+				.getPropertyValue( '--guyamap-preloader-size' ),
+		};
+	}, firstBlockId );
+	expect( livePreloader ).toEqual( {
+		enabled: true,
+		size: 60,
+		type: 'dots',
+		previewSize: '60px',
+	} );
+
 	expect( updatedRuntime.errorEvents ).toEqual( [] );
 	expect( updatedRuntime.readyCount ).toBe( 2 );
 	expect( updatedRuntime.mapIdentityPreserved ).toBe( true );
@@ -323,4 +364,102 @@ test( 'renders isolated maps with the real SDK on the public page', async ( {
 	expect(
 		await page.evaluate( () => window.__guyamapE2E.errorEvents )
 	).toEqual( [] );
+} );
+
+test( 'renders optional preloaders and all width modes without overflow', async ( {
+	page,
+}, testInfo ) => {
+	if ( ! layoutPostId ) {
+		throw new Error( 'GUYAMAP_E2E_LAYOUT_POST_ID is required.' );
+	}
+
+	let continueSdkRequest;
+	await page.route( 'https://api-maps.yandex.ru/v3/**', ( route ) => {
+		continueSdkRequest = () => route.continue();
+	} );
+	await page.setViewportSize( { width: 1280, height: 900 } );
+	await page.goto( `/?page_id=${ layoutPostId }`, {
+		waitUntil: 'domcontentloaded',
+	} );
+	await expect
+		.poll( () => Boolean( continueSdkRequest ), { timeout: 15000 } )
+		.toBe( true );
+
+	const mapBlocks = page.locator( '[data-guyamap-map]' );
+	await expect( mapBlocks ).toHaveCount( 3 );
+	await expect(
+		mapBlocks.nth( 0 ).locator( '.guyamap-map__preloader' )
+	).toHaveCount( 0 );
+	await expect( page.locator( 'a.guyamap-map__fallback' ) ).toHaveCount( 0 );
+	expect( await page.locator( 'body' ).innerText() ).not.toContain(
+		'Open this location in Yandex Maps'
+	);
+
+	const enabledPreloader = mapBlocks
+		.nth( 1 )
+		.locator( '.guyamap-map__preloader' );
+	await expect( enabledPreloader ).toBeVisible();
+	await expect( enabledPreloader ).toHaveClass( /guyamap-preloader--dots/ );
+	const loadingPresentation = await enabledPreloader.evaluate(
+		( element ) => {
+			const style = window.getComputedStyle( element );
+			return {
+				background: style.backgroundColor,
+				color: style.color,
+				size: style.getPropertyValue( '--guyamap-preloader-size' ),
+				state: element.closest( '[data-guyamap-map]' ).dataset
+					.guyamapState,
+			};
+		}
+	);
+	expect( loadingPresentation ).toEqual( {
+		background: 'rgb(240, 246, 252)',
+		color: 'rgb(214, 54, 56)',
+		size: '56px',
+		state: 'loading',
+	} );
+	await enabledPreloader.screenshot( {
+		path: testInfo.outputPath( 'frontend-custom-preloader.png' ),
+	} );
+
+	await continueSdkRequest();
+	const mapHosts = page.locator( 'guyamap-map-view' );
+	for ( let index = 0; index < 3; index += 1 ) {
+		await expect( mapHosts.nth( index ) ).toHaveAttribute(
+			'data-state',
+			'ready',
+			{ timeout: 60000 }
+		);
+	}
+	await expect( enabledPreloader ).toBeHidden();
+
+	const layout = await page.evaluate( () => {
+		const blocks = [
+			...document.querySelectorAll( '[data-guyamap-map]' ),
+		].map( ( block ) => block.getBoundingClientRect().toJSON() );
+		return {
+			blocks,
+			clientWidth: document.documentElement.clientWidth,
+			scrollWidth: document.documentElement.scrollWidth,
+		};
+	} );
+	const [ full, wide, standard ] = layout.blocks;
+	expect( Math.abs( full.left ) ).toBeLessThanOrEqual( 1 );
+	expect( Math.abs( full.right - layout.clientWidth ) ).toBeLessThanOrEqual(
+		1
+	);
+	expect( layout.scrollWidth ).toBe( layout.clientWidth );
+	expect( wide.left ).toBeGreaterThan( 0 );
+	expect(
+		Math.abs( wide.left - ( layout.clientWidth - wide.right ) )
+	).toBeLessThanOrEqual( 1 );
+	expect( Math.abs( standard.width - 520 ) ).toBeLessThanOrEqual( 1 );
+	expect(
+		Math.abs( standard.left - ( layout.clientWidth - standard.right ) )
+	).toBeLessThanOrEqual( 1 );
+
+	await page.screenshot( {
+		fullPage: true,
+		path: testInfo.outputPath( 'frontend-width-modes.png' ),
+	} );
 } );

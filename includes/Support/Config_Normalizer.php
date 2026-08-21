@@ -708,10 +708,31 @@ final class Config_Normalizer {
 	 * @return array<string, mixed>
 	 */
 	private function normalize_loading( array $loading ): array {
+		$preloader = isset( $loading['preloader'] ) && is_array( $loading['preloader'] )
+			? $loading['preloader']
+			: array();
+
 		return array(
 			'lazy'            => $this->normalize_boolean( $loading['lazy'] ?? true ),
 			'rootMargin'      => $this->normalize_root_margin( $loading['rootMargin'] ?? '300px' ),
 			'clickToActivate' => $this->normalize_boolean( $loading['clickToActivate'] ?? false ),
+			'preloader'       => array(
+				'enabled'            => $this->normalize_boolean( $preloader['enabled'] ?? false ),
+				'type'               => $this->normalize_enum(
+					$preloader['type'] ?? 'spinner',
+					array( 'spinner', 'dots', 'pulse' ),
+					'spinner'
+				),
+				'color'              => $this->normalize_color( $preloader['color'] ?? '#3858e9', '#3858e9' ),
+				'backgroundColor'    => $this->normalize_color( $preloader['backgroundColor'] ?? '#eef1f5', '#eef1f5' ),
+				'size'               => $this->normalize_integer( $preloader['size'] ?? 48, 48, 24, 96 ),
+				'transitionDuration' => $this->normalize_integer( $preloader['transitionDuration'] ?? 300, 300, 0, 2000 ),
+				'label'              => $this->normalize_non_empty_text(
+					$preloader['label'] ?? '',
+					__( 'Loading map…', 'yamap-block-gutenberg' ),
+					160
+				),
+			),
 		);
 	}
 

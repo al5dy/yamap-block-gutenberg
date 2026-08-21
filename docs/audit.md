@@ -145,13 +145,14 @@ must be audited again when implemented.
 - Marker search in the editor materializes at most 100 visible results.
 - Configuration, customization, extension bags and text fields all have hard
   bounds.
-- The 2.0 production build produced approximately 57.9 KiB editor JavaScript,
-  28.9 KiB frontend JavaScript and a 5.23 KiB lazy clusterer chunk, excluding
+- The 2.0 production build produced approximately 62.1 KiB editor JavaScript,
+  30.2 KiB frontend JavaScript and a 5.23 KiB lazy clusterer chunk, excluding
   the remote Yandex SDK.
 - Real Chromium/Playwright smoke tests verify two simultaneous maps in Gutenberg
   and on the public page, Shadow DOM style isolation, successful Yandex SDK
-  rendering, an inert editor surface, blocked drag/wheel camera input, and live
-  inspector zoom updates without replacing the `YMap` instance.
+  rendering, an inert editor surface, blocked drag/wheel camera input, live
+  inspector updates without replacing the `YMap` instance, optional preloader
+  presentation, and standard/wide/full width geometry without horizontal overflow.
 
 This is not evidence that one million objects should be sent to a browser.
 Large future sources require viewport/tile queries, server-side clusters,
@@ -164,7 +165,9 @@ bounded responses and virtualized cards.
 - Zoom, geolocation and fullscreen controls have translated accessible names
   and visible focus treatment.
 - Reduced-motion preferences are respected.
-- Every map retains a semantic region and a normal Yandex Maps fallback link.
+- Every map retains a semantic region; the Yandex Maps fallback appears only
+  after a controlled runtime failure or when JavaScript is unavailable, never
+  as a flash over a normally loading map.
 - Click-to-activate allows a site owner to defer the Yandex network request
   until visitor interaction.
 - The readme and WordPress privacy guide disclose the API key, IP address, user
@@ -174,7 +177,7 @@ bounded responses and virtualized cards.
 
 - Runtime, PHP and editor source strings use the plugin slug text domain
   `yamap-block-gutenberg`.
-- The Russian catalog contains 179 translated messages with zero untranslated,
+- The Russian catalog contains 191 translated messages with zero untranslated,
   fuzzy or obsolete entries.
 - PHP uses the bundled MO file and the editor uses the WordPress script-JSON
   naming convention for `build/index.js`.

@@ -49,14 +49,30 @@ const wp = ( args, options = {} ) =>
 const suppliedUsername = process.env.GUYAMAP_E2E_USERNAME || '';
 const suppliedPassword = process.env.GUYAMAP_E2E_PASSWORD || '';
 let temporaryUserId = '';
+let temporaryPageId = '';
 let cleanedUp = false;
 
 const cleanup = () => {
-	if ( cleanedUp || ! temporaryUserId ) {
+	if ( cleanedUp ) {
 		return;
 	}
 
 	cleanedUp = true;
+	if ( temporaryPageId ) {
+		try {
+			wp( [ 'post', 'delete', temporaryPageId, '--force' ] );
+			process.stdout.write(
+				'Removed the temporary WordPress E2E page.\n'
+			);
+		} catch ( error ) {
+			process.stderr.write(
+				`E2E page cleanup failed: ${ error.message }\n`
+			);
+		}
+	}
+	if ( ! temporaryUserId ) {
+		return;
+	}
 	try {
 		wp( [ 'user', 'delete', temporaryUserId, '--yes' ] );
 		process.stdout.write( 'Removed the temporary WordPress E2E user.\n' );
@@ -97,6 +113,22 @@ try {
 		process.stdout.write( 'Created a temporary WordPress E2E user.\n' );
 	}
 
+	const layoutContent = [
+		'<!-- wp:gutenberg-yandex-block/map {"align":"full","loading":{"lazy":false,"rootMargin":"300px","clickToActivate":false,"preloader":{"enabled":false}}} /-->',
+		'<!-- wp:gutenberg-yandex-block/map {"align":"wide","loading":{"lazy":false,"rootMargin":"300px","clickToActivate":false,"preloader":{"enabled":true,"type":"dots","color":"#d63638","backgroundColor":"#f0f6fc","size":56,"transitionDuration":450,"label":"Loading test map"}}} /-->',
+		'<!-- wp:gutenberg-yandex-block/map {"width":"520px","loading":{"lazy":false,"rootMargin":"300px","clickToActivate":false,"preloader":{"enabled":false}}} /-->',
+	].join( '\n\n' );
+	temporaryPageId = wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		`--post_title=GuYaMap E2E ${ Date.now() }`,
+		`--post_content=${ layoutContent }`,
+		'--porcelain',
+	] );
+	process.stdout.write( 'Created a temporary WordPress E2E page.\n' );
+
 	const result = spawnSync(
 		playwrightBin,
 		[ 'test', ...process.argv.slice( 2 ) ],
@@ -107,6 +139,7 @@ try {
 				GUYAMAP_E2E_BASE_URL: siteUrl,
 				GUYAMAP_E2E_USERNAME: username,
 				GUYAMAP_E2E_PASSWORD: password,
+				GUYAMAP_E2E_LAYOUT_POST_ID: temporaryPageId,
 			},
 			stdio: 'inherit',
 		}

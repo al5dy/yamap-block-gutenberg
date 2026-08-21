@@ -134,6 +134,32 @@ describe( 'normalizeConfig', () => {
 			guyamapPro: { sourceId: 'locations' },
 		} );
 	} );
+
+	it( 'normalizes the customizable preloader contract', () => {
+		const config = normalizeConfig( {
+			loading: {
+				preloader: {
+					enabled: true,
+					type: 'unknown',
+					color: 'url(https://example.test/tracker)',
+					backgroundColor: '#ABCDEF',
+					size: 500,
+					transitionDuration: -100,
+					label: 'Custom loading state',
+				},
+			},
+		} );
+
+		expect( config.loading.preloader ).toEqual( {
+			enabled: true,
+			type: 'spinner',
+			color: '#3858e9',
+			backgroundColor: '#abcdef',
+			size: 96,
+			transitionDuration: 0,
+			label: 'Custom loading state',
+		} );
+	} );
 } );
 
 describe( 'toLngLat', () => {

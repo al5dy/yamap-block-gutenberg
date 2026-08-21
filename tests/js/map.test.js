@@ -91,7 +91,13 @@ describe( 'map runtime', () => {
 	it( 'keeps click-to-activate readiness pending until activation', async () => {
 		const container = document.createElement( 'div' );
 		document.body.appendChild( container );
+		const states = [];
+		container.addEventListener( 'guyamap:statechange', ( event ) => {
+			states.push( event.detail.state );
+		} );
 		const controller = mountMap( container, {
+			fallbackText: 'Open fallback map',
+			fallbackUrl: 'https://example.test/map',
 			loading: { clickToActivate: true },
 		} );
 		let settled = false;
@@ -111,6 +117,14 @@ describe( 'map runtime', () => {
 		expect(
 			controller.surface.querySelector( '[role="alert"]' )
 		).not.toBeNull();
+		expect(
+			controller.surface.querySelector( '.guyamap-map__error-link' ).href
+		).toBe( 'https://example.test/map' );
+		expect( states ).toEqual( [
+			'awaiting-activation',
+			'loading',
+			'error',
+		] );
 		destroyMap( controller );
 	} );
 

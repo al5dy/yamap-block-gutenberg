@@ -19,7 +19,7 @@ Map Block for Yandex is a modern, native block for the WordPress block editor. I
 * Add any number of independent maps to a post or page.
 * Isolate every map inside a Web Component and Shadow DOM so theme styles do not leak into the Yandex surface.
 * Preview inspector changes live in Gutenberg while direct mouse gestures, map-click placement and marker dragging stay disabled in the editor.
-* Responsive width, height, minimum height, aspect ratio, wide/full alignment, spacing and border support.
+* Responsive width, height, minimum height, aspect ratio, wide/full alignment without horizontal overflow, spacing and border support.
 * Configure center, zoom range, tilt, azimuth, map mode and light/dark/automatic theme.
 * Select map behaviors, zoom, geolocation and fullscreen controls.
 * Add, duplicate, search and remove markers.
@@ -27,7 +27,8 @@ Map Block for Yandex is a modern, native block for the WordPress block editor. I
 * Client-side grid clustering with cluster size, color and maximum zoom settings.
 * Add bounded, JSON-safe Yandex vector-map customization rules.
 * Lazy-load the Yandex SDK near the viewport, or require a visitor click before contacting Yandex.
-* Keyboard-visible controls, accessible labels and a no-JavaScript fallback link.
+* Show no loading overlay, or choose a customizable spinner, bouncing-dots or pulse preloader with a smooth map reveal.
+* Keyboard-visible controls, accessible labels, controlled error recovery and a no-JavaScript fallback link that never flashes during normal loading.
 * English source strings and a bundled Russian translation.
 * Backward-compatible rendering and editor migration for blocks created by versions 1.0.0 and 1.0.1.
 * Carefully scoped PHP filters plus a documented roadmap for separately distributed extensions.
@@ -65,6 +66,10 @@ Yes. The wrapper uses WordPress block supports and isolated logical CSS properti
 = Why can I not drag or zoom the map directly in the editor? =
 
 The Gutenberg preview is intentionally non-interactive so selecting and editing the block stays predictable. Change the center, zoom, camera, appearance, behaviors, controls and markers in the inspector; the existing preview updates immediately without a page reload. Configured gestures and draggable markers remain available on the published frontend.
+
+= Can I disable or customize the loading animation? =
+
+Yes. The Loading and interaction panel can disable the frontend overlay entirely, which displays the map surface immediately without a placeholder message. When enabled, choose a spinner, bouncing dots or pulse, then customize its foreground color, background, size, accessible text and map fade-in duration.
 
 = Can I add custom marker HTML or JavaScript? =
 

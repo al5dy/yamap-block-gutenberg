@@ -2,6 +2,7 @@ import { destroyMap, mountMap } from './runtime/map';
 
 const SELECTOR = '[data-guyamap-map]';
 const initialized = new WeakMap();
+const stateListeners = new WeakMap();
 const observers = new Map();
 
 const parseConfig = ( block ) => {
@@ -13,6 +14,7 @@ const parseConfig = ( block ) => {
 	try {
 		return JSON.parse( configNode.textContent );
 	} catch ( error ) {
+		block.dataset.guyamapState = 'error';
 		block.dispatchEvent(
 			new CustomEvent( 'guyamap:error', {
 				bubbles: true,
@@ -36,10 +38,20 @@ const mountBlock = ( block, config ) => {
 	}
 
 	delete block.dataset.guyamapReady;
+	block.dataset.guyamapState = 'loading';
+	const handleStateChange = ( event ) => {
+		const state = event.detail?.state;
+		if ( typeof state === 'string' && state ) {
+			block.dataset.guyamapState = state;
+		}
+	};
+	canvas.addEventListener( 'guyamap:statechange', handleStateChange );
+	stateListeners.set( block, { canvas, handleStateChange } );
 	canvas.addEventListener(
 		'guyamap:ready',
 		() => {
 			block.dataset.guyamapReady = 'true';
+			block.dataset.guyamapState = 'ready';
 		},
 		{ once: true }
 	);
@@ -49,6 +61,7 @@ const mountBlock = ( block, config ) => {
 	controller?.ready?.then( () => {
 		if ( controller.map ) {
 			block.dataset.guyamapReady = 'true';
+			block.dataset.guyamapState = 'ready';
 		}
 	} );
 };
@@ -130,7 +143,16 @@ export const destroy = ( root = document ) => {
 			destroyMap( controller );
 			initialized.delete( block );
 		}
+		const stateListener = stateListeners.get( block );
+		if ( stateListener ) {
+			stateListener.canvas.removeEventListener(
+				'guyamap:statechange',
+				stateListener.handleStateChange
+			);
+			stateListeners.delete( block );
+		}
 		delete block.dataset.guyamapReady;
+		block.dataset.guyamapState = 'destroyed';
 	} );
 };
 

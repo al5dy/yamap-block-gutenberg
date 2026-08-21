@@ -1,8 +1,9 @@
-import { Button, Notice, Placeholder, Spinner } from '@wordpress/components';
+import { Button, Notice, Placeholder } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 import { destroyMap, mountMap, updateMap } from '../runtime/map';
+import Preloader, { normalizePreloaderPresentation } from './Preloader';
 
 const EMPTY_I18N = Object.freeze( {} );
 
@@ -46,6 +47,10 @@ export default function MapPreview( { attributes } ) {
 	const iconBaseUrl = editorSettings.iconBaseUrl ?? '';
 	const styleUrl = editorSettings.styleUrl ?? '';
 	const i18n = editorSettings.i18n ?? EMPTY_I18N;
+	const preloader = normalizePreloaderPresentation(
+		attributes.loading?.preloader,
+		i18n.loading ?? __( 'Loading map…', 'yamap-block-gutenberg' )
+	);
 
 	const config = useMemo(
 		() => ( {
@@ -177,19 +182,15 @@ export default function MapPreview( { attributes } ) {
 				ref={ containerRef }
 				role="region"
 			/>
-			{ status === 'loading' && (
-				<div
-					aria-live="polite"
+			{ status === 'loading' && preloader.enabled && (
+				<Preloader
 					className="guyamap-editor-preview__status"
-				>
-					<Spinner />
-					<span>
-						{ __(
-							'Loading map preview…',
-							'yamap-block-gutenberg'
-						) }
-					</span>
-				</div>
+					label={ __(
+						'Loading map preview…',
+						'yamap-block-gutenberg'
+					) }
+					preloader={ preloader }
+				/>
 			) }
 			{ status === 'error' && (
 				<Notice isDismissible={ false } status="error">

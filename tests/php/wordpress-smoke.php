@@ -152,6 +152,34 @@ guyamap_smoke_assert( false === strpos( $guyamap_first_html, '<script>alert' ), 
 guyamap_smoke_assert( false !== strpos( $guyamap_first_html, '\\u003C' ), 'Embedded JSON did not hex-escape a less-than sign.' );
 guyamap_smoke_assert( false !== strpos( $guyamap_first_html, '<guyamap-map-view ' ), 'The rendered Shadow DOM map Web Component is missing.' );
 guyamap_smoke_assert( false !== strpos( (string) $guyamap_first_config['styleUrl'], 'build/style-index.css' ), 'The Shadow DOM stylesheet URL is missing.' );
+guyamap_smoke_assert( false === strpos( $guyamap_first_html, 'class="guyamap-map__fallback"' ), 'The JavaScript frontend still renders the old fallback overlay.' );
+guyamap_smoke_assert( false !== strpos( $guyamap_first_html, '<noscript><a class="guyamap-map__noscript-fallback"' ), 'The no-JavaScript fallback link is missing.' );
+
+$guyamap_preloader_html   = guyamap_smoke_render(
+	array(
+		'loading' => array(
+			'lazy'      => false,
+			'preloader' => array(
+				'enabled'            => true,
+				'type'               => 'not-allowed',
+				'color'              => 'url(https://example.com/tracker)',
+				'backgroundColor'    => '#ABCDEF',
+				'size'               => 500,
+				'transitionDuration' => -100,
+				'label'              => '<strong>Loading safely</strong>',
+			),
+		),
+	)
+);
+$guyamap_preloader_config = guyamap_smoke_extract_config( $guyamap_preloader_html );
+guyamap_smoke_assert( true === $guyamap_preloader_config['loading']['preloader']['enabled'], 'The preloader enabled flag was lost.' );
+guyamap_smoke_assert( 'spinner' === $guyamap_preloader_config['loading']['preloader']['type'], 'An unknown preloader type crossed the allow-list.' );
+guyamap_smoke_assert( '#3858e9' === $guyamap_preloader_config['loading']['preloader']['color'], 'An unsafe preloader color crossed the server boundary.' );
+guyamap_smoke_assert( '#abcdef' === $guyamap_preloader_config['loading']['preloader']['backgroundColor'], 'The preloader background was not normalized.' );
+guyamap_smoke_assert( 96 === $guyamap_preloader_config['loading']['preloader']['size'], 'The preloader size was not bounded.' );
+guyamap_smoke_assert( 0 === $guyamap_preloader_config['loading']['preloader']['transitionDuration'], 'The preloader transition was not bounded.' );
+guyamap_smoke_assert( 'Loading safely' === $guyamap_preloader_config['loading']['preloader']['label'], 'The preloader label was not converted to safe text.' );
+guyamap_smoke_assert( false !== strpos( $guyamap_preloader_html, 'data-guyamap-preloader="spinner"' ), 'The selected preloader is missing from frontend markup.' );
 
 preg_match( '/id="(guyamap-map-[^"]+)"/', $guyamap_first_html, $guyamap_first_id );
 preg_match( '/id="(guyamap-map-[^"]+)"/', $guyamap_second_html, $guyamap_second_id );

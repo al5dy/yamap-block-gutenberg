@@ -356,7 +356,8 @@ The target provider-neutral DOM events are:
 - guyamap:destroy
 
 Free 2.0 currently emits `guyamap:ready`, `guyamap:error` and
-`guyamap:destroy`, and accepts `guyamap:refresh`. These events are experimental:
+`guyamap:destroy`, emits `guyamap:statechange` for its normalized lifecycle,
+and accepts `guyamap:refresh`. These events are experimental:
 `ready` currently includes the runtime controller and Yandex map object. It is
 not the versioned event schema above. The query/result/selection events will be
 added only with the provider contract.
@@ -370,7 +371,8 @@ filters can change without resaving every post. Future template/source revision
 resolution will use the same server-render boundary. The renderer:
 
 - obtains wrapper attributes through get_block_wrapper_attributes();
-- emits semantic fallback content and a fixed-size skeleton to prevent layout shift;
+- emits a fixed-size map surface, an optional bounded/customizable preloader,
+  and a no-JavaScript fallback without exposing a fallback card during normal loading;
 - emits only sanitized, bounded initial config;
 - uses wp_json_encode with JSON_HEX_TAG, JSON_HEX_AMP, JSON_HEX_APOS and JSON_HEX_QUOT when JSON is embedded in HTML;
 - enforces a hard ceiling of 1,000 inline markers; larger future collections must use a server-backed source;
@@ -446,6 +448,8 @@ REST references:
 - A provider-specific config is never silently reinterpreted by a different adapter.
 - Free 2.0 does not permanently rewrite unknown content during rendering.
 - API failures retain an accessible fallback link and a controlled error state.
+- Full alignment follows the WordPress layout engine's negative margins with
+  automatic inline sizing, so the map fills the viewport without creating horizontal overflow.
 - Future PRO must retain its last safe presentation snapshot when it is missing or disabled.
 - A future license outage must never make existing public pages blank.
 

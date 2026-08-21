@@ -139,7 +139,16 @@
       "default": {
         "lazy": true,
         "rootMargin": "300px",
-        "clickToActivate": false
+        "clickToActivate": false,
+        "preloader": {
+          "enabled": false,
+          "type": "spinner",
+          "color": "#3858e9",
+          "backgroundColor": "#eef1f5",
+          "size": 48,
+          "transitionDuration": 300,
+          "label": "Loading map…"
+        }
       }
     },
     "ariaLabel": {

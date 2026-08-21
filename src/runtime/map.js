@@ -24,6 +24,7 @@ const withRuntimeConfig = ( rawConfig ) => {
 	return {
 		...config,
 		baseUrl: runtimeString( input.baseUrl ),
+		fallbackUrl: runtimeString( input.fallbackUrl ),
 		iconBaseUrl: runtimeString( input.iconBaseUrl ),
 		styleUrl: runtimeString( input.styleUrl ),
 		instanceId: runtimeString( input.instanceId, '', 128 ),
@@ -759,6 +760,13 @@ const setControllerState = ( controller, state ) => {
 	if ( controller.surface !== controller.container ) {
 		controller.surface.dataset.state = state;
 	}
+	controller.container.dispatchEvent(
+		new controller.ownerWindow.CustomEvent( 'guyamap:statechange', {
+			bubbles: true,
+			composed: true,
+			detail: { controller, state },
+		} )
+	);
 };
 
 const getMapProps = ( controller, config, options, animate = false ) => {
@@ -1014,14 +1022,34 @@ const renderError = ( controller, config, error ) => {
 	controller.error = error;
 	setControllerState( controller, 'error' );
 	controller.container.removeAttribute( 'aria-busy' );
+	const panel = controller.ownerDocument.createElement( 'div' );
+	panel.className = 'guyamap-map__error';
+	panel.setAttribute( 'role', 'alert' );
 	const message = createTextElement(
 		controller.ownerDocument,
 		'p',
-		'guyamap-map__error',
+		'guyamap-map__error-message',
 		config.i18n.error
 	);
-	message.setAttribute( 'role', 'alert' );
-	controller.surface.replaceChildren( message );
+	panel.appendChild( message );
+	const fallbackUrl = safeUrl(
+		config.fallbackUrl,
+		controller.ownerWindow,
+		config.baseUrl
+	);
+	if ( fallbackUrl && config.fallbackText ) {
+		const link = createTextElement(
+			controller.ownerDocument,
+			'a',
+			'guyamap-map__error-link',
+			config.fallbackText
+		);
+		link.href = fallbackUrl;
+		link.target = '_blank';
+		link.rel = 'noopener noreferrer external';
+		panel.appendChild( link );
+	}
+	controller.surface.replaceChildren( panel );
 	controller.container.dispatchEvent(
 		new controller.ownerWindow.CustomEvent( 'guyamap:error', {
 			bubbles: true,
