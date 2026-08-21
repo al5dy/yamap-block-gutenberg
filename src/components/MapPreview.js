@@ -2,9 +2,8 @@ import { Button, Notice, Placeholder, Spinner } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
-import { destroyMap, mountMap } from '../runtime/map';
+import { destroyMap, mountMap, updateMap } from '../runtime/map';
 
-const REMOUNT_DELAY = 180;
 const EMPTY_I18N = Object.freeze( {} );
 
 const getEditorSettings = () => {
@@ -21,26 +20,20 @@ const destroySafely = ( map ) => {
 	}
 
 	try {
-		// Pass the DOM key to remain safe across the editor iframe's realm.
-		destroyMap( map.container ?? map );
+		destroyMap( map );
 	} catch {
 		// A partially initialized third-party map must not break the editor.
 	}
 };
 
-export default function MapPreview( {
-	attributes,
-	interactive,
-	onMapClick,
-	onMarkerDragEnd,
-	isPickingMarker = false,
-} ) {
+export default function MapPreview( { attributes } ) {
 	const containerRef = useRef( null );
 	const instanceRef = useRef( null );
-	const callbacksRef = useRef( { onMapClick, onMarkerDragEnd } );
+	const configRef = useRef( null );
 	const generationRef = useRef( 0 );
 	const [ status, setStatus ] = useState( 'idle' );
 	const [ errorMessage, setErrorMessage ] = useState( '' );
+	const [ retryRevision, setRetryRevision ] = useState( 0 );
 	const editorSettings = getEditorSettings();
 	const apiKey = editorSettings.apiKey ?? '';
 	const language =
@@ -51,9 +44,8 @@ export default function MapPreview( {
 	const settingsUrl = editorSettings.settingsUrl ?? '';
 	const baseUrl = editorSettings.baseUrl ?? '';
 	const iconBaseUrl = editorSettings.iconBaseUrl ?? '';
+	const styleUrl = editorSettings.styleUrl ?? '';
 	const i18n = editorSettings.i18n ?? EMPTY_I18N;
-
-	callbacksRef.current = { onMapClick, onMarkerDragEnd };
 
 	const config = useMemo(
 		() => ( {
@@ -62,20 +54,12 @@ export default function MapPreview( {
 			language,
 			baseUrl,
 			iconBaseUrl,
+			styleUrl,
 			i18n,
 		} ),
-		[ attributes, apiKey, baseUrl, i18n, iconBaseUrl, language ]
+		[ attributes, apiKey, baseUrl, i18n, iconBaseUrl, language, styleUrl ]
 	);
-
-	useEffect( () => {
-		const container = containerRef.current;
-
-		return () => {
-			generationRef.current += 1;
-			destroySafely( instanceRef.current ?? container );
-			instanceRef.current = null;
-		};
-	}, [] );
+	configRef.current = config;
 
 	useEffect( () => {
 		const container = containerRef.current;
@@ -88,8 +72,16 @@ export default function MapPreview( {
 			setStatus( ! apiKey ? 'missing-key' : 'idle' );
 			return undefined;
 		}
-		const ownerWindow = container.ownerDocument.defaultView;
-		if ( ! ownerWindow ) {
+
+		setStatus( 'loading' );
+		setErrorMessage( '' );
+		const instance = mountMap( container, configRef.current, {
+			editor: true,
+			interactive: false,
+		} );
+		instanceRef.current = instance;
+
+		if ( ! instance ) {
 			setStatus( 'error' );
 			setErrorMessage(
 				__(
@@ -100,73 +92,62 @@ export default function MapPreview( {
 			return undefined;
 		}
 
-		const timeoutId = ownerWindow.setTimeout( async () => {
-			setStatus( 'loading' );
-			setErrorMessage( '' );
+		instance.ready.then( () => {
+			if ( generationRef.current !== generation ) {
+				return;
+			}
 
-			const previousInstance = instanceRef.current;
-			instanceRef.current = null;
-			destroySafely( previousInstance ?? container );
-
-			let instance;
-
-			try {
-				instance = mountMap( container, config, {
-					editor: true,
-					interactive,
-					onMapClick: ( coordinates ) =>
-						callbacksRef.current.onMapClick?.( coordinates ),
-					onMarkerDragEnd: ( markerId, coordinates ) =>
-						callbacksRef.current.onMarkerDragEnd?.(
-							markerId,
-							coordinates
-						),
-				} );
-				// mountMap returns its controller synchronously. Keep it reachable
-				// while the SDK is loading so a rerender or unmount can destroy it.
-				instanceRef.current = instance ?? container;
-
-				await instance?.ready;
-
-				if ( generationRef.current !== generation ) {
-					destroySafely( instance ?? container );
-					return;
-				}
-
-				if ( container.dataset.state === 'error' || ! instance?.map ) {
-					setStatus( 'error' );
-					setErrorMessage(
-						__(
-							'The map preview could not be loaded.',
-							'yamap-block-gutenberg'
-						)
-					);
-					return;
-				}
-
-				setStatus( 'ready' );
-			} catch ( error ) {
-				if ( generationRef.current !== generation ) {
-					destroySafely( instance );
-					return;
-				}
-
+			if ( container.dataset.state === 'error' || ! instance.map ) {
 				setStatus( 'error' );
 				setErrorMessage(
-					error instanceof Error && error.message
-						? error.message
-						: __(
-								'The map preview could not be loaded.',
-								'yamap-block-gutenberg'
-						  )
+					__(
+						'The map preview could not be loaded.',
+						'yamap-block-gutenberg'
+					)
 				);
+				return;
 			}
-		}, REMOUNT_DELAY );
+
+			setStatus( 'ready' );
+		} );
 
 		return () => {
-			ownerWindow.clearTimeout( timeoutId );
+			generationRef.current += 1;
+			destroySafely( instance );
+			if ( instanceRef.current === instance ) {
+				instanceRef.current = null;
+			}
 		};
-	}, [ apiKey, config, interactive ] );
+	}, [ apiKey, language, retryRevision ] );
+
+	useEffect( () => {
+		const instance = instanceRef.current;
+		if ( ! instance || instance.destroyed ) {
+			return undefined;
+		}
+
+		let active = true;
+		updateMap( instance, config, {
+			editor: true,
+			interactive: false,
+		} ).catch( () => {
+			if ( ! active || instanceRef.current !== instance ) {
+				return;
+			}
+
+			setStatus( 'error' );
+			setErrorMessage(
+				__(
+					'The map preview could not be loaded.',
+					'yamap-block-gutenberg'
+				)
+			);
+		} );
+
+		return () => {
+			active = false;
+		};
+	}, [ config ] );
 
 	if ( ! apiKey ) {
 		return (
@@ -190,7 +171,7 @@ export default function MapPreview( {
 
 	return (
 		<div className="guyamap-editor-preview">
-			<div
+			<guyamap-map-view
 				aria-label={ attributes.ariaLabel }
 				className="guyamap-editor-preview__canvas"
 				ref={ containerRef }
@@ -212,19 +193,16 @@ export default function MapPreview( {
 			) }
 			{ status === 'error' && (
 				<Notice isDismissible={ false } status="error">
-					{ errorMessage }
+					<p>{ errorMessage }</p>
+					<Button
+						onClick={ () =>
+							setRetryRevision( ( revision ) => revision + 1 )
+						}
+						variant="secondary"
+					>
+						{ __( 'Retry map preview', 'yamap-block-gutenberg' ) }
+					</Button>
 				</Notice>
-			) }
-			{ isPickingMarker && status === 'ready' && (
-				<div
-					aria-live="polite"
-					className="guyamap-editor-preview__pick-hint"
-				>
-					{ __(
-						'Click the map to place a marker.',
-						'yamap-block-gutenberg'
-					) }
-				</div>
 			) }
 		</div>
 	);

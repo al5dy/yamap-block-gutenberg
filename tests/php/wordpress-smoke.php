@@ -150,6 +150,8 @@ guyamap_smoke_assert( true === $guyamap_first_config['mapOptions']['fitToMarkers
 guyamap_smoke_assert( ! isset( $guyamap_first_config['mapOptions']['totallyUnknownValue'] ), 'An unknown map option crossed the server allow-list.' );
 guyamap_smoke_assert( false === strpos( $guyamap_first_html, '<script>alert' ), 'Executable marker markup reached block HTML.' );
 guyamap_smoke_assert( false !== strpos( $guyamap_first_html, '\\u003C' ), 'Embedded JSON did not hex-escape a less-than sign.' );
+guyamap_smoke_assert( false !== strpos( $guyamap_first_html, '<guyamap-map-view ' ), 'The rendered Shadow DOM map Web Component is missing.' );
+guyamap_smoke_assert( false !== strpos( (string) $guyamap_first_config['styleUrl'], 'build/style-index.css' ), 'The Shadow DOM stylesheet URL is missing.' );
 
 preg_match( '/id="(guyamap-map-[^"]+)"/', $guyamap_first_html, $guyamap_first_id );
 preg_match( '/id="(guyamap-map-[^"]+)"/', $guyamap_second_html, $guyamap_second_id );

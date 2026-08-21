@@ -2,6 +2,8 @@
 /node_modules/
 /vendor/
 /.phpunit.result.cache
+/playwright-report/
+/test-results/
 /gutenberg-yandex-maps.zip
 npm-debug.log*
 yarn-error.log*

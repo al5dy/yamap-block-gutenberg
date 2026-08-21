@@ -1,4 +1,9 @@
-import { loadYandexApi } from './api-loader';
+import { getYandexApiWindow, loadYandexApi } from './api-loader';
+import {
+	prepareMapHost,
+	releaseMapHost,
+	waitForMapHostStyles,
+} from './map-element';
 import { normalizeConfig, toLngLat } from './normalize';
 
 const INSTANCES = new WeakMap();
@@ -20,6 +25,7 @@ const withRuntimeConfig = ( rawConfig ) => {
 		...config,
 		baseUrl: runtimeString( input.baseUrl ),
 		iconBaseUrl: runtimeString( input.iconBaseUrl ),
+		styleUrl: runtimeString( input.styleUrl ),
 		instanceId: runtimeString( input.instanceId, '', 128 ),
 		i18n: {
 			...config.i18n,
@@ -402,7 +408,7 @@ const createMarkerEntity = ( marker, internalId, core, context, options ) => {
 			} );
 		},
 		blockEvents: true,
-		blockBehaviors: false,
+		blockBehaviors: options.editor === true,
 	};
 	const imageUrl =
 		marker.icon.type === 'image'
@@ -433,7 +439,7 @@ const createScreenReaderStatus = ( controller, message, role = 'status' ) => {
 const announce = ( controller, message ) => {
 	controller.announcement?.remove();
 	const status = createScreenReaderStatus( controller, message );
-	controller.container.appendChild( status );
+	controller.surface.appendChild( status );
 	controller.announcement = status;
 	const timeoutId = controller.ownerWindow.setTimeout( () => {
 		status.remove();
@@ -445,9 +451,12 @@ const announce = ( controller, message ) => {
 	controller.timeouts.add( timeoutId );
 };
 
-const addFullscreenControl = ( controller, config ) => {
-	const { container, ownerDocument } = controller;
-	if ( ! config.controls.fullscreen || ! container.requestFullscreen ) {
+const addFullscreenControl = ( controller, config, options = {} ) => {
+	const { container, ownerDocument, surface } = controller;
+	if (
+		! config.controls.fullscreen ||
+		( ! options.editor && ! container.requestFullscreen )
+	) {
 		return;
 	}
 
@@ -458,6 +467,14 @@ const addFullscreenControl = ( controller, config ) => {
 	button.setAttribute( 'aria-pressed', 'false' );
 	button.title = config.i18n.fullscreen;
 	button.textContent = '⛶';
+	if ( options.editor ) {
+		button.setAttribute( 'aria-hidden', 'true' );
+		button.setAttribute( 'inert', '' );
+		surface.appendChild( button );
+		controller.fullscreenButton = button;
+		return;
+	}
+
 	const syncState = () => {
 		button.setAttribute(
 			'aria-pressed',
@@ -474,11 +491,11 @@ const addFullscreenControl = ( controller, config ) => {
 
 	button.addEventListener( 'click', toggleFullscreen );
 	ownerDocument.addEventListener( 'fullscreenchange', syncState );
-	controller.cleanups.push( () => {
+	controller.fullscreenCleanup = () => {
 		button.removeEventListener( 'click', toggleFullscreen );
 		ownerDocument.removeEventListener( 'fullscreenchange', syncState );
-	} );
-	container.appendChild( button );
+	};
+	surface.appendChild( button );
 	controller.fullscreenButton = button;
 };
 
@@ -502,7 +519,7 @@ const setZoom = ( controller, config, delta ) => {
 	} );
 };
 
-const addNativeControls = ( controller, config ) => {
+const addNativeControls = ( controller, config, options = {} ) => {
 	if ( ! config.controls.zoom && ! config.controls.geolocation ) {
 		return;
 	}
@@ -510,6 +527,10 @@ const addNativeControls = ( controller, config ) => {
 	const controls = controller.ownerDocument.createElement( 'div' );
 	controls.className = 'guyamap-map__controls';
 	controls.dataset.position = config.controls.position;
+	if ( options.editor ) {
+		controls.setAttribute( 'aria-hidden', 'true' );
+		controls.setAttribute( 'inert', '' );
+	}
 
 	if ( config.controls.zoom ) {
 		const zoomIn = createTextElement(
@@ -601,16 +622,19 @@ const addNativeControls = ( controller, config ) => {
 		controls.appendChild( geolocate );
 	}
 
-	controller.container.appendChild( controls );
+	controller.surface.appendChild( controls );
 	controller.nativeControls = controls;
 };
 
 const addMarkers = async ( controller, core, config, options ) => {
 	if ( ! config.markers.length ) {
+		controller.markerLayer = null;
+		controller.featuresLayer = null;
 		return;
 	}
 
-	controller.map.addChild( new core.YMapDefaultFeaturesLayer() );
+	controller.featuresLayer = new core.YMapDefaultFeaturesLayer();
+	controller.map.addChild( controller.featuresLayer );
 	const context = {
 		config,
 		ownerDocument: controller.ownerDocument,
@@ -684,6 +708,33 @@ const addMarkers = async ( controller, core, config, options ) => {
 	} );
 };
 
+const removeChildSafely = ( map, child ) => {
+	if ( ! map || ! child ) {
+		return;
+	}
+	if ( typeof map.removeChild !== 'function' ) {
+		throw new Error( 'guyamap_api_remove_child_unavailable' );
+	}
+
+	try {
+		map.removeChild( child );
+	} catch {
+		// Optional entities may already have detached during SDK teardown.
+	}
+};
+
+const removeMarkers = ( controller ) => {
+	const markerLayers = Array.isArray( controller.markerLayer )
+		? controller.markerLayer
+		: [ controller.markerLayer ];
+	markerLayers
+		.filter( Boolean )
+		.forEach( ( marker ) => removeChildSafely( controller.map, marker ) );
+	removeChildSafely( controller.map, controller.featuresLayer );
+	controller.markerLayer = null;
+	controller.featuresLayer = null;
+};
+
 const getInitialLocation = ( controller, config ) => {
 	if ( ! config.mapOptions.fitToMarkers || ! config.markers.length ) {
 		return {
@@ -703,10 +754,144 @@ const getInitialLocation = ( controller, config ) => {
 	return { bounds: getBounds( features ) };
 };
 
-const initialize = async ( controller, config, options ) => {
-	controller.container.dataset.state = 'loading';
+const setControllerState = ( controller, state ) => {
+	controller.container.dataset.state = state;
+	if ( controller.surface !== controller.container ) {
+		controller.surface.dataset.state = state;
+	}
+};
+
+const getMapProps = ( controller, config, options, animate = false ) => {
+	const duration =
+		animate && ! prefersReducedMotion( controller.ownerWindow ) ? 120 : 0;
+	const location = getInitialLocation( controller, config );
+	const camera = {
+		tilt: degreesToRadians( config.camera.tilt ),
+		azimuth: degreesToRadians( config.camera.azimuth ),
+	};
+
+	if ( duration ) {
+		location.duration = duration;
+		location.easing = 'ease-out';
+		camera.duration = duration;
+		camera.easing = 'ease-out';
+	}
+
+	return {
+		location,
+		camera,
+		mode: config.mapMode,
+		theme: resolveTheme( config.theme, controller.ownerWindow ),
+		behaviors:
+			options.editor || options.interactive === false
+				? []
+				: config.behaviors,
+		zoomRange: config.zoomRange,
+		zoomRounding: config.mapOptions.zoomRounding,
+		zoomStrategy: config.mapOptions.zoomStrategy,
+		margin: config.mapOptions.margin,
+		copyrightsPosition: config.mapOptions.copyrightsPosition,
+		showScaleInCopyrights: config.mapOptions.showScaleInCopyrights,
+		restrictMapArea: config.mapOptions.restrictMapArea,
+	};
+};
+
+const fingerprint = ( value ) => JSON.stringify( value );
+
+const getMapFingerprint = ( config, options ) =>
+	fingerprint( [
+		config.center,
+		config.zoom,
+		config.zoomRange,
+		config.camera,
+		config.mapMode,
+		config.theme,
+		config.behaviors,
+		config.mapOptions,
+		config.mapOptions.fitToMarkers
+			? config.markers.map( ( marker ) => marker.coordinates )
+			: [],
+		Boolean( options.editor ),
+		options.interactive !== false,
+	] );
+
+const getMarkerFingerprint = ( config ) =>
+	fingerprint( [
+		config.markers,
+		config.cluster,
+		config.baseUrl,
+		config.iconBaseUrl,
+		config.i18n.marker,
+		config.i18n.clusterMarkers,
+	] );
+
+const getControlsFingerprint = ( config, options ) =>
+	fingerprint( [ config.controls, config.i18n, Boolean( options.editor ) ] );
+
+const applyMapConfig = async ( controller, config, options ) => {
+	if ( controller.destroyed || ! controller.map ) {
+		return controller;
+	}
+
+	const mapFingerprint = getMapFingerprint( config, options );
+	if ( mapFingerprint !== controller.mapFingerprint ) {
+		if ( typeof controller.map.update !== 'function' ) {
+			throw new controller.ownerWindow.Error(
+				'guyamap_api_update_unavailable'
+			);
+		}
+		controller.map.update(
+			getMapProps( controller, config, options, true )
+		);
+		controller.mapFingerprint = mapFingerprint;
+	}
+
+	const schemeFingerprint = fingerprint( config.customization );
+	if ( schemeFingerprint !== controller.schemeFingerprint ) {
+		if ( typeof controller.schemeLayer?.update !== 'function' ) {
+			throw new controller.ownerWindow.Error(
+				'guyamap_api_layer_update_unavailable'
+			);
+		}
+		controller.schemeLayer.update( {
+			customization: config.customization,
+		} );
+		controller.schemeFingerprint = schemeFingerprint;
+	}
+
+	const markerFingerprint = getMarkerFingerprint( config );
+	if ( markerFingerprint !== controller.markerFingerprint ) {
+		removeMarkers( controller );
+		await addMarkers( controller, controller.core, config, options );
+		if ( controller.destroyed ) {
+			return controller;
+		}
+		controller.markerFingerprint = markerFingerprint;
+	}
+
+	const controlsFingerprint = getControlsFingerprint( config, options );
+	if ( controlsFingerprint !== controller.controlsFingerprint ) {
+		controller.nativeControls?.remove();
+		controller.nativeControls = null;
+		controller.fullscreenCleanup?.();
+		controller.fullscreenCleanup = null;
+		controller.fullscreenButton?.remove();
+		controller.fullscreenButton = null;
+		addNativeControls( controller, config, options );
+		addFullscreenControl( controller, config, options );
+		controller.controlsFingerprint = controlsFingerprint;
+	}
+
+	controller.appliedConfig = config;
+	return controller;
+};
+
+const initialize = async ( controller ) => {
+	let config = controller.config;
+	let options = controller.options;
+	setControllerState( controller, 'loading' );
 	controller.container.setAttribute( 'aria-busy', 'true' );
-	controller.container.replaceChildren(
+	controller.surface.replaceChildren(
 		createScreenReaderStatus( controller, config.i18n.loading )
 	);
 	const api = await loadYandexApi(
@@ -718,6 +903,18 @@ const initialize = async ( controller, config, options ) => {
 		return controller;
 	}
 
+	const apiWindow = getYandexApiWindow( controller.ownerWindow );
+	await waitForMapHostStyles(
+		controller.container,
+		apiWindow?.document ?? controller.ownerDocument
+	);
+	if ( controller.destroyed ) {
+		return controller;
+	}
+
+	config = controller.config;
+	options = controller.options;
+
 	const core = {
 		YMap: api.YMap,
 		YMapDefaultFeaturesLayer: api.YMapDefaultFeaturesLayer,
@@ -725,32 +922,29 @@ const initialize = async ( controller, config, options ) => {
 		YMapListener: api.YMapListener,
 		YMapMarker: api.YMapMarker,
 	};
-	const mapProps = {
-		location: getInitialLocation( controller, config ),
-		camera: {
-			tilt: degreesToRadians( config.camera.tilt ),
-			azimuth: degreesToRadians( config.camera.azimuth ),
-		},
-		mode: config.mapMode,
-		theme: resolveTheme( config.theme, controller.ownerWindow ),
-		behaviors: options.interactive === false ? [] : config.behaviors,
-		zoomRange: config.zoomRange,
-		zoomRounding: config.mapOptions.zoomRounding,
-		zoomStrategy: config.mapOptions.zoomStrategy,
-		margin: config.mapOptions.margin,
-		copyrightsPosition: config.mapOptions.copyrightsPosition,
-		showScaleInCopyrights: config.mapOptions.showScaleInCopyrights,
-		restrictMapArea: config.mapOptions.restrictMapArea,
-	};
-	controller.container.replaceChildren();
-	controller.map = new core.YMap( controller.container, mapProps );
-	controller.map.addChild(
-		new core.YMapDefaultSchemeLayer( {
-			customization: config.customization,
-		} )
-	);
+	if (
+		! core.YMap ||
+		! core.YMapDefaultSchemeLayer ||
+		! core.YMapDefaultFeaturesLayer ||
+		! core.YMapMarker
+	) {
+		throw new controller.ownerWindow.Error( 'guyamap_api_incomplete' );
+	}
 
-	if ( options.onMapClick && core.YMapListener ) {
+	controller.core = core;
+	controller.surface.replaceChildren();
+	controller.map = new core.YMap(
+		controller.surface,
+		getMapProps( controller, config, options )
+	);
+	controller.schemeLayer = new core.YMapDefaultSchemeLayer( {
+		customization: config.customization,
+	} );
+	controller.map.addChild( controller.schemeLayer );
+	controller.mapFingerprint = getMapFingerprint( config, options );
+	controller.schemeFingerprint = fingerprint( config.customization );
+
+	if ( ! options.editor && options.onMapClick && core.YMapListener ) {
 		const listener = new core.YMapListener( {
 			layer: 'any',
 			onClick: ( object, event ) => {
@@ -767,20 +961,22 @@ const initialize = async ( controller, config, options ) => {
 	}
 
 	await addMarkers( controller, core, config, options );
+	controller.markerFingerprint = getMarkerFingerprint( config );
 	if ( controller.destroyed ) {
 		controller.map?.destroy();
 		return controller;
 	}
 
-	addNativeControls( controller, config );
-	if ( ! options.editor ) {
-		addFullscreenControl( controller, config );
-	}
-	controller.container.dataset.state = 'ready';
+	addNativeControls( controller, config, options );
+	addFullscreenControl( controller, config, options );
+	controller.controlsFingerprint = getControlsFingerprint( config, options );
+	controller.appliedConfig = config;
+	setControllerState( controller, 'ready' );
 	controller.container.removeAttribute( 'aria-busy' );
 	controller.container.dispatchEvent(
 		new controller.ownerWindow.CustomEvent( 'guyamap:ready', {
 			bubbles: true,
+			composed: true,
 			detail: { map: controller.map, controller, config },
 		} )
 	);
@@ -788,7 +984,7 @@ const initialize = async ( controller, config, options ) => {
 };
 
 const showActivationGate = ( controller, config, start ) => {
-	controller.container.dataset.state = 'awaiting-activation';
+	setControllerState( controller, 'awaiting-activation' );
 	const gate = controller.ownerDocument.createElement( 'div' );
 	gate.className = 'guyamap-map__activation';
 	const button = createTextElement(
@@ -800,7 +996,7 @@ const showActivationGate = ( controller, config, start ) => {
 	button.type = 'button';
 	button.addEventListener( 'click', start, { once: true } );
 	gate.appendChild( button );
-	controller.container.appendChild( gate );
+	controller.surface.appendChild( gate );
 	controller.activationGate = gate;
 };
 
@@ -815,7 +1011,8 @@ const renderError = ( controller, config, error ) => {
 		// Continue with a recoverable fallback if SDK teardown fails.
 	}
 	controller.map = null;
-	controller.container.dataset.state = 'error';
+	controller.error = error;
+	setControllerState( controller, 'error' );
 	controller.container.removeAttribute( 'aria-busy' );
 	const message = createTextElement(
 		controller.ownerDocument,
@@ -824,10 +1021,11 @@ const renderError = ( controller, config, error ) => {
 		config.i18n.error
 	);
 	message.setAttribute( 'role', 'alert' );
-	controller.container.replaceChildren( message );
+	controller.surface.replaceChildren( message );
 	controller.container.dispatchEvent(
 		new controller.ownerWindow.CustomEvent( 'guyamap:error', {
 			bubbles: true,
+			composed: true,
 			detail: { error, config },
 		} )
 	);
@@ -874,12 +1072,29 @@ export function mountMap( container, rawConfig, options = {} ) {
 
 	destroyMap( container );
 	const config = withRuntimeConfig( rawConfig );
+	const runtimeOptions = {
+		...options,
+		editor: options.editor === true,
+		interactive:
+			options.editor === true ? false : options.interactive !== false,
+	};
+	const surface = prepareMapHost( container, {
+		editor: runtimeOptions.editor,
+		styleUrl: config.styleUrl,
+	} );
+	if ( ! surface ) {
+		return null;
+	}
+
 	const deferred = createDeferred( ownerWindow );
 	const controller = {
 		container,
+		surface,
 		ownerDocument,
 		ownerWindow,
 		domIdPrefix: getDomIdPrefix( config, ownerWindow ),
+		config,
+		options: runtimeOptions,
 		map: null,
 		ready: deferred.promise,
 		resolveReady: deferred.resolve,
@@ -887,6 +1102,8 @@ export function mountMap( container, rawConfig, options = {} ) {
 		started: false,
 		cleanups: [],
 		timeouts: new ownerWindow.Set(),
+		updateRevision: 0,
+		updateChain: ownerWindow.Promise.resolve(),
 	};
 	INSTANCES.set( container, controller );
 
@@ -898,8 +1115,10 @@ export function mountMap( container, rawConfig, options = {} ) {
 		controller.started = true;
 		controller.activationGate?.remove();
 		controller.activationGate = null;
-		controller.initialization = initialize( controller, config, options )
-			.catch( ( error ) => renderError( controller, config, error ) )
+		controller.initialization = initialize( controller )
+			.catch( ( error ) =>
+				renderError( controller, controller.config, error )
+			)
 			.then( ( result ) => {
 				controller.resolveReady( result );
 				return result;
@@ -907,13 +1126,76 @@ export function mountMap( container, rawConfig, options = {} ) {
 		return controller.ready;
 	};
 
-	if ( config.loading.clickToActivate && ! options.editor ) {
+	if ( config.loading.clickToActivate && ! runtimeOptions.editor ) {
 		showActivationGate( controller, config, start );
 	} else {
 		start();
 	}
 
 	return controller;
+}
+
+/**
+ * Applies a complete normalized configuration to an existing controller.
+ * Calls are serialized and coalesced, so rapid Inspector slider changes can
+ * never let an older asynchronous marker update overwrite a newer value.
+ *
+ * @param {Object|HTMLElement} instanceOrContainer Controller or public host.
+ * @param {Object}             rawConfig           Complete runtime config.
+ * @param {Object}             options             Runtime/editor options.
+ * @return {Promise<Object|null>} Updated controller.
+ */
+export function updateMap( instanceOrContainer, rawConfig, options = {} ) {
+	const controller = instanceOrContainer?.container
+		? instanceOrContainer
+		: INSTANCES.get( instanceOrContainer );
+	if ( ! controller || controller.destroyed ) {
+		return Promise.resolve( null );
+	}
+
+	const config = withRuntimeConfig( rawConfig );
+	controller.config = config;
+	controller.options = {
+		...controller.options,
+		...options,
+		editor:
+			options.editor === undefined
+				? controller.options.editor
+				: options.editor === true,
+	};
+	if ( controller.options.editor ) {
+		controller.options.interactive = false;
+	} else if ( options.interactive !== undefined ) {
+		controller.options.interactive = options.interactive !== false;
+	}
+
+	prepareMapHost( controller.container, {
+		editor: controller.options.editor,
+		styleUrl: config.styleUrl,
+	} );
+
+	const revision = controller.updateRevision + 1;
+	controller.updateRevision = revision;
+	controller.updateChain = controller.updateChain
+		.catch( () => controller )
+		.then( async () => {
+			await controller.ready;
+			if (
+				controller.destroyed ||
+				revision !== controller.updateRevision ||
+				! controller.map
+			) {
+				return controller;
+			}
+
+			return applyMapConfig(
+				controller,
+				controller.config,
+				controller.options
+			);
+		} );
+
+	return controller.updateChain;
 }
 
 /**
@@ -931,6 +1213,8 @@ export function destroyMap( instanceOrContainer ) {
 	}
 
 	controller.destroyed = true;
+	controller.fullscreenCleanup?.();
+	controller.fullscreenCleanup = null;
 	controller.cleanups.forEach( ( cleanup ) => cleanup() );
 	controller.cleanups = [];
 	controller.timeouts.forEach( ( timeoutId ) =>
@@ -948,10 +1232,12 @@ export function destroyMap( instanceOrContainer ) {
 	}
 	controller.map = null;
 	controller.container.removeAttribute( 'aria-busy' );
-	controller.container.dataset.state = 'destroyed';
+	setControllerState( controller, 'destroyed' );
+	releaseMapHost( controller.container );
 	controller.container.dispatchEvent(
 		new controller.ownerWindow.CustomEvent( 'guyamap:destroy', {
 			bubbles: true,
+			composed: true,
 			detail: { controller },
 		} )
 	);

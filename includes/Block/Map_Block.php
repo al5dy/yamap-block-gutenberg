@@ -147,6 +147,7 @@ final class Map_Block {
 			'settingsUrl' => esc_url_raw( $this->settings->get_page_url() ),
 			'baseUrl'     => esc_url_raw( home_url( '/' ) ),
 			'iconBaseUrl' => esc_url_raw( GUYAMAP_PLUGIN_URL . 'assets/icons/' ),
+			'styleUrl'    => $this->get_shadow_style_url(),
 			'i18n'        => $this->get_runtime_i18n(),
 		);
 
@@ -198,6 +199,7 @@ final class Map_Block {
 			'language'    => $this->settings->get_language(),
 			'baseUrl'     => esc_url_raw( home_url( '/' ) ),
 			'iconBaseUrl' => esc_url_raw( GUYAMAP_PLUGIN_URL . 'assets/icons/' ),
+			'styleUrl'    => $this->get_shadow_style_url(),
 			'i18n'        => $this->get_runtime_i18n(),
 		);
 		$config         = array_merge( $config, $runtime_config );
@@ -249,7 +251,7 @@ final class Map_Block {
 		$fallback_url  = $this->get_fallback_url( $config );
 
 		$html = sprintf(
-			'<div %1$s><div id="%2$s" class="guyamap-map__canvas" role="region" aria-label="%3$s"></div><script type="application/json" class="guyamap-map__config">%4$s</script><a class="guyamap-map__fallback" href="%5$s" target="_blank" rel="noopener noreferrer external">%6$s</a></div>',
+			'<div %1$s><guyamap-map-view id="%2$s" class="guyamap-map__canvas" role="region" aria-label="%3$s"></guyamap-map-view><script type="application/json" class="guyamap-map__config">%4$s</script><a class="guyamap-map__fallback" href="%5$s" target="_blank" rel="noopener noreferrer external">%6$s</a></div>',
 			get_block_wrapper_attributes( $wrapper_attributes ),
 			esc_attr( $instance_id ),
 			esc_attr( $aria_label ),
@@ -413,6 +415,27 @@ final class Map_Block {
 		return 1 === preg_match( '/^\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?$/', $value )
 			? $value
 			: '';
+	}
+
+	/**
+	 * Returns the compiled block stylesheet used inside each Shadow Root.
+	 *
+	 * The same generated CSS remains the single source for light-DOM fallback
+	 * and style-isolated maps. A version query keeps long-lived page caches from
+	 * pairing new JavaScript with stale component styles.
+	 *
+	 * @return string
+	 */
+	private function get_shadow_style_url(): string {
+		$filename = is_rtl() ? 'style-index-rtl.css' : 'style-index.css';
+
+		return esc_url_raw(
+			add_query_arg(
+				'ver',
+				GUYAMAP_VERSION,
+				GUYAMAP_PLUGIN_URL . 'build/' . $filename
+			)
+		);
 	}
 
 	/**

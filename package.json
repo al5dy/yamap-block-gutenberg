@@ -30,18 +30,22 @@
 		"lint:js": "wp-scripts lint-js",
 		"lint:css": "wp-scripts lint-style 'src/**/*.scss'",
 		"test:unit": "wp-scripts test-unit-js",
+		"test:e2e": "node scripts/run-e2e.js",
+		"test:e2e:direct": "playwright test",
+		"test:e2e:headed": "GUYAMAP_E2E_HEADED=1 node scripts/run-e2e.js",
 		"plugin-zip": "node scripts/plugin-zip.js"
 	},
 	"dependencies": {
 		"@yandex/ymaps3-clusterer": "0.0.12"
 	},
 	"devDependencies": {
-		"adm-zip": "0.5.18",
+		"@playwright/test": "1.62.1",
 		"@wordpress/block-editor": "16.2.0",
 		"@wordpress/blocks": "15.26.0",
 		"@wordpress/components": "39.0.0",
 		"@wordpress/element": "8.5.0",
 		"@wordpress/i18n": "6.26.0",
-		"@wordpress/scripts": "34.1.0"
+		"@wordpress/scripts": "34.1.0",
+		"adm-zip": "0.5.18"
 	}
 }

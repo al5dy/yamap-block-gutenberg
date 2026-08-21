@@ -308,6 +308,33 @@ phase; this method does not provide map queries or data transport.
 
 The frontend is an imperative controller around a provider adapter, not a React application per map. The editor can use WordPress React packages. One page-level loader promise imports the Yandex API and required official modules once. Each block owns an instance controller and can be destroyed independently.
 
+Every current map surface is hosted by the `guyamap-map-view` custom element.
+The element creates an open shadow root and gives Yandex an `HTMLElement`
+created by the map host's owner document. The plugin stylesheet and trusted
+Yandex JS API v3 stylesheets are mirrored into the shadow root; arbitrary theme
+stylesheets are never copied. This keeps theme CSS out of the map while
+retaining the styles loaded dynamically by the SDK. A light-DOM fallback is
+retained for older environments without Custom Elements or Shadow DOM.
+
+The SDK normally belongs to the map element's `ownerDocument.defaultView`.
+Gutenberg is the deliberate exception: WordPress 7.1 serves its editor canvas
+from a `blob:` URL, and Chromium omits the HTTP Referer from cross-origin
+scripts requested by that document. Domain-restricted Yandex keys therefore
+cannot load there. When the direct parent owns the plugin's editor bootstrap,
+the stable wp-admin window owns the SDK request and promise, while every map DOM
+node, timer and event still belongs to the actual editor canvas. Trusted SDK
+styles are mirrored from that loader document into the map's shadow root.
+Ordinary frontend iframes retain independent loader realms. Failed SDK loads
+are cleared and can be retried.
+
+The editor preview deliberately has no direct map interaction. Its host is
+inert and pointer-disabled, Yandex receives an empty behavior list, map-click
+placement is not registered, and markers are not draggable. Sidebar changes
+are serialized through `updateMap()`: camera, theme, behaviors and layer
+settings use entity `update()` methods, while marker/control entities are
+reconciled only when their bounded configuration changes. The `YMap` instance
+and SDK are therefore preserved during normal inspector edits.
+
 The proposed ProviderAdapter V1 has the following conceptual surface:
 
     create(container, config)
@@ -352,8 +379,13 @@ resolution will use the same server-render boundary. The renderer:
 The Free 2.0 view controller:
 
 - waits for IntersectionObserver using a configurable root margin;
-- shares a single Yandex API promise per document realm across every block;
+- shares a single Yandex API promise per resolved stable SDK realm across every
+  block;
+- mounts each map inside an isolated `guyamap-map-view` shadow root and mirrors
+  only plugin-owned and trusted Yandex runtime styles into that root;
 - creates independent instance controllers and exposes explicit `refresh()` and `destroy()` helpers;
+- applies live editor configuration through one serialized update pipeline
+  without reconstructing the map for ordinary inspector changes;
 - removes instance-owned controls, listeners and timers during explicit destroy;
 - keeps inline markers below the hard 1,000-object ceiling;
 - loads the clusterer chunk only for clustered frontend maps.
@@ -424,7 +456,8 @@ Free 2.0 ships:
 1. `block.json`/API v3 dynamic registration with the existing block name;
 2. bounded PHP and JavaScript normalization plus legacy block migration;
 3. inline markers and bounded client-side clustering;
-4. a Yandex v3 runtime with one per-document-realm loader, lazy instances and explicit cleanup;
+4. a Yandex v3 runtime with one loader per resolved stable SDK realm, Shadow DOM
+   map surfaces, lazy instances, live updates and explicit cleanup;
 5. a bounded neutral `extensions` bag;
 6. PHP/JS linting, unit tests and reproducible build instructions.
 

@@ -28,7 +28,9 @@ const mountBlock = ( block, config ) => {
 		return;
 	}
 
-	const canvas = block.querySelector( '.guyamap-map__canvas' );
+	const canvas = block.querySelector(
+		'guyamap-map-view.guyamap-map__canvas, .guyamap-map__canvas'
+	);
 	if ( ! canvas ) {
 		return;
 	}

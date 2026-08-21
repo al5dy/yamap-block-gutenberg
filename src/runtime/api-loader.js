@@ -1,6 +1,7 @@
 const GLOBAL_STATE = '__guyamapYandexMapsV3';
 const API_BASE = 'https://api-maps.yandex.ru/v3/';
 const SCRIPT_SELECTOR = 'script[data-guyamap-yandex-api="v3"]';
+const LOAD_TIMEOUT = 20000;
 
 function getState( targetWindow ) {
 	if ( ! targetWindow[ GLOBAL_STATE ] ) {
@@ -8,34 +9,42 @@ function getState( targetWindow ) {
 			promise: null,
 			apiKey: '',
 			language: '',
+			status: 'idle',
 		};
 	}
 
 	return targetWindow[ GLOBAL_STATE ];
 }
 
+const clearFailedApi = ( targetWindow ) => {
+	if ( ! targetWindow.ymaps3 ) {
+		return;
+	}
+
+	try {
+		Reflect.deleteProperty( targetWindow, 'ymaps3' );
+	} catch {
+		// A non-configurable third-party global cannot be recovered in place.
+	}
+};
+
 /**
- * Resolve the document realm that should own the remote Yandex SDK script.
+ * Returns the realm that can safely own the remote SDK request.
  *
- * Gutenberg's iframe editor is a special case: the editor JavaScript bundle is
- * executed in the parent wp-admin window while the block DOM lives in the
- * editor-canvas iframe. Loading JS API v3 from that transient iframe makes the
- * request depend on the iframe's Referer and lifecycle. Yandex JS API v3 uses
- * strict HTTP Referer checks, so the stable wp-admin document is the correct
- * place to own the SDK request.
+ * WordPress renders the iframe-based Gutenberg canvas from a `blob:` URL. A
+ * cross-origin script requested by a blob document has no HTTP Referer in
+ * Chromium, regardless of the script's referrer policy. Yandex consequently
+ * rejects an otherwise valid, domain-restricted API key. The editor bundle is
+ * executed in the stable wp-admin parent, so that realm must own the SDK while
+ * the YMap root continues to be the actual iframe element.
  *
- * We only opt into the parent realm when all of the following are true:
- * - this module is running in another window than the map container;
- * - that window is the direct parent of the map container's window;
- * - the parent contains the editor bootstrap object registered by the plugin.
- *
- * Normal frontend maps, including maps rendered inside ordinary iframes, keep
- * using their own document realm.
+ * The bootstrap-object and direct-parent checks intentionally keep ordinary
+ * frontend iframes isolated in their own realm.
  *
  * @param {Window} targetWindow Window that owns the map container.
- * @return {Window} Window that should load and own the Yandex SDK.
+ * @return {Window} Window that should own the Yandex SDK.
  */
-function resolveLoaderWindow( targetWindow ) {
+export function getYandexApiWindow( targetWindow ) {
 	const moduleWindow =
 		typeof globalThis.window !== 'undefined' ? globalThis.window : null;
 
@@ -49,25 +58,20 @@ function resolveLoaderWindow( targetWindow ) {
 	}
 
 	try {
-		return targetWindow.parent === moduleWindow
+		return targetWindow?.parent === moduleWindow
 			? moduleWindow
 			: targetWindow;
 	} catch {
-		// Cross-origin parents must never be accessed by the loader.
+		// A cross-origin parent is never a valid loader realm.
 		return targetWindow;
 	}
 }
 
 /**
- * Loads one Yandex Maps v3 runtime per SDK document realm.
+ * Loads one Yandex Maps v3 runtime per resolved SDK loader realm.
  *
  * API keys used by browser SDKs are public by design. They must be protected
  * with HTTP Referer restrictions in the Yandex developer dashboard.
- *
- * In the Gutenberg iframe editor, the SDK itself is deliberately loaded in the
- * parent wp-admin document while the map still receives the actual iframe
- * HTMLElement as its root container. This keeps editor DOM ownership correct
- * and gives the Yandex request a stable site Referer.
  *
  * @param {string} apiKey       JavaScript API key.
  * @param {string} language     Supported Yandex locale.
@@ -79,22 +83,36 @@ export function loadYandexApi(
 	language,
 	targetWindow = globalThis.window
 ) {
-	const targetDocument = targetWindow?.document;
-	if ( ! targetWindow || ! targetDocument ) {
+	if ( ! targetWindow?.document ) {
 		return Promise.reject( new Error( 'guyamap_document_unavailable' ) );
 	}
 
-	// If this exact realm already has a ready SDK, prefer it. This preserves the
-	// normal frontend behavior and avoids replacing a valid iframe-local runtime.
-	if ( targetWindow.ymaps3?.ready ) {
-		return targetWindow.ymaps3.ready.then( () => targetWindow.ymaps3 );
+	const loaderWindow = getYandexApiWindow( targetWindow );
+	const targetDocument = loaderWindow?.document;
+	if ( ! loaderWindow || ! targetDocument ) {
+		return Promise.reject( new Error( 'guyamap_document_unavailable' ) );
 	}
 
-	const loaderWindow = resolveLoaderWindow( targetWindow );
-	const loaderDocument = loaderWindow.document;
-
+	const state = getState( loaderWindow );
 	if ( loaderWindow.ymaps3?.ready ) {
-		return loaderWindow.ymaps3.ready.then( () => loaderWindow.ymaps3 );
+		if ( ! state.promise ) {
+			state.status = 'loading';
+			state.promise = loaderWindow.Promise.resolve(
+				loaderWindow.ymaps3.ready
+			)
+				.then( () => {
+					state.status = 'ready';
+					return loaderWindow.ymaps3;
+				} )
+				.catch( ( error ) => {
+					state.promise = null;
+					state.status = 'failed';
+					clearFailedApi( loaderWindow );
+					throw error;
+				} );
+		}
+
+		return state.promise;
 	}
 
 	if ( ! apiKey ) {
@@ -103,26 +121,34 @@ export function loadYandexApi(
 		);
 	}
 
-	const state = getState( loaderWindow );
 	if ( state.promise ) {
 		return state.promise;
 	}
 
 	state.apiKey = apiKey;
 	state.language = language;
-
+	state.status = 'loading';
 	state.promise = new loaderWindow.Promise( ( resolve, reject ) => {
-		const existing = loaderDocument.querySelector( SCRIPT_SELECTOR );
-		const script = existing || loaderDocument.createElement( 'script' );
+		const staleScript = targetDocument.querySelector( SCRIPT_SELECTOR );
+		if (
+			staleScript &&
+			( staleScript.dataset.guyamapLoadState === 'failed' ||
+				! loaderWindow.ymaps3 )
+		) {
+			staleScript.remove();
+		}
+
+		const existing = targetDocument.querySelector( SCRIPT_SELECTOR );
+		const script = existing ?? targetDocument.createElement( 'script' );
 		let settled = false;
 
 		const cleanup = () => {
-			loaderWindow.clearTimeout( timeout );
+			loaderWindow.clearTimeout( timeoutId );
 			script.removeEventListener( 'load', ready );
 			script.removeEventListener( 'error', fail );
 		};
 
-		const fail = () => {
+		const fail = ( cause ) => {
 			if ( settled ) {
 				return;
 			}
@@ -130,14 +156,14 @@ export function loadYandexApi(
 			settled = true;
 			cleanup();
 			state.promise = null;
+			state.status = 'failed';
+			script.dataset.guyamapLoadState = 'failed';
+			script.remove();
+			clearFailedApi( loaderWindow );
 
-			if ( ! existing ) {
-				script.remove();
-			}
-
-			reject(
-				new loaderWindow.Error( 'guyamap_api_load_failed' )
-			);
+			const error = new loaderWindow.Error( 'guyamap_api_load_failed' );
+			error.cause = cause;
+			reject( error );
 		};
 
 		const ready = async () => {
@@ -147,60 +173,44 @@ export function loadYandexApi(
 
 			try {
 				if ( ! loaderWindow.ymaps3?.ready ) {
-					throw new loaderWindow.Error(
-						'guyamap_api_unavailable'
-					);
+					throw new loaderWindow.Error( 'guyamap_api_unavailable' );
 				}
-
 				await loaderWindow.ymaps3.ready;
-
 				if ( settled ) {
 					return;
 				}
 
 				settled = true;
 				cleanup();
-
+				state.status = 'ready';
+				script.dataset.guyamapLoadState = 'ready';
 				resolve( loaderWindow.ymaps3 );
 			} catch ( error ) {
-				if ( settled ) {
-					return;
-				}
-
-				settled = true;
-				cleanup();
-				state.promise = null;
-
-				reject( error );
+				fail( error );
 			}
 		};
 
-		const timeout = loaderWindow.setTimeout( fail, 20000 );
-
+		const timeoutId = loaderWindow.setTimeout(
+			() => fail( new loaderWindow.Error( 'guyamap_api_load_timeout' ) ),
+			LOAD_TIMEOUT
+		);
 		script.addEventListener( 'load', ready, { once: true } );
 		script.addEventListener( 'error', fail, { once: true } );
 
 		if ( ! existing ) {
 			const url = new loaderWindow.URL( API_BASE );
-
 			url.searchParams.set( 'apikey', apiKey );
 			url.searchParams.set( 'lang', language );
-
 			script.src = url.toString();
 			script.async = true;
-
-			/*
-			 * Yandex JS API v3 requires HTTP Referer restrictions.
-			 * Explicitly preserve the origin for the cross-origin SDK request.
-			 */
 			script.referrerPolicy = 'strict-origin-when-cross-origin';
-
 			script.dataset.guyamapYandexApi = 'v3';
-
+			script.dataset.guyamapLoadState = 'loading';
 			(
-				loaderDocument.head ||
-				loaderDocument.documentElement
+				targetDocument.head || targetDocument.documentElement
 			).appendChild( script );
+		} else if ( loaderWindow.ymaps3?.ready ) {
+			ready();
 		}
 	} );
 

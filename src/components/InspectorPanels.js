@@ -129,8 +129,6 @@ export default function InspectorPanels( {
 	setAttributes,
 	selectedMarkerId,
 	onSelectMarker,
-	isPickingMarker,
-	onTogglePicking,
 } ) {
 	const {
 		aspectRatio,
@@ -417,6 +415,12 @@ export default function InspectorPanels( {
 				initialOpen={ false }
 				title={ __( 'Behaviors', 'yamap-block-gutenberg' ) }
 			>
+				<p className="components-base-control__help">
+					{ __(
+						'These behaviors apply on the frontend. The editor preview is intentionally controlled only from this sidebar.',
+						'yamap-block-gutenberg'
+					) }
+				</p>
 				{ BEHAVIOR_OPTIONS.map( ( behavior ) => (
 					<CheckboxControl
 						__nextHasNoMarginBottom
@@ -693,13 +697,11 @@ export default function InspectorPanels( {
 			>
 				<MarkerEditor
 					center={ center }
-					isPickingMarker={ isPickingMarker }
 					markers={ markers }
 					onChange={ ( nextMarkers ) =>
 						setAttributes( { markers: nextMarkers } )
 					}
 					onSelectMarker={ onSelectMarker }
-					onTogglePicking={ onTogglePicking }
 					selectedMarkerId={ selectedMarkerId }
 				/>
 			</PanelBody>

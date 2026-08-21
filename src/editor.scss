@@ -9,11 +9,15 @@
 	}
 
 	.guyamap-editor-preview__canvas {
+		display: block;
 		position: relative;
 		inline-size: 100%;
 		block-size: 100%;
 		min-block-size: 0;
 		background: #eef1f5;
+		cursor: default;
+		pointer-events: none;
+		user-select: none;
 	}
 
 	.guyamap-editor-preview__placeholder {

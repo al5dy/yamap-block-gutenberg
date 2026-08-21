@@ -17,6 +17,8 @@ Map Block for Yandex is a modern, native block for the WordPress block editor. I
 = Features =
 
 * Add any number of independent maps to a post or page.
+* Isolate every map inside a Web Component and Shadow DOM so theme styles do not leak into the Yandex surface.
+* Preview inspector changes live in Gutenberg while direct mouse gestures, map-click placement and marker dragging stay disabled in the editor.
 * Responsive width, height, minimum height, aspect ratio, wide/full alignment, spacing and border support.
 * Configure center, zoom range, tilt, azimuth, map mode and light/dark/automatic theme.
 * Select map behaviors, zoom, geolocation and fullscreen controls.
@@ -34,7 +36,7 @@ The plugin uses Yandex Maps JavaScript API v3. You supply your own browser API k
 
 = Performance =
 
-The plugin does not enqueue the map SDK site-wide. One shared loader is used per document, while each block owns an independently disposable map instance. Maps initialize through IntersectionObserver, optional clustering is loaded on demand, and inline marker payloads are strictly normalized. Each map has a hard ceiling of 1,000 inline markers and a 1 MiB encoded configuration budget; the ordered marker tail is omitted if verbose marker content reaches the byte budget first.
+The plugin does not enqueue the map SDK site-wide. One shared loader is used per document, while each block owns an independently disposable map instance. Maps initialize through IntersectionObserver, optional clustering is loaded on demand, and inline marker payloads are strictly normalized. In Gutenberg, inspector changes update the existing map instance instead of reloading the SDK or rebuilding the map. Each map has a hard ceiling of 1,000 inline markers and a 1 MiB encoded configuration budget; the ordered marker tail is omitted if verbose marker content reaches the byte budget first.
 
 Very large store-locator data sets must not be serialized into block attributes. The proposed extension architecture defines viewport queries, server-generated cluster tiles, keyset-paginated/virtualized cards and provider-backed filtering. Those contracts and the planned PRO add-on are roadmap work; PRO will be a separate plugin, not dormant locked code in this WordPress.org package.
 
@@ -58,7 +60,11 @@ Yes. There is no plugin-level map count limit. The SDK loads once and every map 
 
 = Does it work with block and classic themes? =
 
-Yes. The wrapper uses WordPress block supports and isolated logical CSS properties. It does not depend on theme container class names.
+Yes. The wrapper uses WordPress block supports and isolated logical CSS properties. The actual Yandex surface is mounted in a Web Component Shadow DOM, with only the plugin and trusted Yandex runtime styles mirrored inside. It does not depend on theme container class names.
+
+= Why can I not drag or zoom the map directly in the editor? =
+
+The Gutenberg preview is intentionally non-interactive so selecting and editing the block stays predictable. Change the center, zoom, camera, appearance, behaviors, controls and markers in the inspector; the existing preview updates immediately without a page reload. Configured gestures and draggable markers remain available on the published frontend.
 
 = Can I add custom marker HTML or JavaScript? =
 
@@ -98,9 +104,10 @@ Readable source is included in `src/`. Production assets are generated with the 
 
 1. Install Node.js 18.12 or newer.
 2. Run `npm ci`.
-3. Run `npm run build`.
+3. Run `npx playwright install chromium` when browser smoke testing is needed.
+4. Run `npm run build`.
 
-PHP quality tooling and its `composer.lock` are maintained in the development repository. From a development checkout, run `composer install`, `composer lint`, `npm run lint:js`, `npm run lint:css` and `npm run test:unit` before packaging.
+PHP quality tooling and its `composer.lock` are maintained in the development repository. From a development checkout, run `composer install`, `composer lint`, `npm run lint:js`, `npm run lint:css`, `npm run test:unit` and `npm run test:e2e` before packaging. The E2E runner discovers the adjacent local WordPress installation, creates a one-use administrator, opens the real Gutenberg editor and public page in Chromium, and removes the user afterward. `GUYAMAP_E2E_WP_PATH`, `GUYAMAP_E2E_BASE_URL` and `GUYAMAP_E2E_POST_ID` override the local defaults.
 
 Third-party production code and marker artwork are identified in `third-party-notices.txt`.
 
@@ -115,6 +122,8 @@ The implemented Free 2.0 seams and the proposed, not-yet-public PRO contracts ar
 * Migrated from Yandex Maps JavaScript API 2.1 to v3.
 * Added multiple markers, marker editing and official client-side clustering.
 * Added responsive container, camera, interaction, control, appearance and loading settings.
+* Added Shadow DOM map isolation and a non-interactive, live-updating Gutenberg preview.
+* Added a real Chromium/Playwright Gutenberg smoke test for SDK loading, pointer lock and live inspector updates.
 * Added conditional assets, one-per-page SDK loading and viewport initialization.
 * Added a Settings API screen for the API key and locale.
 * Added English/Russian internationalization, modern build tooling and coding-standard checks.

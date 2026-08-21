@@ -31,8 +31,6 @@ export default function MarkerEditor( {
 	onChange,
 	selectedMarkerId,
 	onSelectMarker,
-	isPickingMarker,
-	onTogglePicking,
 } ) {
 	const [ search, setSearch ] = useState( '' );
 	const safeMarkers = useMemo(
@@ -208,15 +206,6 @@ export default function MarkerEditor( {
 				<Button onClick={ () => addMarker() } variant="primary">
 					{ __( 'Add at map center', 'yamap-block-gutenberg' ) }
 				</Button>
-				<Button
-					aria-pressed={ isPickingMarker }
-					onClick={ onTogglePicking }
-					variant={ isPickingMarker ? 'primary' : 'secondary' }
-				>
-					{ isPickingMarker
-						? __( 'Cancel map picking', 'yamap-block-gutenberg' )
-						: __( 'Pick on map', 'yamap-block-gutenberg' ) }
-				</Button>
 			</div>
 
 			{ safeMarkers.length > 0 && (
@@ -292,7 +281,7 @@ export default function MarkerEditor( {
 			{ safeMarkers.length === 0 && (
 				<Notice isDismissible={ false } status="info">
 					{ __(
-						'Add a marker at the current center or pick its position directly on the map.',
+						'Add a marker at the current map center, then edit its coordinates in this panel.',
 						'yamap-block-gutenberg'
 					) }
 				</Notice>
@@ -400,6 +389,10 @@ export default function MarkerEditor( {
 					<ToggleControl
 						__nextHasNoMarginBottom
 						checked={ Boolean( selectedMarker.draggable ) }
+						help={ __(
+							'This affects the frontend map; the editor preview remains locked.',
+							'yamap-block-gutenberg'
+						) }
 						label={ __(
 							'Draggable marker',
 							'yamap-block-gutenberg'

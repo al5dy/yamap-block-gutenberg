@@ -1,3 +1,43 @@
+:host {
+	display: block;
+	position: relative;
+	inline-size: 100%;
+	block-size: 100%;
+	min-block-size: 0;
+	overflow: hidden;
+	contain: layout paint style;
+	isolation: isolate;
+	background: #e7ebf0;
+}
+
+:host([data-guyamap-editor-preview]) {
+	pointer-events: none;
+	user-select: none;
+}
+
+:host(:fullscreen) {
+	position: fixed;
+	inset: 0;
+	inline-size: 100vw;
+	block-size: 100vh;
+}
+
+.guyamap-map__shadow-frame {
+	all: initial;
+	display: block !important;
+	position: relative !important;
+	inline-size: 100% !important;
+	block-size: 100% !important;
+	min-block-size: 0 !important;
+	margin: 0 !important;
+	border: 0 !important;
+	border-radius: inherit !important;
+	color: #1e1e1e;
+	font: 16px/1.4 system-ui, sans-serif;
+	text-align: start;
+	writing-mode: horizontal-tb;
+}
+
 .wp-block-gutenberg-yandex-block-map.guyamap-map,
 .wp-block-gutenberg-yandex-block-map.guyamap-block-editor {
 	--guyamap-height: 480px;
@@ -26,6 +66,7 @@
 	}
 
 	.guyamap-map__canvas {
+		display: block;
 		position: relative;
 		inline-size: 100%;
 		block-size: 100%;

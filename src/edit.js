@@ -1,15 +1,8 @@
-import { BlockControls, useBlockProps } from '@wordpress/block-editor';
-import { ToolbarButton, ToolbarGroup } from '@wordpress/components';
-import { useCallback, useEffect, useMemo, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { useBlockProps } from '@wordpress/block-editor';
+import { useEffect, useMemo, useState } from '@wordpress/element';
 
 import InspectorPanels from './components/InspectorPanels';
 import MapPreview from './components/MapPreview';
-import {
-	createMarker,
-	normalizeCoordinates,
-	updateMarkerById,
-} from './components/marker-utils';
 
 const DIMENSION_PATTERN =
 	/^(?:0|(?:\d+(?:\.\d+)?|\.\d+)(?:px|%|em|rem|vh|vw|vmin|vmax|ch))$/i;
@@ -25,7 +18,7 @@ const safeAspectRatio = ( value ) =>
 		? value.trim()
 		: '';
 
-export default function Edit( { attributes, setAttributes, isSelected } ) {
+export default function Edit( { attributes, setAttributes } ) {
 	const markers = useMemo(
 		() => ( Array.isArray( attributes.markers ) ? attributes.markers : [] ),
 		[ attributes.markers ]
@@ -33,7 +26,6 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 	const [ selectedMarkerId, setSelectedMarkerId ] = useState(
 		markers[ 0 ]?.id ?? ''
 	);
-	const [ isPickingMarker, setIsPickingMarker ] = useState( false );
 	const aspectRatio = safeAspectRatio( attributes.aspectRatio );
 	const blockProps = useBlockProps( {
 		className: 'guyamap-block-editor',
@@ -58,86 +50,17 @@ export default function Edit( { attributes, setAttributes, isSelected } ) {
 		}
 	}, [ markers, selectedMarkerId ] );
 
-	useEffect( () => {
-		if ( ! isSelected ) {
-			setIsPickingMarker( false );
-		}
-	}, [ isSelected ] );
-
-	const handleMapClick = useCallback(
-		( coordinates ) => {
-			if ( ! isPickingMarker ) {
-				return;
-			}
-
-			const marker = createMarker( coordinates );
-			setAttributes( { markers: [ ...markers, marker ] } );
-			setSelectedMarkerId( marker.id );
-			setIsPickingMarker( false );
-		},
-		[ isPickingMarker, markers, setAttributes ]
-	);
-
-	const handleMarkerDragEnd = useCallback(
-		( markerId, coordinates ) => {
-			setAttributes( {
-				markers: updateMarkerById( markers, markerId, ( marker ) => ( {
-					...marker,
-					coordinates: normalizeCoordinates(
-						coordinates,
-						marker.coordinates ?? attributes.center
-					),
-				} ) ),
-			} );
-			setSelectedMarkerId( markerId );
-		},
-		[ attributes.center, markers, setAttributes ]
-	);
-
 	return (
 		<>
-			<BlockControls>
-				<ToolbarGroup>
-					<ToolbarButton
-						icon="location-alt"
-						isPressed={ isPickingMarker }
-						label={
-							isPickingMarker
-								? __(
-										'Cancel marker placement',
-										'yamap-block-gutenberg'
-								  )
-								: __(
-										'Place marker on map',
-										'yamap-block-gutenberg'
-								  )
-						}
-						onClick={ () =>
-							setIsPickingMarker( ( current ) => ! current )
-						}
-					/>
-				</ToolbarGroup>
-			</BlockControls>
-
 			<InspectorPanels
 				attributes={ attributes }
-				isPickingMarker={ isPickingMarker }
 				onSelectMarker={ setSelectedMarkerId }
-				onTogglePicking={ () =>
-					setIsPickingMarker( ( current ) => ! current )
-				}
 				selectedMarkerId={ selectedMarkerId }
 				setAttributes={ setAttributes }
 			/>
 
 			<div { ...blockProps }>
-				<MapPreview
-					attributes={ attributes }
-					interactive={ isSelected }
-					isPickingMarker={ isPickingMarker }
-					onMapClick={ handleMapClick }
-					onMarkerDragEnd={ handleMarkerDragEnd }
-				/>
+				<MapPreview attributes={ attributes } />
 			</div>
 		</>
 	);

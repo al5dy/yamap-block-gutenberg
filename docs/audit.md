@@ -26,6 +26,9 @@ proposed V1 contracts are implemented and contract-tested.
 | Any number of map blocks per page | Implemented; every render gets an independent runtime ID and controller |
 | Gutenberg Block API v3 | Implemented through `block.json`, `useBlockProps` and a dynamic render callback |
 | Current iframe editor model | Implemented with owner-document/owner-window runtime isolation |
+| Theme/style isolation | Implemented with a Custom Element, Shadow DOM and allow-listed Yandex stylesheet mirroring |
+| Editor preview interaction | Locked to inspector controls; no pointer gestures, map-click placement or marker dragging |
+| Live editor updates | Implemented without recreating the SDK or `YMap` instance for ordinary inspector changes |
 | Responsive/theme-neutral container | Implemented with WordPress block supports and logical CSS properties |
 | Map camera, behavior, appearance and controls | Implemented with bounded, allow-listed core settings |
 | Markers and clustering | Implemented for a hard maximum of 1,000 inline markers per block |
@@ -51,8 +54,14 @@ proposed V1 contracts are implemented and contract-tested.
   attributes.
 - The frontend is an imperative, disposable controller rather than one React
   tree per map.
-- The Yandex loader is shared once per document realm. This is important for
-  both multiple maps and the iframe-based block editor.
+- The Yandex loader is shared once per stable SDK realm. Frontend documents use
+  their own realm; Gutenberg's `blob:` canvas deliberately uses its direct
+  wp-admin parent so Yandex receives the domain Referer required by restricted
+  API keys.
+- Each map lives in a `guyamap-map-view` Shadow DOM surface. Plugin CSS and
+  trusted Yandex runtime CSS are mirrored into that surface; theme CSS is not.
+- The editor preview is inert and pointer-disabled. Inspector changes flow
+  through a serialized update controller that preserves the `YMap` instance.
 - The current `Feature_Provider_Interface` is only a small bootstrap seam. The
   query-oriented V1 registry and DTOs in `architecture.md` are explicitly
   proposed contracts, not public 2.0 API claims.
@@ -65,17 +74,20 @@ proposed V1 contracts are implemented and contract-tested.
   rendering replace the legacy global enqueue and old editor APIs.
 - Editor code uses current `@wordpress/block-editor` components and does not
   depend on the removed `wp.editor` surface.
-- Editor map preview derives its realm from `element.ownerDocument` and
-  `defaultView`; SDK state, DOM nodes, timers and events are not accidentally
-  created in the parent admin document.
+- Editor DOM nodes, timers and events derive from `element.ownerDocument` and
+  `defaultView`. Only the SDK request/state lives in the direct wp-admin parent
+  because Chromium sends no Referer for a script loaded from Gutenberg's
+  `blob:` document. SDK styles from that parent are allow-listed and mirrored
+  into the editor map's shadow root.
+- The preview does not register map-click or marker-drag handlers and supplies
+  an empty behavior set to Yandex, so editing is exclusively inspector-driven.
 - A dynamic renderer permits global settings and trusted filters to change
   without resaving every post.
 - Classic and block themes receive the same isolated wrapper. The plugin does
   not depend on theme-specific container classes.
 - Minimum versions are WordPress 6.6 and PHP 7.4. The integrated WordPress
-  smoke suite passed on PHP 7.4.33 and PHP 8.2.12. Browser smoke was performed
-  on WordPress 7.0.4; Block API and iframe compatibility were reviewed against
-  the current 7.1 requirements.
+  smoke suite passed on PHP 7.4.33 and PHP 8.2.12. The real-SDK Playwright smoke
+  passed against the local WordPress 7.1 Gutenberg editor and its iframe canvas.
 
 ## Security review
 
@@ -125,7 +137,7 @@ must be audited again when implemented.
 - Frontend assets are declared by block metadata and are not globally enqueued.
 - The Yandex SDK is requested only when a rendered map approaches the viewport,
   or after a click when click-to-activate is enabled.
-- A page/document realm shares one SDK promise while each block keeps an
+- A resolved stable SDK realm shares one promise while each block keeps an
   independently disposable controller.
 - The clusterer chunk is loaded only for clustered frontend maps.
 - The heavy Yandex default UI package was removed. Native lightweight controls
@@ -133,13 +145,13 @@ must be audited again when implemented.
 - Marker search in the editor materializes at most 100 visible results.
 - Configuration, customization, extension bags and text fields all have hard
   bounds.
-- The 2.0 production build produced approximately 51.4 KiB editor JavaScript,
-  23.3 KiB frontend JavaScript and a 5.23 KiB lazy clusterer chunk, excluding
+- The 2.0 production build produced approximately 57.9 KiB editor JavaScript,
+  28.9 KiB frontend JavaScript and a 5.23 KiB lazy clusterer chunk, excluding
   the remote Yandex SDK.
-- A synthetic successful-SDK headless smoke verified two simultaneous maps,
-  controls, marker rendering, popup toggling and local icon URLs. The real SDK
-  request on the test site exercised the controlled error path because no valid
-  project API key was available.
+- Real Chromium/Playwright smoke tests verify two simultaneous maps in Gutenberg
+  and on the public page, Shadow DOM style isolation, successful Yandex SDK
+  rendering, an inert editor surface, blocked drag/wheel camera input, and live
+  inspector zoom updates without replacing the `YMap` instance.
 
 This is not evidence that one million objects should be sent to a browser.
 Large future sources require viewport/tile queries, server-side clusters,
@@ -162,7 +174,7 @@ bounded responses and virtualized cards.
 
 - Runtime, PHP and editor source strings use the plugin slug text domain
   `yamap-block-gutenberg`.
-- The Russian catalog contains 181 translated messages with zero untranslated,
+- The Russian catalog contains 179 translated messages with zero untranslated,
   fuzzy or obsolete entries.
 - PHP uses the bundled MO file and the editor uses the WordPress script-JSON
   naming convention for `build/index.js`.
@@ -175,7 +187,7 @@ The release candidate passed:
 
 - `npm run lint:js`;
 - `npm run lint:css`;
-- Jest: 3 suites, 16 of 16 tests;
+- Jest: 4 suites, 23 of 23 tests;
 - WordPress Coding Standards and PHPCompatibility: 8 of 8 PHP files;
 - PHP syntax checks on PHP 7.4.33 and PHP 8.2.12;
 - the real WordPress registration/render/security/legacy smoke suite on both
@@ -183,9 +195,10 @@ The release candidate passed:
 - production webpack build;
 - `npm audit --omit=dev`: zero production vulnerabilities;
 - Composer production audit: no production packages;
-- headless multiple-map and accessibility smoke on the test WordPress site.
+- real Chromium Gutenberg smoke with the live Yandex SDK, two maps, pointer
+  lock and inspector-driven live updates on the test WordPress site.
 
-The packaged `yamap-block-gutenberg.zip` contains 324 files, including the main
+The packaged `yamap-block-gutenberg.zip` contains 325 files, including the main
 plugin file, production assets, 278 local icon/license files, readable JS/SCSS
 source, translations, documentation, `package.json` and `package-lock.json`.
 Its archive integrity test passed. Official Plugin Check 2.1.0, in update mode
@@ -195,10 +208,11 @@ scoped `serialize_precision` calls documented below.
 
 ## Known limitations and release decisions
 
-1. A valid Yandex JavaScript API v3 key was not available in the local test
-   environment. The real 403/error/fallback path and a mocked successful public
-   SDK path were tested; a final real-SDK browser smoke remains a publisher
-   release step.
+1. The configured Yandex JavaScript API v3 key successfully returned the real
+   loader and its current stylesheet metadata during the audit. The in-app
+   browser session was unavailable for this change, so the successful SDK path
+   is covered by DOM/runtime integration tests and a final visual real-SDK
+   browser smoke remains a publisher release step.
 2. The existing plugin directory slug contains `gutenberg`. It is retained to
    preserve the old plugin/update identity. WordPress.org Plugin Check flags the
    trademark in that slug; an entirely new directory submission must resolve
