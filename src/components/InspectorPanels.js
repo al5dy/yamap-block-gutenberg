@@ -13,6 +13,22 @@ import JsonControl from './JsonControl';
 import MarkerEditor from './MarkerEditor';
 import NumericControl from './NumericControl';
 import Preloader from './Preloader';
+import ValidatedTextControl from './ValidatedTextControl';
+import {
+	getCustomizationErrors,
+	getCustomizationWarning,
+} from './customization-messages';
+import {
+	toColorInputValue,
+	validateAspectRatio,
+	validateDimension,
+	validateRootMargin,
+} from './validators';
+
+// Bounds shared with Config_Normalizer and the runtime normalizer.
+const MAX_ZOOM = 23;
+const MIN_ZOOM_SPAN = 1;
+const MAX_CLUSTER_GRID_SIZE = 256;
 
 const BEHAVIOR_OPTIONS = [
 	{ label: __( 'Drag', 'yamap-block-gutenberg' ), value: 'drag' },
@@ -153,6 +169,12 @@ export default function InspectorPanels( {
 		zoomRange = {},
 	} = attributes;
 	const preloader = loading.preloader ?? {};
+	const minimumZoom = numberInRange( zoomRange.min, 1, 0, MAX_ZOOM );
+	const maximumZoom = numberInRange( zoomRange.max, 21, 0, MAX_ZOOM );
+	const invalidDimensionHelp = __(
+		'Enter a number with a unit: px, %, em, rem, vh, vw, vmin, vmax or ch.',
+		'yamap-block-gutenberg'
+	);
 
 	const updateObjectAttribute = ( attributeName, patch ) => {
 		setAttributes( {
@@ -240,8 +262,8 @@ export default function InspectorPanels( {
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 					label={ __( 'Zoom', 'yamap-block-gutenberg' ) }
-					max={ zoomRange.max ?? 21 }
-					min={ zoomRange.min ?? 1 }
+					max={ maximumZoom }
+					min={ minimumZoom }
 					onChange={ ( nextZoom ) =>
 						setAttributes( { zoom: nextZoom } )
 					}
@@ -251,28 +273,29 @@ export default function InspectorPanels( {
 				<div className="guyamap-control-grid guyamap-control-grid--two">
 					<NumericControl
 						label={ __( 'Minimum zoom', 'yamap-block-gutenberg' ) }
-						max={ zoomRange.max ?? 21 }
+						max={ maximumZoom - MIN_ZOOM_SPAN }
 						min={ 0 }
-						onChange={ ( min ) => {
-							updateObjectAttribute( 'zoomRange', { min } );
-							if ( zoom < min ) {
-								setAttributes( { zoom: min } );
-							}
-						} }
+						onChange={ ( min ) =>
+							setAttributes( {
+								zoomRange: { ...zoomRange, min },
+								zoom: Math.max( zoom, min ),
+							} )
+						}
 						step={ 0.1 }
-						value={ zoomRange.min ?? 1 }
+						value={ minimumZoom }
 					/>
 					<NumericControl
 						label={ __( 'Maximum zoom', 'yamap-block-gutenberg' ) }
-						min={ zoomRange.min ?? 0 }
-						onChange={ ( max ) => {
-							updateObjectAttribute( 'zoomRange', { max } );
-							if ( zoom > max ) {
-								setAttributes( { zoom: max } );
-							}
-						} }
+						max={ MAX_ZOOM }
+						min={ minimumZoom + MIN_ZOOM_SPAN }
+						onChange={ ( max ) =>
+							setAttributes( {
+								zoomRange: { ...zoomRange, max },
+								zoom: Math.min( zoom, max ),
+							} )
+						}
 						step={ 0.1 }
-						value={ zoomRange.max ?? 21 }
+						value={ maximumZoom }
 					/>
 				</div>
 				<RangeControl
@@ -305,52 +328,55 @@ export default function InspectorPanels( {
 				initialOpen={ false }
 				title={ __( 'Container', 'yamap-block-gutenberg' ) }
 			>
-				<TextControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+				<ValidatedTextControl
 					help={ __(
 						'Use a valid CSS length, for example 100% or 960px.',
 						'yamap-block-gutenberg'
 					) }
+					invalidHelp={ invalidDimensionHelp }
 					label={ __( 'Width', 'yamap-block-gutenberg' ) }
 					onChange={ ( nextWidth ) =>
 						setAttributes( { width: nextWidth } )
 					}
+					validate={ validateDimension }
 					value={ width ?? '100%' }
 				/>
-				<TextControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+				<ValidatedTextControl
 					help={ __(
 						'Use a valid CSS length, for example 480px or 60vh.',
 						'yamap-block-gutenberg'
 					) }
+					invalidHelp={ invalidDimensionHelp }
 					label={ __( 'Height', 'yamap-block-gutenberg' ) }
 					onChange={ ( nextHeight ) =>
 						setAttributes( { height: nextHeight } )
 					}
+					validate={ validateDimension }
 					value={ height ?? '480px' }
 				/>
-				<TextControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+				<ValidatedTextControl
+					invalidHelp={ invalidDimensionHelp }
 					label={ __( 'Minimum height', 'yamap-block-gutenberg' ) }
 					onChange={ ( nextMinHeight ) =>
 						setAttributes( { minHeight: nextMinHeight } )
 					}
+					validate={ validateDimension }
 					value={ minHeight ?? '280px' }
 				/>
-				<TextControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+				<ValidatedTextControl
 					help={ __(
-						'Leave empty for a free-form height, or use a ratio such as 16 / 9.',
+						'Leave empty for a free-form height, or use a ratio such as 16 / 9. A ratio replaces the height and minimum height.',
+						'yamap-block-gutenberg'
+					) }
+					invalidHelp={ __(
+						'Enter a ratio of two positive numbers, for example 16 / 9.',
 						'yamap-block-gutenberg'
 					) }
 					label={ __( 'Aspect ratio', 'yamap-block-gutenberg' ) }
 					onChange={ ( nextAspectRatio ) =>
 						setAttributes( { aspectRatio: nextAspectRatio } )
 					}
+					validate={ validateAspectRatio }
 					value={ aspectRatio ?? '' }
 				/>
 			</PanelBody>
@@ -408,7 +434,7 @@ export default function InspectorPanels( {
 				<JsonControl
 					expectedType="array"
 					help={ __(
-						'Advanced Yandex map customization rules.',
+						'Advanced Yandex map customization rules. A rule selects map objects with "tags", "types" and "elements" and changes them with "stylers".',
 						'yamap-block-gutenberg'
 					) }
 					label={ __(
@@ -418,7 +444,12 @@ export default function InspectorPanels( {
 					onChange={ ( nextCustomization ) =>
 						setAttributes( { customization: nextCustomization } )
 					}
+					validate={ getCustomizationErrors }
 					value={ customization }
+					warning={ getCustomizationWarning(
+						customization,
+						mapMode
+					) }
 				/>
 			</PanelBody>
 
@@ -605,6 +636,10 @@ export default function InspectorPanels( {
 				<ToggleControl
 					__nextHasNoMarginBottom
 					checked={ restrictionEnabled }
+					help={ __(
+						'Keep the area larger than the visible map at the minimum zoom, otherwise the map cannot stay inside it.',
+						'yamap-block-gutenberg'
+					) }
 					label={ __( 'Restrict map area', 'yamap-block-gutenberg' ) }
 					onChange={ ( enabled ) =>
 						updateObjectAttribute( 'mapOptions', {
@@ -731,7 +766,7 @@ export default function InspectorPanels( {
 				/>
 				<NumericControl
 					label={ __( 'Cluster grid size', 'yamap-block-gutenberg' ) }
-					max={ 512 }
+					max={ MAX_CLUSTER_GRID_SIZE }
 					min={ 16 }
 					onChange={ ( gridSize ) =>
 						updateObjectAttribute( 'cluster', { gridSize } )
@@ -744,8 +779,8 @@ export default function InspectorPanels( {
 						'Maximum clustering zoom',
 						'yamap-block-gutenberg'
 					) }
-					max={ zoomRange.max ?? 21 }
-					min={ zoomRange.min ?? 1 }
+					max={ MAX_ZOOM }
+					min={ 0 }
 					onChange={ ( maxZoom ) =>
 						updateObjectAttribute( 'cluster', { maxZoom } )
 					}
@@ -759,7 +794,8 @@ export default function InspectorPanels( {
 					onChange={ ( color ) =>
 						updateObjectAttribute( 'cluster', { color } )
 					}
-					value={ cluster.color ?? '#ff4433' }
+					type="color"
+					value={ toColorInputValue( cluster.color, '#ff4433' ) }
 				/>
 			</PanelBody>
 
@@ -770,6 +806,12 @@ export default function InspectorPanels( {
 					'yamap-block-gutenberg'
 				) }
 			>
+				<p className="components-base-control__help">
+					{ __(
+						'These options apply on the published page. The editor preview always loads the map right away.',
+						'yamap-block-gutenberg'
+					) }
+				</p>
 				<ToggleControl
 					__nextHasNoMarginBottom
 					checked={ loading.lazy !== false }
@@ -778,17 +820,20 @@ export default function InspectorPanels( {
 						updateObjectAttribute( 'loading', { lazy } )
 					}
 				/>
-				<TextControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
+				<ValidatedTextControl
 					help={ __(
 						'Intersection Observer margin, for example 300px.',
+						'yamap-block-gutenberg'
+					) }
+					invalidHelp={ __(
+						'Enter one to four px or % values, for example 300px or 200px 0px.',
 						'yamap-block-gutenberg'
 					) }
 					label={ __( 'Preload distance', 'yamap-block-gutenberg' ) }
 					onChange={ ( rootMargin ) =>
 						updateObjectAttribute( 'loading', { rootMargin } )
 					}
+					validate={ validateRootMargin }
 					value={ loading.rootMargin ?? '300px' }
 				/>
 				<ToggleControl
@@ -867,7 +912,10 @@ export default function InspectorPanels( {
 									updatePreloader( { color } )
 								}
 								type="color"
-								value={ preloader.color ?? '#3858e9' }
+								value={ toColorInputValue(
+									preloader.color,
+									'#3858e9'
+								) }
 							/>
 							<TextControl
 								__next40pxDefaultSize
@@ -880,7 +928,10 @@ export default function InspectorPanels( {
 									updatePreloader( { backgroundColor } )
 								}
 								type="color"
-								value={ preloader.backgroundColor ?? '#eef1f5' }
+								value={ toColorInputValue(
+									preloader.backgroundColor,
+									'#eef1f5'
+								) }
 							/>
 						</div>
 						<RangeControl

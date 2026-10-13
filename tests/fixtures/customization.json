@@ -1,0 +1,174 @@
+[
+	{
+		"name": "keeps a documented rule and lists a single styler",
+		"input": [ { "tags": { "all": [ "water" ] }, "elements": "geometry", "stylers": { "color": "#ff0000" } } ],
+		"expected": [ { "tags": { "all": [ "water" ] }, "elements": "geometry", "stylers": [ { "color": "#ff0000" } ] } ]
+	},
+	{
+		"name": "accepts every documented selector form",
+		"input": [
+			{
+				"tags": { "all": "road", "any": [ "road_1", "road_2", "road_1" ], "none": [ "is_tunnel" ] },
+				"types": [ "polyline", "polygon", "polyline" ],
+				"elements": [ "geometry.fill", "label.text.outline" ],
+				"stylers": [ { "visibility": "off" } ]
+			},
+			{ "tags": "country", "types": "point", "stylers": [ { "scale": 2 } ] }
+		],
+		"expected": [
+			{
+				"tags": { "all": "road", "any": [ "road_1", "road_2" ], "none": [ "is_tunnel" ] },
+				"types": [ "polyline", "polygon" ],
+				"elements": [ "geometry.fill", "label.text.outline" ],
+				"stylers": [ { "visibility": "off" } ]
+			},
+			{ "tags": "country", "types": "point", "stylers": [ { "scale": 2 } ] }
+		]
+	},
+	{
+		"name": "accepts every documented styler property in a fixed order",
+		"input": [
+			{
+				"stylers": [
+					{
+						"zoom": [ 1, 21 ],
+						"scale": 1.5,
+						"opacity": 0.5,
+						"tertiary-color": "0000ff",
+						"secondary-color": "0x00ff00",
+						"color": "#F00F",
+						"lightness": -0.25,
+						"saturation": 0.25,
+						"hue": "#ff8800",
+						"visibility": "off"
+					}
+				]
+			}
+		],
+		"expected": [
+			{
+				"stylers": [
+					{
+						"visibility": "off",
+						"hue": "#ff8800",
+						"saturation": 0.25,
+						"lightness": -0.25,
+						"color": "#F00F",
+						"secondary-color": "0x00ff00",
+						"tertiary-color": "0000ff",
+						"opacity": 0.5,
+						"scale": 1.5,
+						"zoom": [ 1, 21 ]
+					}
+				]
+			}
+		]
+	},
+	{
+		"name": "clamps numbers and orders a zoom interval",
+		"input": [
+			{
+				"stylers": [
+					{ "saturation": 5, "lightness": -5, "opacity": -1, "scale": 1000, "zoom": [ 30, -2 ] },
+					{ "color": "#fff", "zoom": 40 }
+				]
+			}
+		],
+		"expected": [
+			{
+				"stylers": [
+					{ "saturation": 1, "lightness": -1, "opacity": 0, "scale": 100, "zoom": [ 0, 23 ] },
+					{ "color": "#fff", "zoom": 23 }
+				]
+			}
+		]
+	},
+	{
+		"name": "discards entries that are not rule objects",
+		"input": [ null, 1, "water", true, [], [ 1, 2 ], {}, { "stylers": { "color": "#00ff00" } } ],
+		"expected": [ { "stylers": [ { "color": "#00ff00" } ] } ]
+	},
+	{
+		"name": "discards a rule whose selector cannot be applied",
+		"input": [
+			{ "tags": null, "stylers": { "color": "#000001" } },
+			{ "tags": 1, "stylers": { "color": "#000002" } },
+			{ "tags": "", "stylers": { "color": "#000003" } },
+			{ "tags": "wa ter", "stylers": { "color": "#000004" } },
+			{ "tags": { "some": [ "water" ] }, "stylers": { "color": "#000005" } },
+			{ "tags": { "all": [] }, "stylers": { "color": "#000006" } },
+			{ "tags": { "all": [ "water", null ] }, "stylers": { "color": "#000007" } },
+			{ "tags": { "all": [ "" ] }, "stylers": { "color": "#000008" } },
+			{ "types": "Point", "stylers": { "color": "#00000a" } },
+			{ "types": [], "stylers": { "color": "#00000b" } },
+			{ "types": [ "point", "bogus" ], "stylers": { "color": "#00000c" } },
+			{ "types": null, "stylers": { "color": "#00000d" } },
+			{ "elements": "Geometry", "stylers": { "color": "#00000e" } },
+			{ "elements": [ "geometry", 1 ], "stylers": { "color": "#00000f" } },
+			{ "elements": {}, "stylers": { "color": "#000010" } },
+			{ "tags": "water", "stylers": { "color": "#000011" } }
+		],
+		"expected": [ { "tags": "water", "stylers": [ { "color": "#000011" } ] } ]
+	},
+	{
+		"name": "treats an empty tag selector as no selector",
+		"input": [ { "tags": {}, "stylers": { "color": "#00ff00" } }, { "tags": [], "stylers": { "color": "#0000ff" } } ],
+		"expected": [ { "stylers": [ { "color": "#00ff00" } ] }, { "stylers": [ { "color": "#0000ff" } ] } ]
+	},
+	{
+		"name": "discards unusable stylers and the rules left without one",
+		"input": [
+			{ "tags": "water" },
+			{ "tags": "water", "stylers": null },
+			{ "tags": "water", "stylers": 1 },
+			{ "tags": "water", "stylers": "x" },
+			{ "tags": "water", "stylers": [] },
+			{ "tags": "water", "stylers": {} },
+			{ "tags": "water", "stylers": [ null, 1, "x", [], [ 1 ], {} ] },
+			{ "tags": "water", "stylers": [ null, { "color": "#123456" }, 7 ] }
+		],
+		"expected": [ { "tags": "water", "stylers": [ { "color": "#123456" } ] } ]
+	},
+	{
+		"name": "discards unusable styler properties on their own",
+		"input": [
+			{
+				"stylers": [
+					{
+						"color": "red",
+						"secondary-color": "rgb(255,0,0)",
+						"tertiary-color": "#ff00f",
+						"hue": 1,
+						"saturation": "0.5",
+						"lightness": null,
+						"opacity": [],
+						"scale": true,
+						"zoom": "12",
+						"visibility": "on",
+						"sparkle": 1
+					},
+					{ "color": "#ABCDEF", "zoom": [ 1 ], "visibility": 0 },
+					{ "opacity": 0.3, "zoom": [ 1, 2, 3 ] },
+					{ "scale": 2, "zoom": [ "1", "2" ] },
+					{ "hue": "#00ff00\n" }
+				]
+			}
+		],
+		"expected": [ { "stylers": [ { "color": "#ABCDEF" }, { "opacity": 0.3 }, { "scale": 2 } ] } ]
+	},
+	{
+		"name": "ignores unknown rule keys and prototype keys",
+		"input": [ { "comment": "night roads", "constructor": { "prototype": 1 }, "tags": "road", "stylers": { "color": "#222222", "constructor": 1 } } ],
+		"expected": [ { "tags": "road", "stylers": [ { "color": "#222222" } ] } ]
+	},
+	{
+		"name": "returns no rules for anything but a list",
+		"input": { "style": [ { "stylers": { "color": "#00ff00" } } ] },
+		"expected": []
+	},
+	{
+		"name": "returns no rules for a scalar",
+		"input": "[]",
+		"expected": []
+	}
+]

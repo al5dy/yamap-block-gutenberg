@@ -1,5 +1,7 @@
 const { expect, test } = require( '@playwright/test' );
 
+const { login } = require( './support/login' );
+
 const username = process.env.GUYAMAP_E2E_USERNAME;
 const password = process.env.GUYAMAP_E2E_PASSWORD;
 const postId = process.env.GUYAMAP_E2E_POST_ID || '2';
@@ -28,6 +30,44 @@ const dismissWelcomeGuide = async ( page ) => {
 	await expect( welcome ).toBeHidden();
 };
 
+/*
+ * This suite drives the real Yandex SDK, which only loads when Yandex accepts
+ * the configured key for the site under test. Skip with an actionable reason
+ * instead of failing every test on an environment whose host is not allowed
+ * by the key's HTTP Referer restrictions. The mocked suite in
+ * runtime-mock.spec.js covers the runtime without that dependency.
+ */
+test.beforeAll( async ( { playwright, baseURL } ) => {
+	const request = await playwright.request.newContext( {
+		baseURL,
+		ignoreHTTPSErrors: true,
+	} );
+	try {
+		const page = await request.get( `/?page_id=${ postId }` );
+		const html = await page.text();
+		const apiKey = /"apiKey":"([^"]*)"/.exec( html )?.[ 1 ] ?? '';
+		const language = /"language":"([^"]*)"/.exec( html )?.[ 1 ] ?? 'en_US';
+		const host = new URL( page.url() ).host;
+		test.skip(
+			! apiKey,
+			`No Yandex API key is rendered on ${ host }; the real-SDK suite cannot run.`
+		);
+
+		const sdk = await request.get(
+			`https://api-maps.yandex.ru/v3/?apikey=${ encodeURIComponent(
+				apiKey
+			) }&lang=${ encodeURIComponent( language ) }`,
+			{ headers: { referer: `https://${ host }/` } }
+		);
+		test.skip(
+			sdk.status() !== 200,
+			`Yandex rejects the configured API key for ${ host } (HTTP ${ sdk.status() }). Add this host to the key's HTTP Referer restrictions to run the real-SDK suite.`
+		);
+	} finally {
+		await request.dispose();
+	}
+} );
+
 test.beforeEach( async ( { page } ) => {
 	if ( ! username || ! password ) {
 		throw new Error(
@@ -36,41 +76,50 @@ test.beforeEach( async ( { page } ) => {
 	}
 
 	await page.addInitScript( () => {
-		window.__guyamapE2E = {
-			readyEvents: [],
-			errorEvents: [],
-		};
-		document.addEventListener(
-			'guyamap:ready',
-			( event ) => {
-				const record = {
-					controller: event.detail.controller,
-					initialMap: event.detail.map,
-				};
+		// The editor canvas can keep its Window while its document is
+		// replaced, so record once per Window. WebKit drops the listeners of
+		// the first document; adding the same listener again is a no-op.
+		if ( ! window.__guyamapE2E ) {
+			const store = {
+				readyEvents: [],
+				errorEvents: [],
+				// Maps become ready in any order (a clustered map also loads
+				// its clusterer chunk), so look the first map up by its host.
+				firstMap() {
+					const host = document.querySelector( 'guyamap-map-view' );
+					return this.readyEvents.find(
+						( record ) => record.controller.container === host
+					);
+				},
+			};
+			store.onReady = ( event ) => {
 				event.detail.controller.__guyamapE2EInitialMap =
 					event.detail.map;
-				window.__guyamapE2E.readyEvents.push( record );
-			},
-			true
-		);
-		document.addEventListener(
-			'guyamap:error',
-			( event ) => {
-				window.__guyamapE2E.errorEvents.push(
+				store.readyEvents.push( {
+					controller: event.detail.controller,
+					initialMap: event.detail.map,
+				} );
+			};
+			store.onError = ( event ) => {
+				store.errorEvents.push(
 					event.detail.error?.message || String( event.detail.error )
 				);
-			},
+			};
+			window.__guyamapE2E = store;
+		}
+		window.addEventListener(
+			'guyamap:ready',
+			window.__guyamapE2E.onReady,
+			true
+		);
+		window.addEventListener(
+			'guyamap:error',
+			window.__guyamapE2E.onError,
 			true
 		);
 	} );
 
-	await page.goto( '/wp-login.php', { waitUntil: 'domcontentloaded' } );
-	await page.locator( '#user_login' ).fill( username );
-	await page.locator( '#user_pass' ).fill( password );
-	await Promise.all( [
-		page.waitForURL( /\/wp-admin\// ),
-		page.locator( '#wp-submit' ).click(),
-	] );
+	await login( page, username, password );
 } );
 
 test( 'renders locked maps and updates them live in Gutenberg', async ( {
@@ -160,9 +209,8 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 				record.controller.__guyamapE2EInitialMap
 		),
 		readyCount: window.__guyamapE2E.readyEvents.length,
-		renderedZoom: window.__guyamapE2E.readyEvents[ 0 ]?.controller.map.zoom,
-		zoom: window.__guyamapE2E.readyEvents[ 0 ]?.controller.appliedConfig
-			.zoom,
+		renderedZoom: window.__guyamapE2E.firstMap()?.controller.map.zoom,
+		zoom: window.__guyamapE2E.firstMap()?.controller.appliedConfig.zoom,
 	} ) );
 	expect( initialRuntime.errorEvents ).toEqual( [] );
 	expect( initialRuntime.readyCount ).toBe( 2 );
@@ -203,7 +251,7 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 			() =>
 				frame.evaluate( () => {
 					const controller =
-						window.__guyamapE2E.readyEvents[ 0 ].controller;
+						window.__guyamapE2E.firstMap().controller;
 					return {
 						applied: controller.appliedConfig.zoom,
 						rendered: Math.round( controller.map.zoom * 10 ) / 10,
@@ -215,7 +263,7 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 	await page.waitForTimeout( 2000 );
 
 	const cameraBeforePointerInput = await frame.evaluate( () => {
-		const map = window.__guyamapE2E.readyEvents[ 0 ].controller.map;
+		const map = window.__guyamapE2E.firstMap().controller.map;
 		return { center: [ ...map.center ], zoom: map.zoom };
 	} );
 	await mapHosts.first().scrollIntoViewIfNeeded();
@@ -232,7 +280,7 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 	await page.mouse.wheel( 0, -600 );
 	await page.waitForTimeout( 500 );
 	const cameraAfterPointerInput = await frame.evaluate( () => {
-		const map = window.__guyamapE2E.readyEvents[ 0 ].controller.map;
+		const map = window.__guyamapE2E.firstMap().controller.map;
 		return { center: [ ...map.center ], zoom: map.zoom };
 	} );
 	expect( cameraAfterPointerInput ).toEqual( cameraBeforePointerInput );
@@ -257,6 +305,10 @@ test( 'renders locked maps and updates them live in Gutenberg', async ( {
 	const preloaderToggle = page.getByRole( 'checkbox', {
 		name: 'Show preloader',
 	} );
+	// The saved page may already use a preloader; start from a known state.
+	if ( await preloaderToggle.isChecked() ) {
+		await preloaderToggle.uncheck();
+	}
 	await expect( preloaderToggle ).not.toBeChecked();
 	await preloaderToggle.check();
 	const preloaderPreview = page.locator( '.guyamap-preloader--preview' );
@@ -368,6 +420,7 @@ test( 'renders isolated maps with the real SDK on the public page', async ( {
 
 test( 'renders optional preloaders and all width modes without overflow', async ( {
 	page,
+	browserName,
 }, testInfo ) => {
 	if ( ! layoutPostId ) {
 		throw new Error( 'GUYAMAP_E2E_LAYOUT_POST_ID is required.' );
@@ -418,9 +471,12 @@ test( 'renders optional preloaders and all width modes without overflow', async 
 		size: '56px',
 		state: 'loading',
 	} );
-	await enabledPreloader.screenshot( {
-		path: testInfo.outputPath( 'frontend-custom-preloader.png' ),
-	} );
+	// Playwright cannot take a WebKit screenshot while a script is pending.
+	if ( browserName !== 'webkit' ) {
+		await enabledPreloader.screenshot( {
+			path: testInfo.outputPath( 'frontend-custom-preloader.png' ),
+		} );
+	}
 
 	await continueSdkRequest();
 	const mapHosts = page.locator( 'guyamap-map-view' );

@@ -29,7 +29,12 @@
 		"test:e2e": "node scripts/run-e2e.js",
 		"test:e2e:direct": "playwright test",
 		"test:e2e:headed": "GUYAMAP_E2E_HEADED=1 node scripts/run-e2e.js",
-		"plugin-zip": "node scripts/plugin-zip.js"
+		"test:e2e:browsers": "GUYAMAP_E2E_BROWSERS=chromium,firefox,webkit node scripts/run-e2e.js",
+		"plugin-zip": "node scripts/plugin-zip.js",
+		"icons:manifest": "node scripts/generate-icon-manifest.js",
+		"icons:check": "node scripts/generate-icon-manifest.js --check",
+		"icons:verify": "node scripts/vendor-icons.js",
+		"icons:update": "node scripts/vendor-icons.js --update"
 	},
 	"dependencies": {
 		"@yandex/ymaps3-clusterer": "0.0.12"
@@ -42,6 +47,7 @@
 		"@wordpress/element": "8.5.0",
 		"@wordpress/i18n": "6.26.0",
 		"@wordpress/scripts": "34.1.0",
+		"@yandex/ymaps3-default-ui-theme": "0.0.25",
 		"adm-zip": "0.5.18"
 	}
 }

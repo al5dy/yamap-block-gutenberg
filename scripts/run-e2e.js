@@ -50,6 +50,9 @@ const suppliedUsername = process.env.GUYAMAP_E2E_USERNAME || '';
 const suppliedPassword = process.env.GUYAMAP_E2E_PASSWORD || '';
 let temporaryUserId = '';
 let temporaryPageId = '';
+let temporaryMockPageId = '';
+let temporaryLivePageId = '';
+let temporaryClassicPageId = '';
 let cleanedUp = false;
 
 const cleanup = () => {
@@ -58,18 +61,25 @@ const cleanup = () => {
 	}
 
 	cleanedUp = true;
-	if ( temporaryPageId ) {
-		try {
-			wp( [ 'post', 'delete', temporaryPageId, '--force' ] );
-			process.stdout.write(
-				'Removed the temporary WordPress E2E page.\n'
-			);
-		} catch ( error ) {
-			process.stderr.write(
-				`E2E page cleanup failed: ${ error.message }\n`
-			);
-		}
-	}
+	[
+		temporaryPageId,
+		temporaryMockPageId,
+		temporaryLivePageId,
+		temporaryClassicPageId,
+	]
+		.filter( Boolean )
+		.forEach( ( pageId ) => {
+			try {
+				wp( [ 'post', 'delete', pageId, '--force' ] );
+				process.stdout.write(
+					'Removed a temporary WordPress E2E page.\n'
+				);
+			} catch ( error ) {
+				process.stderr.write(
+					`E2E page cleanup failed: ${ error.message }\n`
+				);
+			}
+		} );
 	if ( ! temporaryUserId ) {
 		return;
 	}
@@ -129,6 +139,110 @@ try {
 	] );
 	process.stdout.write( 'Created a temporary WordPress E2E page.\n' );
 
+	// Content for the deterministic suite that runs against a mocked SDK.
+	const eager = {
+		lazy: false,
+		rootMargin: '300px',
+		clickToActivate: false,
+		preloader: { enabled: false },
+	};
+	// Offsets from the default map center, so the markers are spread out and
+	// the first one sits close to the top edge of the map.
+	const marker = ( id, title, [ north, east ], extra = {} ) => ( {
+		id,
+		title,
+		coordinates: {
+			latitude: 55.751244 + north,
+			longitude: 37.618423 + east,
+		},
+		...extra,
+	} );
+	const mockContent = [
+		{
+			loading: eager,
+			cluster: { enabled: false },
+			markers: [
+				marker( 'office', 'Office', [ 0.03, -0.05 ], {
+					hint: 'Office hint',
+					description: 'Open every day',
+					address: 'Moscow',
+				} ),
+				marker( 'second', 'Second', [ 0, 0 ] ),
+				marker( 'third', 'Third', [ -0.02, 0.05 ] ),
+			],
+		},
+		{ loading: { ...eager, clickToActivate: true } },
+	]
+		.map(
+			( attributes ) =>
+				`<!-- wp:gutenberg-yandex-block/map ${ JSON.stringify(
+					attributes
+				) } /-->`
+		)
+		.join( '\n\n' );
+	temporaryMockPageId = wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		`--post_title=GuYaMap E2E mock ${ Date.now() }`,
+		`--post_content=${ mockContent }`,
+		'--porcelain',
+	] );
+
+	// One default block for the suite that drives every inspector control.
+	temporaryLivePageId = wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		`--post_title=GuYaMap E2E live ${ Date.now() }`,
+		`--post_content=<!-- wp:gutenberg-yandex-block/map ${ JSON.stringify( {
+			loading: eager,
+		} ) } /-->`,
+		'--porcelain',
+	] );
+
+	// Classic themes are rendered through the theme preview of WordPress, so
+	// the active theme of the site is never switched. Without an installed
+	// classic theme that suite skips itself.
+	const classicTheme =
+		process.env.GUYAMAP_E2E_CLASSIC_THEME ??
+		wp( [
+			'eval',
+			'foreach ( wp_get_themes() as $theme ) { if ( ! $theme->is_block_theme() && ! $theme->errors() ) { echo $theme->get_stylesheet(); break; } }',
+		] );
+	temporaryClassicPageId = wp( [
+		'post',
+		'create',
+		'--post_type=page',
+		'--post_status=publish',
+		`--post_title=GuYaMap E2E classic ${ Date.now() }`,
+		`--post_content=${ [
+			'<!-- wp:paragraph --><p>Before the maps.</p><!-- /wp:paragraph -->',
+			...[
+				{
+					cluster: { enabled: false },
+					markers: [
+						marker( 'office', 'Office', [ 0, 0 ], {
+							description: 'Open every day',
+						} ),
+					],
+				},
+				{ align: 'wide' },
+				{ align: 'full', aspectRatio: '21 / 9' },
+				{ height: '300px' },
+			].map(
+				( attributes ) =>
+					`<!-- wp:gutenberg-yandex-block/map ${ JSON.stringify( {
+						loading: eager,
+						...attributes,
+					} ) } /-->`
+			),
+		].join( '\n\n' ) }`,
+		'--porcelain',
+	] );
+
 	const result = spawnSync(
 		playwrightBin,
 		[ 'test', ...process.argv.slice( 2 ) ],
@@ -140,6 +254,10 @@ try {
 				GUYAMAP_E2E_USERNAME: username,
 				GUYAMAP_E2E_PASSWORD: password,
 				GUYAMAP_E2E_LAYOUT_POST_ID: temporaryPageId,
+				GUYAMAP_E2E_MOCK_POST_ID: temporaryMockPageId,
+				GUYAMAP_E2E_LIVE_POST_ID: temporaryLivePageId,
+				GUYAMAP_E2E_CLASSIC_POST_ID: temporaryClassicPageId,
+				GUYAMAP_E2E_CLASSIC_THEME: classicTheme,
 			},
 			stdio: 'inherit',
 		}

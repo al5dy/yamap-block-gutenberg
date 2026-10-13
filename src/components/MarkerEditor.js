@@ -6,9 +6,10 @@ import {
 	TextareaControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useEffect, useMemo, useState } from '@wordpress/element';
+import { useMemo, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
+import IconPicker from './IconPicker';
 import NumericControl from './NumericControl';
 import {
 	createMarker,
@@ -16,8 +17,11 @@ import {
 	normalizeCoordinates,
 	updateMarkerById,
 } from './marker-utils';
+import { toColorInputValue } from './validators';
 
 const MAX_VISIBLE_MARKERS = 100;
+// Hard inline marker ceiling enforced by Config_Normalizer.
+const MAX_MARKERS = 1000;
 
 const getPairValue = ( pair, index, fallback ) => {
 	const value = Array.isArray( pair ) ? Number( pair[ index ] ) : Number.NaN;
@@ -37,15 +41,6 @@ export default function MarkerEditor( {
 		() => ( Array.isArray( markers ) ? markers : [] ),
 		[ markers ]
 	);
-
-	useEffect( () => {
-		if (
-			selectedMarkerId &&
-			! safeMarkers.some( ( marker ) => marker.id === selectedMarkerId )
-		) {
-			onSelectMarker( safeMarkers[ 0 ]?.id ?? '' );
-		}
-	}, [ onSelectMarker, safeMarkers, selectedMarkerId ] );
 
 	const markerSearch = useMemo( () => {
 		const query = search.trim().toLocaleLowerCase();
@@ -87,9 +82,13 @@ export default function MarkerEditor( {
 		return { total, visible };
 	}, [ safeMarkers, search ] );
 
-	const selectedMarker = safeMarkers.find(
-		( marker ) => marker.id === selectedMarkerId
-	);
+	// A marker that was just added is chosen before it arrives in the block
+	// attributes. Until it does, and whenever the chosen marker is gone, the
+	// first marker stands in; the choice itself is left alone.
+	const selectedMarker =
+		safeMarkers.find( ( marker ) => marker.id === selectedMarkerId ) ??
+		safeMarkers[ 0 ];
+	const hasReachedLimit = safeMarkers.length >= MAX_MARKERS;
 
 	const addMarker = ( coordinates = center ) => {
 		const marker = createMarker( coordinates );
@@ -203,10 +202,28 @@ export default function MarkerEditor( {
 	return (
 		<div className="guyamap-marker-editor">
 			<div className="guyamap-marker-editor__actions">
-				<Button onClick={ () => addMarker() } variant="primary">
+				<Button
+					accessibleWhenDisabled
+					disabled={ hasReachedLimit }
+					onClick={ () => addMarker() }
+					variant="primary"
+				>
 					{ __( 'Add at map center', 'yamap-block-gutenberg' ) }
 				</Button>
 			</div>
+
+			{ hasReachedLimit && (
+				<Notice isDismissible={ false } status="warning">
+					{ sprintf(
+						/* translators: %d: maximum number of markers. */
+						__(
+							'A map shows at most %d markers. Markers beyond this limit are not displayed.',
+							'yamap-block-gutenberg'
+						),
+						MAX_MARKERS
+					) }
+				</Notice>
+			) }
 
 			{ safeMarkers.length > 0 && (
 				<TextControl
@@ -234,11 +251,11 @@ export default function MarkerEditor( {
 					return (
 						<div key={ marker.id } role="listitem">
 							<Button
-								aria-pressed={ marker.id === selectedMarkerId }
+								aria-pressed={ marker === selectedMarker }
 								className="guyamap-marker-editor__list-button"
 								onClick={ () => onSelectMarker( marker.id ) }
 								variant={
-									marker.id === selectedMarkerId
+									marker === selectedMarker
 										? 'primary'
 										: 'tertiary'
 								}
@@ -301,6 +318,10 @@ export default function MarkerEditor( {
 					<TextControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
+						help={ __(
+							'Short tooltip shown on hover and keyboard focus.',
+							'yamap-block-gutenberg'
+						) }
 						label={ __( 'Hint', 'yamap-block-gutenberg' ) }
 						onChange={ ( hint ) =>
 							updateSelectedMarker( { hint } )
@@ -328,6 +349,10 @@ export default function MarkerEditor( {
 					<TextControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
+						help={ __(
+							'Shown above the title in the marker popup.',
+							'yamap-block-gutenberg'
+						) }
 						label={ __( 'Category', 'yamap-block-gutenberg' ) }
 						onChange={ ( category ) =>
 							updateSelectedMarker( { category } )
@@ -388,32 +413,6 @@ export default function MarkerEditor( {
 
 					<ToggleControl
 						__nextHasNoMarginBottom
-						checked={ Boolean( selectedMarker.draggable ) }
-						help={ __(
-							'This affects the frontend map; the editor preview remains locked.',
-							'yamap-block-gutenberg'
-						) }
-						label={ __(
-							'Draggable marker',
-							'yamap-block-gutenberg'
-						) }
-						onChange={ ( draggable ) =>
-							updateSelectedMarker( { draggable } )
-						}
-					/>
-					<ToggleControl
-						__nextHasNoMarginBottom
-						checked={ Boolean( selectedMarker.mapFollowsOnDrag ) }
-						label={ __(
-							'Map follows while dragging',
-							'yamap-block-gutenberg'
-						) }
-						onChange={ ( mapFollowsOnDrag ) =>
-							updateSelectedMarker( { mapFollowsOnDrag } )
-						}
-					/>
-					<ToggleControl
-						__nextHasNoMarginBottom
 						checked={ selectedMarker.hideOutsideViewport !== false }
 						label={ __(
 							'Hide outside viewport',
@@ -425,6 +424,8 @@ export default function MarkerEditor( {
 					/>
 					<NumericControl
 						label={ __( 'Z-index', 'yamap-block-gutenberg' ) }
+						max={ 100000 }
+						min={ -100000 }
 						onChange={ ( zIndex ) =>
 							updateSelectedMarker( { zIndex } )
 						}
@@ -455,120 +456,163 @@ export default function MarkerEditor( {
 						] }
 						value={ icon.type ?? 'default' }
 					/>
+					{ icon.type !== 'image' && (
+						<>
+							<IconPicker
+								baseUrl={
+									window.guyamapEditorSettings?.iconBaseUrl ??
+									''
+								}
+								onChange={ ( name ) =>
+									updateSelectedIcon( { name } )
+								}
+								value={ icon.name ?? 'fallback' }
+							/>
+							<SelectControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label={ __(
+									'Marker size',
+									'yamap-block-gutenberg'
+								) }
+								onChange={ ( markerSize ) =>
+									updateSelectedIcon( { markerSize } )
+								}
+								options={ [
+									{
+										label: __(
+											'Normal',
+											'yamap-block-gutenberg'
+										),
+										value: 'normal',
+									},
+									{
+										label: __(
+											'Small',
+											'yamap-block-gutenberg'
+										),
+										value: 'small',
+									},
+									{
+										label: __(
+											'Micro',
+											'yamap-block-gutenberg'
+										),
+										value: 'micro',
+									},
+								] }
+								value={ icon.markerSize ?? 'normal' }
+							/>
+						</>
+					) }
 					<TextControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label={ __( 'Icon name', 'yamap-block-gutenberg' ) }
-						onChange={ ( name ) => updateSelectedIcon( { name } ) }
-						value={ icon.name ?? 'fallback' }
-					/>
-					<SelectControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={ __( 'Marker size', 'yamap-block-gutenberg' ) }
-						onChange={ ( markerSize ) =>
-							updateSelectedIcon( { markerSize } )
+						help={
+							icon.type === 'image'
+								? __(
+										'Shown when the image cannot be loaded.',
+										'yamap-block-gutenberg'
+								  )
+								: undefined
 						}
-						options={ [
-							{
-								label: __( 'Normal', 'yamap-block-gutenberg' ),
-								value: 'normal',
-							},
-							{
-								label: __( 'Small', 'yamap-block-gutenberg' ),
-								value: 'small',
-							},
-							{
-								label: __( 'Micro', 'yamap-block-gutenberg' ),
-								value: 'micro',
-							},
-						] }
-						value={ icon.markerSize ?? 'normal' }
-					/>
-					<TextControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
 						label={ __( 'Marker color', 'yamap-block-gutenberg' ) }
 						onChange={ ( color ) =>
 							updateSelectedIcon( { color } )
 						}
-						value={ icon.color ?? '#ff4433' }
+						type="color"
+						value={ toColorInputValue( icon.color, '#ff4433' ) }
 					/>
 					{ icon.type === 'image' && (
-						<TextControl
-							__next40pxDefaultSize
-							__nextHasNoMarginBottom
-							label={ __( 'Image URL', 'yamap-block-gutenberg' ) }
-							onChange={ ( url ) =>
-								updateSelectedIcon( { url } )
-							}
-							type="url"
-							value={ icon.url ?? '' }
-						/>
+						<>
+							<TextControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label={ __(
+									'Image URL',
+									'yamap-block-gutenberg'
+								) }
+								onChange={ ( url ) =>
+									updateSelectedIcon( { url } )
+								}
+								type="url"
+								value={ icon.url ?? '' }
+							/>
+							<div className="guyamap-control-grid guyamap-control-grid--two">
+								<NumericControl
+									label={ __(
+										'Icon width',
+										'yamap-block-gutenberg'
+									) }
+									max={ 512 }
+									min={ 1 }
+									onChange={ ( width ) =>
+										updateSelectedIcon( {
+											size: [ width, iconSize[ 1 ] ],
+										} )
+									}
+									step={ 1 }
+									value={ iconSize[ 0 ] }
+								/>
+								<NumericControl
+									label={ __(
+										'Icon height',
+										'yamap-block-gutenberg'
+									) }
+									max={ 512 }
+									min={ 1 }
+									onChange={ ( height ) =>
+										updateSelectedIcon( {
+											size: [ iconSize[ 0 ], height ],
+										} )
+									}
+									step={ 1 }
+									value={ iconSize[ 1 ] }
+								/>
+								<NumericControl
+									label={ __(
+										'Horizontal offset',
+										'yamap-block-gutenberg'
+									) }
+									max={ 512 }
+									min={ -512 }
+									onChange={ ( horizontalOffset ) =>
+										updateSelectedIcon( {
+											offset: [
+												horizontalOffset,
+												iconOffset[ 1 ],
+											],
+										} )
+									}
+									step={ 1 }
+									value={ iconOffset[ 0 ] }
+								/>
+								<NumericControl
+									label={ __(
+										'Vertical offset',
+										'yamap-block-gutenberg'
+									) }
+									max={ 512 }
+									min={ -512 }
+									onChange={ ( verticalOffset ) =>
+										updateSelectedIcon( {
+											offset: [
+												iconOffset[ 0 ],
+												verticalOffset,
+											],
+										} )
+									}
+									step={ 1 }
+									value={ iconOffset[ 1 ] }
+								/>
+							</div>
+						</>
 					) }
-
-					<div className="guyamap-control-grid guyamap-control-grid--two">
-						<NumericControl
-							label={ __(
-								'Icon width',
-								'yamap-block-gutenberg'
-							) }
-							min={ 1 }
-							onChange={ ( width ) =>
-								updateSelectedIcon( {
-									size: [ width, iconSize[ 1 ] ],
-								} )
-							}
-							step={ 1 }
-							value={ iconSize[ 0 ] }
-						/>
-						<NumericControl
-							label={ __(
-								'Icon height',
-								'yamap-block-gutenberg'
-							) }
-							min={ 1 }
-							onChange={ ( height ) =>
-								updateSelectedIcon( {
-									size: [ iconSize[ 0 ], height ],
-								} )
-							}
-							step={ 1 }
-							value={ iconSize[ 1 ] }
-						/>
-						<NumericControl
-							label={ __(
-								'Horizontal offset',
-								'yamap-block-gutenberg'
-							) }
-							onChange={ ( horizontalOffset ) =>
-								updateSelectedIcon( {
-									offset: [
-										horizontalOffset,
-										iconOffset[ 1 ],
-									],
-								} )
-							}
-							step={ 1 }
-							value={ iconOffset[ 0 ] }
-						/>
-						<NumericControl
-							label={ __(
-								'Vertical offset',
-								'yamap-block-gutenberg'
-							) }
-							onChange={ ( verticalOffset ) =>
-								updateSelectedIcon( {
-									offset: [ iconOffset[ 0 ], verticalOffset ],
-								} )
-							}
-							step={ 1 }
-							value={ iconOffset[ 1 ] }
-						/>
-					</div>
 
 					<div className="guyamap-marker-editor__actions">
 						<Button
+							accessibleWhenDisabled
+							disabled={ hasReachedLimit }
 							onClick={ duplicateSelectedMarker }
 							variant="secondary"
 						>

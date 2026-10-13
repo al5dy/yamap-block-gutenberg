@@ -10,6 +10,11 @@
 	background: #e7ebf0;
 }
 
+:host(:focus-visible) {
+	outline: 3px solid #3858e9;
+	outline-offset: -3px;
+}
+
 :host([data-guyamap-editor-preview]) {
 	pointer-events: none;
 	user-select: none;
@@ -107,6 +112,8 @@
 	font: 16px/1.4 system-ui, sans-serif;
 	text-align: start;
 	writing-mode: horizontal-tb;
+	// Lets the controls adapt to the size of the map rather than the page.
+	container: guyamap-map / size;
 }
 
 .wp-block-gutenberg-yandex-block-map.guyamap-map,
@@ -127,8 +134,11 @@
 	border-radius: var(--guyamap-radius);
 	background: #eef1f5;
 
+	// A ratio defines the height on its own; a minimum height would distort it
+	// on narrow screens.
 	&[data-guyamap-aspect-ratio] {
 		block-size: auto;
+		min-block-size: 0;
 		aspect-ratio: var(--guyamap-aspect-ratio);
 	}
 
@@ -188,6 +198,55 @@
 		margin-block-start: 8px;
 		color: #174ea6;
 		font-weight: 600;
+	}
+
+	.guyamap-map__error:has(.guyamap-map__error-details) {
+		inline-size: max-content;
+		max-inline-size: min(460px, calc(100% - 32px));
+		max-block-size: calc(100% - 24px);
+		overflow: auto;
+	}
+
+	.guyamap-map__error-details {
+		margin-block-start: 12px;
+		padding-block-start: 12px;
+		border-block-start: 1px solid #dcdcde;
+		font-weight: 400;
+		font-size: 13px;
+		text-align: start;
+	}
+
+	.guyamap-map__error-settings {
+		display: inline-block;
+		margin-block-start: 8px;
+		color: #174ea6;
+		font-weight: 600;
+	}
+
+	.guyamap-map__error-details > .guyamap-map__error-note {
+		margin-block-start: 8px;
+		color: #646970;
+		font-size: 12px;
+	}
+
+	.guyamap-map__notice {
+		position: absolute;
+		inset-block-end: 44px;
+		inset-inline-start: 50%;
+		z-index: 950;
+		box-sizing: border-box;
+		max-inline-size: calc(100% - 32px);
+		margin: 0;
+		padding: 8px 12px;
+		border-radius: 8px;
+		background: #1e1e1e;
+		box-shadow: 0 4px 16px rgb(0 0 0 / 24%);
+		color: #fff;
+		font:
+			500 13px/1.4 system-ui,
+			sans-serif;
+		text-align: center;
+		transform: translateX(-50%);
 	}
 
 	.guyamap-map__preloader {
@@ -302,6 +361,22 @@
 		}
 	}
 
+	// A short map has no room for a centered column beside the fullscreen
+	// button, so its controls line up along the top edge instead.
+	@container guyamap-map (max-height: 259px) {
+
+		.guyamap-map__controls[data-position="left"],
+		.guyamap-map__controls[data-position="right"] {
+			inset-block-start: 8px;
+			flex-direction: row;
+			transform: none;
+		}
+
+		.guyamap-map__fullscreen ~ .guyamap-map__controls[data-position="right"] {
+			inset-inline-end: 58px;
+		}
+	}
+
 	.guyamap-map__control {
 		display: grid;
 		place-items: center;
@@ -335,8 +410,15 @@
 		border: 0;
 	}
 
+	// Yandex sizes its marker wrapper to the in-flow content and leaves that box
+	// at the coordinate. Marker roots are therefore taken out of flow: the
+	// wrapper collapses to a point and only the visible marker receives
+	// pointer events. `left` plus a horizontal translate mirror together in the
+	// RTL stylesheet, so the anchor stays exact in both directions.
 	.guyamap-default-marker {
-		position: relative;
+		position: absolute;
+		top: 0;
+		left: 0;
 		color: var(--guyamap-marker-color, #f43);
 	}
 
@@ -419,20 +501,80 @@
 		filter: brightness(0) invert(1);
 	}
 
-	.guyamap-default-marker__popup {
+	.guyamap-default-marker__popup,
+	.guyamap-image-marker__popup {
 		position: absolute;
 		inset-block-end: calc(100% + 12px);
-		inset-inline-start: 50%;
+		left: 50%;
 		transform: translateX(-50%);
+
+		&.guyamap-popup--below {
+			inset-block-start: calc(100% + 12px);
+			inset-block-end: auto;
+		}
 	}
 
+	// Position and size are physical inline styles derived from the marker's
+	// configured offset, so the image box is also the popup anchor.
 	.guyamap-image-marker {
-		position: relative;
-		transform: translate(var(--guyamap-marker-offset-x), var(--guyamap-marker-offset-y));
+		position: absolute;
+		color: var(--guyamap-marker-color, #f43);
+	}
+
+	.guyamap-marker-hint {
+		position: absolute;
+		inset-block-end: calc(100% + 8px);
+		left: 50%;
+		z-index: 1;
+		box-sizing: border-box;
+		max-inline-size: 240px;
+		padding: 4px 8px;
+		overflow: hidden;
+		border-radius: 6px;
+		background: #1e1e1e;
+		color: #fff;
+		font:
+			500 12px/1.35 system-ui,
+			sans-serif;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transform: translateX(-50%);
+		transition: opacity 0.12s ease;
+	}
+
+	// The hint yields to the popup while that marker's popup is open.
+	:not(.guyamap-marker--open) > .guyamap-default-marker__trigger:hover ~ .guyamap-marker-hint,
+	:not(.guyamap-marker--open) > .guyamap-default-marker__trigger:focus-visible ~ .guyamap-marker-hint,
+	:not(.guyamap-marker--open) > .guyamap-image-marker__trigger:hover ~ .guyamap-marker-hint,
+	:not(.guyamap-marker--open) > .guyamap-image-marker__trigger:focus-visible ~ .guyamap-marker-hint {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.guyamap-user-location {
+		position: absolute;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+		inline-size: 18px;
+		block-size: 18px;
+		border: 3px solid #fff;
+		border-radius: 50%;
+		background: #1a73e8;
+		box-shadow:
+			0 0 0 6px rgb(26 115 232 / 22%),
+			0 1px 4px rgb(0 0 0 / 30%);
+		pointer-events: none;
+		transform: translate(-50%, -50%);
 	}
 
 	.guyamap-image-marker__trigger {
 		display: block;
+		inline-size: 100%;
+		block-size: 100%;
 		padding: 0;
 		border: 0;
 		border-radius: 50%;
@@ -455,23 +597,33 @@
 		max-inline-size: none;
 	}
 
-	.guyamap-image-marker__popup {
-		position: absolute;
-		inset-block-end: calc(100% + 12px);
-		inset-inline-start: 50%;
-		transform: translateX(-50%);
-	}
-
 	.guyamap-popup {
 		box-sizing: border-box;
 		inline-size: max-content;
 		max-inline-size: min(320px, calc(100vw - 40px));
+		max-block-size: var(--guyamap-popup-max-height, 320px);
+		overflow: auto;
+		overscroll-behavior: contain;
 		padding: 14px;
 		border-radius: 10px;
 		background: #fff;
 		box-shadow: 0 6px 24px rgb(0 0 0 / 18%);
 		color: #1e1e1e;
 		font-family: system-ui, sans-serif;
+		text-align: start;
+		cursor: auto;
+		// Marker text is authored content: follow its own writing direction.
+		unicode-bidi: plaintext;
+	}
+
+	.guyamap-popup__category {
+		margin: 0 0 4px;
+		color: #646970;
+		font-size: 11px;
+		font-weight: 600;
+		line-height: 1.3;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 	}
 
 	.guyamap-popup__title {
@@ -502,6 +654,9 @@
 	}
 
 	.guyamap-cluster {
+		position: absolute;
+		top: 0;
+		left: 0;
 		display: grid;
 		place-items: center;
 		min-inline-size: 44px;
@@ -521,6 +676,8 @@
 
 	.guyamap-map__noscript-fallback:focus-visible,
 	.guyamap-map__error-link:focus-visible,
+	.guyamap-map__error-settings:focus-visible,
+	.guyamap-popup__link:focus-visible,
 	.guyamap-map__activation-button:focus-visible,
 	.guyamap-map__fullscreen:focus-visible,
 	.guyamap-map__control:focus-visible,
@@ -535,6 +692,20 @@
 		inline-size: 100%;
 		block-size: 100%;
 		border-radius: 0;
+	}
+}
+
+// A percentage width means a share of the width the block would normally
+// take. Inside a constrained layout the parent is wider than the content
+// column, so a plain percentage would resolve against the wrong box and give a
+// different result in the editor and on the published page.
+.is-layout-constrained > .wp-block-gutenberg-yandex-block-map[data-guyamap-width-ratio]:not(.alignfull) {
+	--guyamap-column: var(--wp--style--global--content-size, 100%);
+
+	inline-size: calc(min(100%, var(--guyamap-column)) * min(1, var(--guyamap-width-ratio)));
+
+	&.alignwide {
+		--guyamap-column: var(--wp--style--global--wide-size, 100%);
 	}
 }
 
@@ -570,6 +741,7 @@
 @media (prefers-reduced-motion: reduce) {
 
 	.guyamap-preloader__visual,
+	.guyamap-marker-hint,
 	.wp-block-gutenberg-yandex-block-map.guyamap-map .guyamap-map__canvas,
 	.wp-block-gutenberg-yandex-block-map.guyamap-block-editor
 	.guyamap-map__canvas,

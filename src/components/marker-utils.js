@@ -86,8 +86,6 @@ export function createMarker( coordinates, overrides = {} ) {
 			label: '',
 			newTab: false,
 		},
-		draggable: false,
-		mapFollowsOnDrag: true,
 		hideOutsideViewport: true,
 		zIndex: 0,
 		...overrides,

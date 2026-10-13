@@ -119,6 +119,8 @@ final class Map_Block {
 				$this->editor_assets_hooked = true;
 				add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 			}
+
+			$this->version_block_styles( $block_type );
 		}
 
 		/**
@@ -148,7 +150,7 @@ final class Map_Block {
 			'baseUrl'     => esc_url_raw( home_url( '/' ) ),
 			'iconBaseUrl' => esc_url_raw( GUYAMAP_PLUGIN_URL . 'assets/icons/' ),
 			'styleUrl'    => $this->get_shadow_style_url(),
-			'i18n'        => $this->get_runtime_i18n(),
+			'i18n'        => array_merge( $this->get_runtime_i18n(), $this->get_diagnostic_i18n() ),
 		);
 
 		/**
@@ -202,7 +204,16 @@ final class Map_Block {
 			'styleUrl'    => $this->get_shadow_style_url(),
 			'i18n'        => $this->get_runtime_i18n(),
 		);
-		$config         = array_merge( $config, $runtime_config );
+
+		// Visitors get a short neutral message. People who can fix the map also
+		// get the cause; the flag never reaches anonymous or cached output.
+		if ( current_user_can( 'manage_options' ) ) {
+			$runtime_config['diagnostics'] = true;
+			$runtime_config['settingsUrl'] = esc_url_raw( $this->settings->get_page_url() );
+			$runtime_config['i18n']        = array_merge( $runtime_config['i18n'], $this->get_diagnostic_i18n() );
+		}
+
+		$config = array_merge( $config, $runtime_config );
 
 		/**
 		 * Filters the complete per-instance configuration before JSON encoding.
@@ -236,6 +247,11 @@ final class Map_Block {
 			$style_variables[] = '--guyamap-aspect-ratio:' . $aspect_ratio;
 		}
 
+		$width_ratio = $this->get_width_ratio( $this->get_safe_config_string( $config, 'width', '100%' ) );
+		if ( '' !== $width_ratio ) {
+			$style_variables[] = '--guyamap-width-ratio:' . $width_ratio;
+		}
+
 		$preloader         = isset( $config['loading']['preloader'] ) && is_array( $config['loading']['preloader'] )
 			? $config['loading']['preloader']
 			: array();
@@ -260,6 +276,9 @@ final class Map_Block {
 
 		if ( '' !== $aspect_ratio ) {
 			$wrapper_attributes['data-guyamap-aspect-ratio'] = $aspect_ratio;
+		}
+		if ( '' !== $width_ratio ) {
+			$wrapper_attributes['data-guyamap-width-ratio'] = $width_ratio;
 		}
 		if ( $preloader_enabled ) {
 			$wrapper_attributes['data-guyamap-preloader'] = $preloader_type;
@@ -429,6 +448,23 @@ final class Map_Block {
 	}
 
 	/**
+	 * Converts a percentage width into a unitless share of the available width.
+	 *
+	 * A percentage is meant as a share of the content column. The stylesheet
+	 * needs it unitless to scale that column instead of the wider parent box.
+	 *
+	 * @param string $width Normalized CSS width.
+	 * @return string Ratio such as `0.5`, or an empty string for other units.
+	 */
+	private function get_width_ratio( string $width ): string {
+		if ( 1 !== preg_match( '/^(\d+(?:\.\d+)?|\.\d+)%$/', $width, $matches ) ) {
+			return '';
+		}
+
+		return rtrim( rtrim( number_format( (float) $matches[1] / 100, 6, '.', '' ), '0' ), '.' );
+	}
+
+	/**
 	 * Reads a safe aspect ratio from filtered configuration.
 	 *
 	 * @param mixed $value Raw aspect ratio.
@@ -460,10 +496,57 @@ final class Map_Block {
 		return esc_url_raw(
 			add_query_arg(
 				'ver',
-				GUYAMAP_VERSION,
+				$this->get_build_file_version( $filename ),
 				GUYAMAP_PLUGIN_URL . 'build/' . $filename
 			)
 		);
+	}
+
+	/**
+	 * Returns a cache-busting version for one generated build file.
+	 *
+	 * The plugin version alone does not change between builds of the same
+	 * release, so a browser could keep pairing new scripts with a cached
+	 * stylesheet. The file modification time makes every build distinct.
+	 *
+	 * @param string $filename File name inside the build directory.
+	 * @return string
+	 */
+	private function get_build_file_version( string $filename ): string {
+		$path     = GUYAMAP_PLUGIN_PATH . 'build/' . $filename;
+		$modified = is_readable( $path ) ? filemtime( $path ) : false;
+
+		return false === $modified
+			? GUYAMAP_VERSION
+			: GUYAMAP_VERSION . '.' . $modified;
+	}
+
+	/**
+	 * Applies build-specific versions to the stylesheets registered from block.json.
+	 *
+	 * WordPress versions block scripts from their generated asset files but
+	 * versions block styles with the static block version only.
+	 *
+	 * @param \WP_Block_Type $block_type Registered block type.
+	 * @return void
+	 */
+	private function version_block_styles( \WP_Block_Type $block_type ): void {
+		$styles  = wp_styles();
+		$handles = array_merge( $block_type->style_handles, $block_type->editor_style_handles );
+
+		foreach ( $handles as $handle ) {
+			if ( ! is_string( $handle ) || ! isset( $styles->registered[ $handle ] ) ) {
+				continue;
+			}
+
+			$source = (string) $styles->registered[ $handle ]->src;
+			$path   = wp_parse_url( $source, PHP_URL_PATH );
+			if ( ! is_string( $path ) || false === strpos( $source, GUYAMAP_PLUGIN_URL . 'build/' ) ) {
+				continue;
+			}
+
+			$styles->registered[ $handle ]->ver = $this->get_build_file_version( basename( $path ) );
+		}
 	}
 
 	/**
@@ -473,17 +556,50 @@ final class Map_Block {
 	 */
 	private function get_runtime_i18n(): array {
 		return array(
-			'activate'         => __( 'Activate map', 'yamap-block-gutenberg' ),
-			'fullscreen'       => __( 'Toggle fullscreen map', 'yamap-block-gutenberg' ),
-			'loading'          => __( 'Loading map…', 'yamap-block-gutenberg' ),
-			'error'            => __( 'The map could not be loaded.', 'yamap-block-gutenberg' ),
-			'marker'           => __( 'Map marker', 'yamap-block-gutenberg' ),
+			'activate'          => __( 'Activate map', 'yamap-block-gutenberg' ),
+			'fullscreen'        => __( 'Toggle fullscreen map', 'yamap-block-gutenberg' ),
+			'loading'           => __( 'Loading map…', 'yamap-block-gutenberg' ),
+			'error'             => __( 'The map could not be loaded.', 'yamap-block-gutenberg' ),
+			'marker'            => __( 'Map marker', 'yamap-block-gutenberg' ),
 			/* translators: %d: Marker count. */
-			'clusterMarkers'   => __( 'Cluster of %d map markers', 'yamap-block-gutenberg' ),
-			'zoomIn'           => __( 'Zoom in', 'yamap-block-gutenberg' ),
-			'zoomOut'          => __( 'Zoom out', 'yamap-block-gutenberg' ),
-			'geolocate'        => __( 'Show my location', 'yamap-block-gutenberg' ),
-			'geolocationError' => __( 'Your location could not be determined.', 'yamap-block-gutenberg' ),
+			'clusterMarkers'    => __( 'Cluster of %d map markers', 'yamap-block-gutenberg' ),
+			'zoomIn'            => __( 'Zoom in', 'yamap-block-gutenberg' ),
+			'zoomOut'           => __( 'Zoom out', 'yamap-block-gutenberg' ),
+			'geolocate'         => __( 'Show my location', 'yamap-block-gutenberg' ),
+			'geolocationError'  => __( 'Your location could not be determined.', 'yamap-block-gutenberg' ),
+			'geolocationDenied' => __( 'Location access was denied. Allow it in the browser to use this button.', 'yamap-block-gutenberg' ),
+			'userLocation'      => __( 'Your location', 'yamap-block-gutenberg' ),
+		);
+	}
+
+	/**
+	 * Returns the failure explanations shown to people who can fix the map.
+	 *
+	 * Keys are the runtime error codes reported by the browser loader.
+	 *
+	 * @return array<string, mixed> Diagnostic translations.
+	 */
+	private function get_diagnostic_i18n(): array {
+		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		$host = is_string( $host ) && '' !== $host ? $host : home_url( '/' );
+
+		return array(
+			'errorDetails' => array(
+				'missing_api_key'  => __( 'No Yandex Maps API key is configured. Add a JavaScript API key in the map settings.', 'yamap-block-gutenberg' ),
+				'api_key_rejected' => sprintf(
+					/* translators: %s: Site host name, for example example.com. */
+					__( 'Yandex refused to serve the Maps API to %s. The API key is invalid, or its HTTP Referer restrictions do not include this domain. Open the key in the Yandex Developer Dashboard and allow this domain, or enter a different key.', 'yamap-block-gutenberg' ),
+					$host
+				),
+				'network'          => __( 'The Yandex Maps API could not be reached from this browser. Check the internet connection and any ad blocker, firewall, or privacy extension.', 'yamap-block-gutenberg' ),
+				'csp'              => __( 'The Content Security Policy of this site blocks the Yandex Maps API. Allow https://api-maps.yandex.ru and https://yastatic.net in script-src and connect-src.', 'yamap-block-gutenberg' ),
+				'timeout'          => __( 'The Yandex Maps API did not respond in time. Reload the page to try again.', 'yamap-block-gutenberg' ),
+				'api_unavailable'  => __( 'The Yandex Maps API was loaded but did not start. Another script on the page may conflict with it.', 'yamap-block-gutenberg' ),
+				'load_failed'      => __( 'The Yandex Maps API script could not be loaded. Check the API key, its HTTP Referer restrictions, and the network connection.', 'yamap-block-gutenberg' ),
+				'render'           => __( 'The map could not be initialized. Open the browser console for the technical error.', 'yamap-block-gutenberg' ),
+			),
+			'adminOnly'    => __( 'Only site administrators see these details.', 'yamap-block-gutenberg' ),
+			'openSettings' => __( 'Open map settings', 'yamap-block-gutenberg' ),
 		);
 	}
 

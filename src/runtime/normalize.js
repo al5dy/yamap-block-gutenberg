@@ -1,3 +1,5 @@
+import { normalizeCustomization } from './customization';
+
 const BEHAVIORS = new Set( [
 	'drag',
 	'pinchZoom',
@@ -23,6 +25,8 @@ const LANGUAGES = new Set( [
 ] );
 
 const MAX_INLINE_MARKERS = 1000;
+const MAX_ZOOM = 23;
+const MIN_ZOOM_SPAN = 1;
 const MAX_STRUCTURED_DEPTH = 6;
 const MAX_STRUCTURED_ITEMS = 256;
 const MAX_STRUCTURED_STRING_LENGTH = 2048;
@@ -161,8 +165,6 @@ const normalizeMarker = ( marker, index, center ) => {
 			size: normalizePair( icon.size, [ 40, 40 ], 1, 512 ),
 			offset: normalizePair( icon.offset, [ -20, -40 ], -512, 512 ),
 		},
-		draggable: booleanValue( source.draggable ),
-		mapFollowsOnDrag: booleanValue( source.mapFollowsOnDrag, true ),
 		hideOutsideViewport: booleanValue( source.hideOutsideViewport, true ),
 		zIndex: numberInRange( source.zIndex, index, -100000, 100000 ),
 		link: {
@@ -237,11 +239,19 @@ export function normalizeConfig( input = {} ) {
 		longitude: 37.618423,
 	} );
 	const zoomRange = {
-		min: numberInRange( input.zoomRange?.min, 1, 0, 23 ),
-		max: numberInRange( input.zoomRange?.max, 21, 0, 23 ),
+		min: numberInRange( input.zoomRange?.min, 1, 0, MAX_ZOOM ),
+		max: numberInRange( input.zoomRange?.max, 21, 0, MAX_ZOOM ),
 	};
 	if ( zoomRange.min > zoomRange.max ) {
 		[ zoomRange.min, zoomRange.max ] = [ zoomRange.max, zoomRange.min ];
+	}
+	// Yandex rejects an empty interval ("min >= max") and refuses to render.
+	if ( zoomRange.max - zoomRange.min < MIN_ZOOM_SPAN ) {
+		if ( zoomRange.min + MIN_ZOOM_SPAN <= MAX_ZOOM ) {
+			zoomRange.max = zoomRange.min + MIN_ZOOM_SPAN;
+		} else {
+			zoomRange.min = zoomRange.max - MIN_ZOOM_SPAN;
+		}
 	}
 
 	const controls = input.controls || {};
@@ -314,16 +324,21 @@ export function normalizeConfig( input = {} ) {
 				? mapOptions.zoomStrategy
 				: 'zoomToPointer',
 			restrictMapArea: normalizeBounds( mapOptions.restrictMapArea ),
-			margin: Array.isArray( mapOptions.margin )
-				? mapOptions.margin
-						.slice( 0, 4 )
-						.map( ( item ) => numberInRange( item, 0, 0, 2000 ) )
-				: [ 0, 0, 0, 0 ],
+			margin: [ 0, 1, 2, 3 ].map( ( index ) =>
+				Math.trunc(
+					numberInRange(
+						Array.isArray( mapOptions.margin )
+							? mapOptions.margin[ index ]
+							: 0,
+						0,
+						0,
+						2000
+					)
+				)
+			),
 			fitToMarkers: booleanValue( mapOptions.fitToMarkers ),
 		},
-		customization: Array.isArray( input.customization )
-			? sanitizeStructuredValue( input.customization )
-			: [],
+		customization: normalizeCustomization( input.customization ),
 		markers: normalizeMarkers( markers, center ),
 		cluster: {
 			enabled: booleanValue( cluster.enabled, true ),

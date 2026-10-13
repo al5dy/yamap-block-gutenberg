@@ -49,9 +49,9 @@ Current Free capabilities include, among other things:
 - bounded map options;
 - custom lightweight zoom, geolocation, and fullscreen controls;
 - structured markers, local icon artwork, image markers, links and popups;
-- draggable markers and editor map-click picking;
+- an inspector-driven editor preview that is locked against pointer and keyboard map gestures;
 - client-side clustering with `@yandex/ymaps3-clusterer`;
-- bounded map customization JSON;
+- map customization JSON checked against the documented rule schema in the editor, on the server and in the runtime;
 - lazy initialization and click-to-activate privacy mode;
 - accessible fallback link and error states;
 - migration/render support for legacy 1.x attributes;
@@ -227,7 +227,7 @@ The editor must explain behavior implications where they affect page scrolling/m
 
 ### 5.3 Events and actions
 
-Current usage of map click for editor picking is not a complete event system.
+The runtime only emits its own lifecycle events (`guyamap:ready`, `guyamap:statechange`, `guyamap:error`, `guyamap:destroy`). That is not a complete event system.
 
 Create a normalized event/action layer capable of safely representing relevant Yandex events without persisting arbitrary JavaScript callbacks. Cover appropriate events such as:
 
@@ -238,7 +238,7 @@ Create a normalized event/action layer capable of safely representing relevant Y
 - right click/context menu;
 - pointer/mouse enter, leave and move where useful;
 - behavior action start/end;
-- marker click/open/close/drag start/drag/drag end;
+- marker click/open/close;
 - cluster click;
 - selection changes;
 - geometry interaction events.
@@ -305,15 +305,12 @@ Required direction:
 - title/subtitle/hint/description;
 - popup/balloon-like presentation;
 - safe action/link buttons;
-- draggable markers;
-- map-follow-on-drag behavior;
 - hide outside viewport where appropriate;
 - z-index ordering;
 - selected/hover/focus states;
 - keyboard semantics;
 - marker duplication;
 - deterministic stable IDs;
-- map click placement;
 - coordinate paste;
 - address/geocode placement;
 - bulk marker operations where UX remains safe;
@@ -552,6 +549,8 @@ Do not dump the entire Yandex API into a wall of controls.
 
 Changes that can safely preview should update the editor map without a full block reload. Rebuild the map only when the underlying Yandex entity cannot be safely updated.
 
+The preview is display-only. It takes no pointer or keyboard map gestures, and markers are not placed by clicking the map; a marker is positioned by its coordinates in the inspector (and by address search once that exists). Markers are not draggable anywhere, in the editor or on the published page. Do not add map-click placement or marker dragging.
+
 ### 7.3 Raw JSON is advanced-only
 
 Any feature expected to be commonly used needs a real UI. Raw JSON editors can exist for experts, but must have schema validation, line-level errors where possible, reset, and safe limits.
@@ -599,9 +598,7 @@ This is intentional:
 
 ### 8.2 Current weakness
 
-The current marker editor exposes icon name largely as a text value. That means a valid-looking but nonexistent name can generate a local 404 and the icon may disappear.
-
-A top-tier implementation must replace this with a real icon-catalog system.
+The marker editor offers the bundled icons through a searchable catalog generated from the vendored files, and the server accepts bundled names only. The catalog still has no categories or keywords: an icon is found by its upstream name alone.
 
 ### 8.3 Required icon-catalog implementation
 
@@ -629,12 +626,12 @@ Then implement:
 
 ### 8.4 Vendoring/upstream sync
 
-The source currently references Yandex default UI theme artwork but does not install the entire package as a production dependency. This is acceptable for performance, but icon updates must become reproducible.
+The artwork is an unmodified copy of `static/icons` from `@yandex/ymaps3-default-ui-theme`. That package is a pinned **development-only** dependency and is never bundled. `scripts/icon-provenance.json` records the upstream version, the tarball digest from `package-lock.json` and a SHA-256 digest of every vendored file.
 
-Add one of these controlled workflows:
+- `npm run icons:verify` fails when `assets/icons/` differs from the provenance record or from the installed upstream package, when the pinned versions disagree, or when `third-party-notices.txt` names another version;
+- `npm run icons:update` copies the icon set and the license files from the installed upstream package, rewrites the provenance record and regenerates the manifest. It refuses a release that drops an icon unless `--allow-removals` is passed, and refuses artwork that is not passive SVG.
 
-1. preferred: a pinned **development-only** upstream package plus a script that extracts the approved icon set, copies license/notices, regenerates the manifest and verifies checksums; or
-2. a dedicated vendoring script that downloads/copies an explicitly pinned upstream release and verifies a stored checksum/provenance record.
+To move to another upstream release, change the pinned version in `package.json`, run `npm install` and `npm run icons:update`, review the reported differences and update `third-party-notices.txt`.
 
 Never “update icons” manually by copying an unknown latest folder.
 
@@ -1102,7 +1099,6 @@ For feature-rich releases add Playwright or equivalent coverage for:
 - frontend map initialization;
 - controls;
 - marker popup/hint;
-- drag marker;
 - geosuggest selection;
 - geometry editing;
 - clustering;

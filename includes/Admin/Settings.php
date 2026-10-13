@@ -29,6 +29,20 @@ final class Settings {
 	public const PAGE_SLUG = 'guyamap';
 
 	/**
+	 * Nonce action for the on-demand API key check.
+	 *
+	 * @var string
+	 */
+	private const CHECK_ACTION = 'guyamap_check_api_key';
+
+	/**
+	 * Fixed origin of the Yandex Maps JavaScript API loader.
+	 *
+	 * @var string
+	 */
+	private const API_ENDPOINT = 'https://api-maps.yandex.ru/v3/';
+
+	/**
 	 * Registers admin hooks.
 	 *
 	 * @return void
@@ -294,6 +308,94 @@ final class Settings {
 	}
 
 	/**
+	 * Returns the host name visitors' browsers send to Yandex as HTTP Referer.
+	 *
+	 * @return string
+	 */
+	public function get_site_host(): string {
+		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+
+		return is_string( $host ) ? $host : '';
+	}
+
+	/**
+	 * Asks Yandex whether the configured key is accepted for this site.
+	 *
+	 * A browser cannot read why the cross-origin API script failed to load, so
+	 * this server-side request reproduces it with the site address as HTTP
+	 * Referer and reports the real HTTP status. The origin is fixed, redirects
+	 * are not followed, and only a small part of the response is read.
+	 *
+	 * @return array{status: string, code: int, message: string} Check result. Status is
+	 *                                                           one of `missing`, `accepted`,
+	 *                                                           `rejected`, `limited`,
+	 *                                                           `unreachable`, `unexpected`.
+	 */
+	public function check_api_key(): array {
+		$api_key = $this->get_api_key();
+		if ( '' === $api_key ) {
+			return array(
+				'status'  => 'missing',
+				'code'    => 0,
+				'message' => '',
+			);
+		}
+
+		$url = add_query_arg(
+			array(
+				'apikey' => rawurlencode( $api_key ),
+				'lang'   => rawurlencode( $this->get_language() ),
+			),
+			self::API_ENDPOINT
+		);
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout'             => 15,
+				'redirection'         => 0,
+				'limit_response_size' => 2048,
+				'reject_unsafe_urls'  => true,
+				'headers'             => array(
+					'Referer' => home_url( '/' ),
+					'Accept'  => '*/*',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status'  => 'unreachable',
+				'code'    => 0,
+				'message' => sanitize_text_field( $response->get_error_message() ),
+			);
+		}
+
+		$code    = (int) wp_remote_retrieve_response_code( $response );
+		$message = '';
+		$body    = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+		if ( is_array( $body ) && isset( $body['message'] ) && is_scalar( $body['message'] ) ) {
+			$message = substr( sanitize_text_field( (string) $body['message'] ), 0, 200 );
+		}
+
+		if ( 200 === $code ) {
+			$status = 'accepted';
+		} elseif ( 429 === $code ) {
+			$status = 'limited';
+		} elseif ( in_array( $code, array( 400, 401, 403 ), true ) ) {
+			$status = 'rejected';
+		} else {
+			$status = 'unexpected';
+		}
+
+		return array(
+			'status'  => $status,
+			'code'    => $code,
+			'message' => $message,
+		);
+	}
+
+	/**
 	 * Renders the settings page.
 	 *
 	 * @return void
@@ -302,9 +404,15 @@ final class Settings {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You are not allowed to manage these settings.', 'yamap-block-gutenberg' ) );
 		}
+
+		$check_url = wp_nonce_url(
+			add_query_arg( 'guyamap-check', '1', $this->get_page_url() ),
+			self::CHECK_ACTION
+		);
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Map Block for Yandex', 'yamap-block-gutenberg' ); ?></h1>
+			<?php $this->render_api_key_check(); ?>
 			<form action="options.php" method="post">
 				<?php
 				settings_fields( self::PAGE_SLUG );
@@ -312,8 +420,86 @@ final class Settings {
 				submit_button();
 				?>
 			</form>
+			<p>
+				<a class="button" href="<?php echo esc_url( $check_url ); ?>">
+					<?php esc_html_e( 'Check API key', 'yamap-block-gutenberg' ); ?>
+				</a>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'The check sends one request with the saved key and this site address from the server to Yandex. It also runs after the settings are saved.', 'yamap-block-gutenberg' ); ?>
+			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Verifies the saved key after a save or an explicit request and prints the verdict.
+	 *
+	 * @return void
+	 */
+	private function render_api_key_check(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Core appends this flag after its own nonce-checked save; the check is read-only.
+		$after_save = isset( $_GET['settings-updated'] );
+		$on_demand  = isset( $_GET['guyamap-check'], $_GET['_wpnonce'] )
+			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), self::CHECK_ACTION );
+
+		if ( ! $after_save && ! $on_demand ) {
+			return;
+		}
+
+		$result = $this->check_api_key();
+		$host   = $this->get_site_host();
+
+		switch ( $result['status'] ) {
+			case 'accepted':
+				$type = 'success';
+				$text = sprintf(
+					/* translators: %s: Site host name. */
+					__( 'Yandex accepts this API key for %s.', 'yamap-block-gutenberg' ),
+					$host
+				);
+				break;
+			case 'rejected':
+				$type = 'error';
+				$text = sprintf(
+					/* translators: 1: Site host name, 2: HTTP status code, 3: Response message from Yandex. */
+					__( 'Yandex rejects this API key for %1$s (HTTP %2$d: %3$s). Maps will not load on this site. Open the key in the Yandex Developer Dashboard and add %1$s to its HTTP Referer restrictions, or enter a key issued for the JavaScript API.', 'yamap-block-gutenberg' ),
+					$host,
+					$result['code'],
+					'' !== $result['message'] ? $result['message'] : __( 'no details', 'yamap-block-gutenberg' )
+				);
+				break;
+			case 'limited':
+				$type = 'warning';
+				$text = __( 'Yandex is rate limiting requests from this server (HTTP 429), so the key could not be verified. Try again in a minute.', 'yamap-block-gutenberg' );
+				break;
+			case 'unreachable':
+				$type = 'warning';
+				$text = sprintf(
+					/* translators: %s: Connection error message. */
+					__( 'The server could not contact Yandex to verify the key: %s This check runs from the server, so maps may still load in visitors\' browsers.', 'yamap-block-gutenberg' ),
+					$result['message']
+				);
+				break;
+			case 'missing':
+				$type = 'warning';
+				$text = __( 'No API key is saved. Maps cannot be displayed without a Yandex JavaScript API key.', 'yamap-block-gutenberg' );
+				break;
+			default:
+				$type = 'warning';
+				$text = sprintf(
+					/* translators: %d: HTTP status code. */
+					__( 'Yandex returned an unexpected response (HTTP %d), so the key could not be verified.', 'yamap-block-gutenberg' ),
+					$result['code']
+				);
+		}
+
+		printf(
+			'<div class="notice notice-%1$s inline" data-guyamap-key-status="%2$s"><p>%3$s</p></div>',
+			esc_attr( $type ),
+			esc_attr( $result['status'] ),
+			esc_html( $text )
+		);
 	}
 
 	/**
@@ -328,6 +514,15 @@ final class Settings {
 			esc_url( 'https://developer.tech.yandex.ru/' ),
 			esc_html__( 'Get or configure an API key', 'yamap-block-gutenberg' )
 		);
+
+		$host = $this->get_site_host();
+		if ( '' !== $host ) {
+			printf(
+				'<p>%1$s <code>%2$s</code></p>',
+				esc_html__( 'HTTP Referer to allow for this site:', 'yamap-block-gutenberg' ),
+				esc_html( $host )
+			);
+		}
 	}
 
 	/**

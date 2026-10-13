@@ -23,13 +23,15 @@ Map Block for Yandex is a native WordPress block powered by Yandex Maps JavaScri
 * Use responsive width, height, minimum height, aspect ratio, wide and full-width alignment without horizontal overflow.
 * Configure center, zoom range, tilt, azimuth, map mode and automatic, light or dark theme.
 * Enable selected map behaviors and lightweight zoom, geolocation and fullscreen controls.
-* Add, duplicate, search, reorder and remove structured markers.
-* Customize marker coordinates, labels, descriptions, links, colors, icons, images, sizes and stacking order.
+* Add, duplicate, search and remove structured markers.
+* Choose marker icons from a searchable catalog of the bundled artwork.
+* Customize marker coordinates, labels, hover and focus hints, descriptions, links, colors, icons, images, sizes and stacking order.
 * Group markers with optional client-side clustering.
-* Apply bounded Yandex vector-map customization rules.
+* Apply Yandex map customization rules; the editor checks them against the documented schema and explains what is wrong with a rule.
 * Lazy-load maps near the viewport or require a visitor click before connecting to Yandex.
 * Disable the loading overlay, or customize a spinner, bouncing-dots or pulse preloader and map reveal.
 * Provide keyboard-visible controls, accessible labels, useful error states and a no-JavaScript fallback link.
+* Tell administrators why a map failed to load and verify the API key from the settings screen.
 * Preserve and migrate blocks created by versions 1.0.0 and 1.0.1.
 
 The plugin does not enqueue the Yandex SDK site-wide. A shared loader is used per document and each block owns an independently disposable map instance. Optional clustering is loaded only when required. Inline marker data is normalized and limited to 1,000 markers and an approximately 1 MiB rendered configuration.
@@ -49,6 +51,12 @@ You must supply a Yandex Maps JavaScript API v3 browser key and select a Yandex 
 = Is an API key required? =
 
 Yes. Yandex Maps JavaScript API v3 requires a browser API key. When a key is missing or the SDK fails, the block displays an accessible error and fallback link instead of a blank map.
+
+= Why does the map say "The map could not be loaded"? =
+
+Visitors always see this short message and a link to Yandex Maps. Administrators additionally see the cause on the page and in the block editor. The most common cause is an API key that Yandex does not accept for the current domain: a key restricted by HTTP Referer works only on the listed domains, so it stops working after a domain change or on a staging copy. Open Settings > Yandex Maps and use **Check API key**; the plugin asks Yandex and reports whether the key is accepted for this site. If it is rejected, add the domain shown on that screen to the key's HTTP Referer restrictions in the Yandex developer dashboard.
+
+Other reported causes are a missing key, a network problem or content blocker in the browser, a Content Security Policy that blocks `api-maps.yandex.ru`, and a timeout.
 
 = Why can I not drag or zoom the map in the editor? =
 
@@ -91,6 +99,12 @@ Yandex privacy policy: https://yandex.com/legal/confidential/en/
 
 The service is required for the interactive map. An accessible fallback link remains available when the service cannot load or JavaScript is disabled.
 
+When an administrator saves the settings or chooses **Check API key**, the WordPress server sends one request with the configured key, map locale and site address to `https://api-maps.yandex.ru/v3/` to learn whether Yandex accepts the key for this site. No visitor data is involved.
+
+When the SDK fails to load in a browser, the plugin repeats the same request once to tell a rejected key from an unreachable service. It goes to the same Yandex address the browser already contacted and carries no additional data.
+
+The Yandex SDK also reports its own loading times and errors to `https://log.api-maps.yandex.ru`. These reports are sent by the SDK, not by the plugin, and contain the page address and technical details of the browser and its graphics hardware. The plugin cannot switch them off; when such a report cannot be delivered, the browser console shows a failed request to that address and the map keeps working.
+
 Editors may optionally specify an external marker-image URL. The visitor's browser then requests that URL, and its host receives ordinary technical request data. Built-in marker icons are served locally by the plugin.
 
 == Privacy ==
@@ -115,6 +129,24 @@ Site owners should disclose their use of Yandex Maps in their privacy notice and
 * Added an API-key and locale settings screen.
 * Added English and Russian translations, automated unit tests, coding standards and Chromium smoke tests.
 * Added backward-compatible rendering and editor migration for legacy blocks.
+* Added failure diagnostics: administrators see why a map could not load, and the settings screen verifies the API key with Yandex for the current site.
+* Added marker hint tooltips on hover and keyboard focus, a visitor location marker and visible geolocation messages.
+* Added clustering to the editor preview.
+* Added a searchable marker icon catalog in place of the free-text icon name.
+* Fixed the editor error notice and its retry button being clipped and unreachable.
+* Fixed invisible click-blocking areas next to markers and clusters, and marker placement on right-to-left sites.
+* Fixed marker popups being cut off at the map edge, hidden behind other markers and left open after clicking elsewhere.
+* Fixed a zoom range with equal minimum and maximum preventing the map from rendering.
+* Fixed clearing a numeric editor field storing zero, and editor fields accepting values the server discards.
+* Fixed uneven zoom steps on repeated presses, lost keyboard focus after map activation and the aspect ratio being overridden by the minimum height.
+* Fixed marker pins being cut off when the viewport is fitted to markers.
+* Fixed "Restrict map area" holding the map outside the selected area as soon as the camera moved.
+* Fixed customization rules the map cannot process breaking the map tiles; the editor lists the problems instead of applying such a style, and applies a valid style while it is typed.
+* Fixed the zoom buttons overlapping the fullscreen button on short maps.
+* Fixed the editor preview turning almost a full circle when the camera azimuth crossed zero.
+* Added Firefox and WebKit (Safari) to the browser tests and a suite for classic themes.
+* Added a checksum-verified workflow for updating the bundled marker artwork from its upstream package.
+* Removed the per-marker "Draggable marker" and "Map follows while dragging" options. Markers saved as draggable stay in place and visitors can no longer move them.
 
 = 1.0.1 =
 

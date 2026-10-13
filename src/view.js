@@ -38,11 +38,17 @@ const mountBlock = ( block, config ) => {
 	}
 
 	delete block.dataset.guyamapReady;
+	delete block.dataset.guyamapError;
 	block.dataset.guyamapState = 'loading';
 	const handleStateChange = ( event ) => {
 		const state = event.detail?.state;
 		if ( typeof state === 'string' && state ) {
 			block.dataset.guyamapState = state;
+		}
+		if ( state === 'error' && canvas.dataset.errorCode ) {
+			block.dataset.guyamapError = canvas.dataset.errorCode;
+		} else {
+			delete block.dataset.guyamapError;
 		}
 	};
 	canvas.addEventListener( 'guyamap:statechange', handleStateChange );
@@ -152,6 +158,7 @@ export const destroy = ( root = document ) => {
 			stateListeners.delete( block );
 		}
 		delete block.dataset.guyamapReady;
+		delete block.dataset.guyamapError;
 		block.dataset.guyamapState = 'destroyed';
 	} );
 };

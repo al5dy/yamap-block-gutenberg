@@ -1,4 +1,5 @@
 import { getYandexApiWindow, loadYandexApi } from './api-loader';
+import { fitBoundsToViewport, getFeatureBounds, isPointBounds } from './bounds';
 import {
 	prepareMapHost,
 	releaseMapHost,
@@ -9,11 +10,73 @@ import { normalizeConfig, toLngLat } from './normalize';
 const INSTANCES = new WeakMap();
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 const ICON_NAME_PATTERN = /^[a-z0-9_]{1,64}$/;
+const FALLBACK_ICON_NAME = 'fallback';
+const OPEN_POPUP_Z_INDEX = 100001;
+const USER_LOCATION_Z_INDEX = 100002;
+const NOTICE_DURATION = 6000;
+const GEOLOCATION_PERMISSION_DENIED = 1;
+
+/**
+ * Public error codes reported through `data-error-code`, the `guyamap:error`
+ * event and the administrator diagnostics. Unknown failures map to `render`.
+ */
+const ERROR_CODES = [
+	'missing_api_key',
+	'api_key_rejected',
+	'network',
+	'csp',
+	'timeout',
+	'api_unavailable',
+	'load_failed',
+	'render',
+];
+
+const TWO_PI = Math.PI * 2;
 
 const degreesToRadians = ( degrees ) => ( degrees * Math.PI ) / 180;
 
+/**
+ * Returns the azimuth to request so an animated camera turns the short way.
+ *
+ * The SDK animates from its current azimuth, which it keeps within one turn,
+ * to the requested number. Asking for -170° while the map is at 170° would
+ * therefore spin it by 340° instead of 20°.
+ *
+ * @param {Object} map     Yandex map.
+ * @param {number} azimuth Wanted azimuth in radians.
+ * @return {number} Equivalent azimuth nearest to the current one.
+ */
+const getNearestAzimuth = ( map, azimuth ) => {
+	const current = Number( map?.azimuth );
+	if ( ! Number.isFinite( current ) ) {
+		return azimuth;
+	}
+
+	let turn = ( azimuth - current ) % TWO_PI;
+	if ( turn > Math.PI ) {
+		turn -= TWO_PI;
+	} else if ( turn < -Math.PI ) {
+		turn += TWO_PI;
+	}
+
+	return current + turn;
+};
+
 const runtimeString = ( value, fallback = '', maximumLength = 2048 ) =>
 	typeof value === 'string' ? value.slice( 0, maximumLength ) : fallback;
+
+const runtimeErrorDetails = ( value ) => {
+	const source = value && typeof value === 'object' ? value : {};
+	const details = {};
+	ERROR_CODES.forEach( ( code ) => {
+		const text = runtimeString( source[ code ], '', 600 );
+		if ( text ) {
+			details[ code ] = text;
+		}
+	} );
+
+	return details;
+};
 
 const withRuntimeConfig = ( rawConfig ) => {
 	const input = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
@@ -27,9 +90,32 @@ const withRuntimeConfig = ( rawConfig ) => {
 		fallbackUrl: runtimeString( input.fallbackUrl ),
 		iconBaseUrl: runtimeString( input.iconBaseUrl ),
 		styleUrl: runtimeString( input.styleUrl ),
+		settingsUrl: runtimeString( input.settingsUrl ),
+		diagnostics: input.diagnostics === true,
 		instanceId: runtimeString( input.instanceId, '', 128 ),
 		i18n: {
 			...config.i18n,
+			errorDetails: runtimeErrorDetails( runtimeI18n.errorDetails ),
+			adminOnly: runtimeString(
+				runtimeI18n.adminOnly,
+				'Only administrators see these details.',
+				300
+			),
+			openSettings: runtimeString(
+				runtimeI18n.openSettings,
+				'Open map settings',
+				300
+			),
+			geolocationDenied: runtimeString(
+				runtimeI18n.geolocationDenied,
+				'Location access was denied.',
+				500
+			),
+			userLocation: runtimeString(
+				runtimeI18n.userLocation,
+				'Your location',
+				300
+			),
 			marker: runtimeString( runtimeI18n.marker, 'Map marker', 300 ),
 			clusterMarkers: runtimeString(
 				runtimeI18n.clusterMarkers,
@@ -92,6 +178,17 @@ const createPopupContent = ( marker, context ) => {
 	const popup = ownerDocument.createElement( 'article' );
 	popup.className = 'guyamap-popup';
 
+	if ( marker.category ) {
+		popup.appendChild(
+			createTextElement(
+				ownerDocument,
+				'p',
+				'guyamap-popup__category',
+				marker.category
+			)
+		);
+	}
+
 	if ( marker.title ) {
 		popup.appendChild(
 			createTextElement(
@@ -147,6 +244,7 @@ const createPopupContent = ( marker, context ) => {
 const hasMarkerPopupContent = ( marker, context ) =>
 	Boolean(
 		marker.title ||
+			marker.category ||
 			marker.description ||
 			marker.address ||
 			safeUrl(
@@ -156,12 +254,113 @@ const hasMarkerPopupContent = ( marker, context ) =>
 			)
 	);
 
+const setEntityZIndex = ( entity, zIndex ) => {
+	try {
+		entity?.update?.( { zIndex } );
+	} catch {
+		// A clusterer may already have detached the marker entity.
+	}
+};
+
+const closePopup = ( controller, restoreFocus = false ) => {
+	const record = controller?.openPopup;
+	if ( ! record ) {
+		return;
+	}
+
+	controller.openPopup = null;
+	record.popup.hidden = true;
+	record.button.setAttribute( 'aria-expanded', 'false' );
+	record.wrapper.classList.remove( 'guyamap-marker--open' );
+	setEntityZIndex( record.entity, record.zIndex );
+	if ( restoreFocus ) {
+		record.button.focus();
+	}
+};
+
+/**
+ * Keeps an opened popup inside the visible map area: it flips below the
+ * marker when there is no room above and shifts sideways near the edges.
+ *
+ * @param {Object} controller Map controller.
+ * @param {Object} record     Popup record.
+ */
+const positionPopup = ( controller, record ) => {
+	const { popup, wrapper } = record;
+	popup.classList.remove( 'guyamap-popup--below' );
+	popup.style.marginLeft = '';
+	popup.style.marginRight = '';
+
+	const bounds = controller.surface.getBoundingClientRect();
+	if ( ! bounds.width || ! bounds.height ) {
+		return;
+	}
+
+	const gap = 8;
+	popup.style.setProperty(
+		'--guyamap-popup-max-height',
+		`${ Math.max( 80, Math.round( bounds.height - gap * 2 ) ) }px`
+	);
+	const anchor = wrapper.getBoundingClientRect();
+	let rect = popup.getBoundingClientRect();
+	const roomAbove = anchor.top - bounds.top;
+	const roomBelow = bounds.bottom - anchor.bottom;
+	if ( rect.top < bounds.top + gap && roomBelow > roomAbove ) {
+		popup.classList.add( 'guyamap-popup--below' );
+		rect = popup.getBoundingClientRect();
+	}
+
+	let shift = 0;
+	if ( rect.left < bounds.left + gap ) {
+		shift = bounds.left + gap - rect.left;
+	} else if ( rect.right > bounds.right - gap ) {
+		shift = bounds.right - gap - rect.right;
+	}
+	if ( shift ) {
+		// Only the margin on the anchored side applies, so setting both moves
+		// the popup by the same physical distance in LTR and RTL layouts.
+		popup.style.marginLeft = `${ Math.round( shift ) }px`;
+		popup.style.marginRight = `${ Math.round( -shift ) }px`;
+	}
+};
+
+const openPopup = ( controller, record ) => {
+	closePopup( controller );
+	record.popup.hidden = false;
+	record.button.setAttribute( 'aria-expanded', 'true' );
+	record.wrapper.classList.add( 'guyamap-marker--open' );
+	// Lift the marker so its popup is never covered by neighbouring markers.
+	setEntityZIndex( record.entity, OPEN_POPUP_Z_INDEX );
+	if ( controller ) {
+		controller.openPopup = record;
+		positionPopup( controller, record );
+	}
+};
+
+/**
+ * Adds a single-open, dismissible popup to a marker.
+ *
+ * @param {HTMLElement} wrapper    Marker root.
+ * @param {HTMLElement} button     Marker trigger.
+ * @param {Object}      marker     Normalized marker.
+ * @param {string}      internalId Marker DOM identifier.
+ * @param {Object}      context    Render context.
+ * @return {Object} Popup record; the caller attaches the marker entity.
+ */
 const attachMarkerPopup = ( wrapper, button, marker, internalId, context ) => {
+	const { controller } = context;
 	const popup = createPopupContent( marker, context );
 	const popupId = `${ internalId }-popup`;
 	const markerClass = wrapper.classList.contains( 'guyamap-image-marker' )
 		? 'guyamap-image-marker__popup'
 		: 'guyamap-default-marker__popup';
+	const record = {
+		wrapper,
+		button,
+		popup,
+		entity: null,
+		zIndex: marker.zIndex,
+	};
 
 	popup.classList.add( markerClass );
 	popup.id = popupId;
@@ -169,19 +368,104 @@ const attachMarkerPopup = ( wrapper, button, marker, internalId, context ) => {
 	button.setAttribute( 'aria-controls', popupId );
 	button.setAttribute( 'aria-expanded', 'false' );
 	button.addEventListener( 'click', () => {
-		popup.hidden = ! popup.hidden;
-		button.setAttribute( 'aria-expanded', String( ! popup.hidden ) );
+		if ( popup.hidden ) {
+			openPopup( controller, record );
+		} else if ( controller ) {
+			closePopup( controller );
+		} else {
+			popup.hidden = true;
+			button.setAttribute( 'aria-expanded', 'false' );
+		}
 	} );
 	wrapper.addEventListener( 'keydown', ( event ) => {
 		if ( event.key !== 'Escape' || popup.hidden ) {
 			return;
 		}
 
-		popup.hidden = true;
-		button.setAttribute( 'aria-expanded', 'false' );
-		button.focus();
+		event.stopPropagation();
+		closePopup( controller, true );
 	} );
 	wrapper.appendChild( popup );
+
+	return record;
+};
+
+/**
+ * Closes the open popup when the visitor clicks elsewhere. A drag that merely
+ * starts outside the popup pans the map and keeps the popup open.
+ *
+ * @param {Object} controller Map controller.
+ */
+const registerPopupDismissal = ( controller ) => {
+	const { ownerDocument } = controller;
+	let pressedAt = null;
+
+	const isOutside = ( event ) => {
+		const record = controller.openPopup;
+		if ( ! record ) {
+			return false;
+		}
+
+		const path =
+			typeof event.composedPath === 'function'
+				? event.composedPath()
+				: [];
+		return ! path.includes( record.wrapper );
+	};
+	const handlePointerDown = ( event ) => {
+		pressedAt = isOutside( event )
+			? { x: event.clientX, y: event.clientY }
+			: null;
+	};
+	const handlePointerUp = ( event ) => {
+		if ( ! pressedAt ) {
+			return;
+		}
+
+		const distance = Math.hypot(
+			event.clientX - pressedAt.x,
+			event.clientY - pressedAt.y
+		);
+		pressedAt = null;
+		if ( distance < 6 ) {
+			closePopup( controller );
+		}
+	};
+
+	ownerDocument.addEventListener( 'pointerdown', handlePointerDown, true );
+	ownerDocument.addEventListener( 'pointerup', handlePointerUp, true );
+	controller.cleanups.push( () => {
+		ownerDocument.removeEventListener(
+			'pointerdown',
+			handlePointerDown,
+			true
+		);
+		ownerDocument.removeEventListener( 'pointerup', handlePointerUp, true );
+	} );
+};
+
+/**
+ * Adds a visible tooltip for the marker hint. The trigger's accessible name
+ * already carries the same text, so the tooltip is hidden from assistive
+ * technology and shown on both pointer hover and keyboard focus.
+ *
+ * @param {HTMLElement} wrapper Marker root.
+ * @param {Object}      marker  Normalized marker.
+ * @param {Object}      context Render context.
+ */
+const attachMarkerHint = ( wrapper, marker, context ) => {
+	if ( ! marker.hint ) {
+		return;
+	}
+
+	const hint = createTextElement(
+		context.ownerDocument,
+		'span',
+		'guyamap-marker-hint',
+		marker.hint
+	);
+	hint.setAttribute( 'aria-hidden', 'true' );
+	wrapper.appendChild( hint );
 };
 
 const createPinSvg = ( ownerDocument ) => {
@@ -209,7 +493,7 @@ const createPinSvg = ( ownerDocument ) => {
 	return svg;
 };
 
-const getMarkerIconUrl = ( marker, context ) => {
+const getIconUrl = ( iconName, context ) => {
 	const { config, ownerWindow } = context;
 	const iconBaseUrl = safeUrl(
 		config.iconBaseUrl,
@@ -220,10 +504,6 @@ const getMarkerIconUrl = ( marker, context ) => {
 		return '';
 	}
 
-	const iconName = ICON_NAME_PATTERN.test( marker.icon.name )
-		? marker.icon.name
-		: 'fallback';
-
 	try {
 		const base = iconBaseUrl.endsWith( '/' )
 			? iconBaseUrl
@@ -233,6 +513,14 @@ const getMarkerIconUrl = ( marker, context ) => {
 		return '';
 	}
 };
+
+const getMarkerIconUrl = ( marker, context ) =>
+	getIconUrl(
+		ICON_NAME_PATTERN.test( marker.icon.name )
+			? marker.icon.name
+			: FALLBACK_ICON_NAME,
+		context
+	);
 
 const createDefaultMarkerElement = ( marker, internalId, context ) => {
 	const { ownerDocument } = context;
@@ -270,8 +558,14 @@ const createDefaultMarkerElement = ( marker, internalId, context ) => {
 			icon.alt = '';
 			icon.width = marker.icon.markerSize === 'normal' ? 24 : 14;
 			icon.height = marker.icon.markerSize === 'normal' ? 24 : 14;
-			icon.addEventListener( 'error', () => icon.remove(), {
-				once: true,
+			// A preset missing from the bundle falls back to the default glyph.
+			icon.addEventListener( 'error', () => {
+				const fallbackUrl = getIconUrl( FALLBACK_ICON_NAME, context );
+				if ( fallbackUrl && icon.src !== fallbackUrl ) {
+					icon.src = fallbackUrl;
+					return;
+				}
+				icon.remove();
 			} );
 			visual.appendChild( icon );
 		}
@@ -279,25 +573,25 @@ const createDefaultMarkerElement = ( marker, internalId, context ) => {
 
 	trigger.appendChild( visual );
 	wrapper.appendChild( trigger );
-	if ( hasPopup ) {
-		attachMarkerPopup( wrapper, trigger, marker, internalId, context );
-	}
+	attachMarkerHint( wrapper, marker, context );
 
-	return wrapper;
+	return {
+		element: wrapper,
+		popup: hasPopup
+			? attachMarkerPopup( wrapper, trigger, marker, internalId, context )
+			: null,
+	};
 };
 
 const createImageMarkerElement = ( marker, internalId, context, imageUrl ) => {
 	const { ownerDocument } = context;
 	const wrapper = ownerDocument.createElement( 'div' );
 	wrapper.className = 'guyamap-image-marker';
-	wrapper.style.setProperty(
-		'--guyamap-marker-offset-x',
-		`${ marker.icon.offset[ 0 ] }px`
-	);
-	wrapper.style.setProperty(
-		'--guyamap-marker-offset-y',
-		`${ marker.icon.offset[ 1 ] }px`
-	);
+	// Physical offsets from the coordinate; identical in LTR and RTL pages.
+	wrapper.style.left = `${ marker.icon.offset[ 0 ] }px`;
+	wrapper.style.top = `${ marker.icon.offset[ 1 ] }px`;
+	wrapper.style.width = `${ marker.icon.size[ 0 ] }px`;
+	wrapper.style.height = `${ marker.icon.size[ 1 ] }px`;
 	wrapper.style.setProperty( '--guyamap-marker-color', marker.icon.color );
 
 	const hasPopup = hasMarkerPopupContent( marker, context );
@@ -309,8 +603,6 @@ const createImageMarkerElement = ( marker, internalId, context, imageUrl ) => {
 	} else {
 		trigger.setAttribute( 'role', 'img' );
 	}
-	trigger.style.inlineSize = `${ marker.icon.size[ 0 ] }px`;
-	trigger.style.blockSize = `${ marker.icon.size[ 1 ] }px`;
 	trigger.setAttribute(
 		'aria-label',
 		marker.hint || marker.title || context.config.i18n.marker
@@ -332,31 +624,14 @@ const createImageMarkerElement = ( marker, internalId, context, imageUrl ) => {
 	);
 	trigger.appendChild( image );
 	wrapper.appendChild( trigger );
-	if ( hasPopup ) {
-		attachMarkerPopup( wrapper, trigger, marker, internalId, context );
-	}
+	attachMarkerHint( wrapper, marker, context );
 
-	return wrapper;
-};
-
-const getBounds = ( features ) => {
-	let minLongitude = Infinity;
-	let minLatitude = Infinity;
-	let maxLongitude = -Infinity;
-	let maxLatitude = -Infinity;
-
-	features.forEach( ( feature ) => {
-		const [ longitude, latitude ] = feature.geometry.coordinates;
-		minLongitude = Math.min( minLongitude, longitude );
-		maxLongitude = Math.max( maxLongitude, longitude );
-		minLatitude = Math.min( minLatitude, latitude );
-		maxLatitude = Math.max( maxLatitude, latitude );
-	} );
-
-	return [
-		[ minLongitude, maxLatitude ],
-		[ maxLongitude, minLatitude ],
-	];
+	return {
+		element: wrapper,
+		popup: hasPopup
+			? attachMarkerPopup( wrapper, trigger, marker, internalId, context )
+			: null,
+	};
 };
 
 const markersToFeatures = ( controller, markers ) =>
@@ -398,16 +673,8 @@ const createMarkerEntity = ( marker, internalId, core, context, options ) => {
 	const commonProps = {
 		id: internalId,
 		coordinates: toLngLat( marker.coordinates ),
-		draggable: marker.draggable && options.interactive !== false,
-		mapFollowsOnDrag: marker.mapFollowsOnDrag,
 		hideOutsideViewport: marker.hideOutsideViewport,
 		zIndex: marker.zIndex,
-		onDragEnd: ( coordinates ) => {
-			options.onMarkerDragEnd?.( marker.id, {
-				longitude: coordinates[ 0 ],
-				latitude: coordinates[ 1 ],
-			} );
-		},
 		blockEvents: true,
 		blockBehaviors: options.editor === true,
 	};
@@ -415,11 +682,15 @@ const createMarkerEntity = ( marker, internalId, core, context, options ) => {
 		marker.icon.type === 'image'
 			? safeUrl( marker.icon.url, ownerWindow, config.baseUrl )
 			: '';
-	const element = imageUrl
+	const { element, popup } = imageUrl
 		? createImageMarkerElement( marker, internalId, context, imageUrl )
 		: createDefaultMarkerElement( marker, internalId, context );
+	const entity = new core.YMapMarker( commonProps, element );
+	if ( popup ) {
+		popup.entity = entity;
+	}
 
-	return new core.YMapMarker( commonProps, element );
+	return entity;
 };
 
 const createScreenReaderStatus = ( controller, message, role = 'status' ) => {
@@ -437,18 +708,31 @@ const createScreenReaderStatus = ( controller, message, role = 'status' ) => {
 	return status;
 };
 
+/**
+ * Shows a short, visible status message that is also announced politely.
+ *
+ * @param {Object} controller Map controller.
+ * @param {string} message    Message text.
+ */
 const announce = ( controller, message ) => {
 	controller.announcement?.remove();
-	const status = createScreenReaderStatus( controller, message );
-	controller.surface.appendChild( status );
-	controller.announcement = status;
+	const notice = createTextElement(
+		controller.ownerDocument,
+		'p',
+		'guyamap-map__notice',
+		message
+	);
+	notice.setAttribute( 'role', 'status' );
+	notice.setAttribute( 'aria-live', 'polite' );
+	controller.surface.appendChild( notice );
+	controller.announcement = notice;
 	const timeoutId = controller.ownerWindow.setTimeout( () => {
-		status.remove();
+		notice.remove();
 		controller.timeouts.delete( timeoutId );
-		if ( controller.announcement === status ) {
+		if ( controller.announcement === notice ) {
 			controller.announcement = null;
 		}
-	}, 5000 );
+	}, NOTICE_DURATION );
 	controller.timeouts.add( timeoutId );
 };
 
@@ -500,24 +784,68 @@ const addFullscreenControl = ( controller, config, options = {} ) => {
 	controller.fullscreenButton = button;
 };
 
+const removeChildSafely = ( map, child ) => {
+	if ( ! map || ! child ) {
+		return;
+	}
+	if ( typeof map.removeChild !== 'function' ) {
+		throw new Error( 'guyamap_api_remove_child_unavailable' );
+	}
+
+	try {
+		map.removeChild( child );
+	} catch {
+		// Optional entities may already have detached during SDK teardown.
+	}
+};
+
 const getCurrentZoom = ( controller, config ) => {
 	const zoom = Number( controller.map?.zoom );
 	return Number.isFinite( zoom ) ? zoom : config.zoom;
 };
 
 const setZoom = ( controller, config, delta ) => {
+	const now = controller.ownerWindow.Date.now();
+	// Repeated presses step from the pending target, not a mid-animation zoom.
+	const base =
+		controller.zoomTarget && controller.zoomTarget.until > now
+			? controller.zoomTarget.zoom
+			: getCurrentZoom( controller, config );
 	const zoom = Math.min(
 		config.zoomRange.max,
-		Math.max(
-			config.zoomRange.min,
-			getCurrentZoom( controller, config ) + delta
-		)
+		Math.max( config.zoomRange.min, base + delta )
 	);
-	controller.map.setLocation( {
-		zoom,
-		duration: prefersReducedMotion( controller.ownerWindow ) ? 0 : 200,
-		easing: 'ease-out',
-	} );
+	const duration = prefersReducedMotion( controller.ownerWindow ) ? 0 : 200;
+	controller.zoomTarget = { zoom, until: now + duration + 50 };
+	controller.map.setLocation( { zoom, duration, easing: 'ease-out' } );
+};
+
+/**
+ * Marks the visitor's position after a successful geolocation request.
+ *
+ * @param {Object}   controller  Map controller.
+ * @param {Object}   config      Runtime configuration.
+ * @param {number[]} coordinates Longitude/latitude pair.
+ */
+const showUserLocation = ( controller, config, coordinates ) => {
+	const { core, map, ownerDocument } = controller;
+	if ( ! core?.YMapMarker || ! map ) {
+		return;
+	}
+
+	if ( controller.userLocationMarker ) {
+		removeChildSafely( map, controller.userLocationMarker );
+	}
+
+	const element = ownerDocument.createElement( 'span' );
+	element.className = 'guyamap-user-location';
+	element.setAttribute( 'role', 'img' );
+	element.setAttribute( 'aria-label', config.i18n.userLocation );
+	controller.userLocationMarker = new core.YMapMarker(
+		{ coordinates, zIndex: USER_LOCATION_Z_INDEX },
+		element
+	);
+	map.addChild( controller.userLocationMarker );
 };
 
 const addNativeControls = ( controller, config, options = {} ) => {
@@ -589,11 +917,13 @@ const addNativeControls = ( controller, config, options = {} ) => {
 
 					geolocate.disabled = false;
 					geolocate.removeAttribute( 'aria-busy' );
+					const coordinates = [
+						position.coords.longitude,
+						position.coords.latitude,
+					];
+					showUserLocation( controller, config, coordinates );
 					controller.map.setLocation( {
-						center: [
-							position.coords.longitude,
-							position.coords.latitude,
-						],
+						center: coordinates,
 						zoom: Math.min(
 							config.zoomRange.max,
 							Math.max( getCurrentZoom( controller, config ), 14 )
@@ -604,14 +934,19 @@ const addNativeControls = ( controller, config, options = {} ) => {
 						easing: 'ease-out',
 					} );
 				},
-				() => {
+				( error ) => {
 					if ( controller.destroyed ) {
 						return;
 					}
 
 					geolocate.disabled = false;
 					geolocate.removeAttribute( 'aria-busy' );
-					announce( controller, config.i18n.geolocationError );
+					announce(
+						controller,
+						error?.code === GEOLOCATION_PERMISSION_DENIED
+							? config.i18n.geolocationDenied
+							: config.i18n.geolocationError
+					);
 				},
 				{
 					enableHighAccuracy: false,
@@ -627,23 +962,37 @@ const addNativeControls = ( controller, config, options = {} ) => {
 	controller.nativeControls = controls;
 };
 
+// The fullscreen button comes first in the document: on a short map the
+// stylesheet moves the other controls beside it with a sibling selector.
+const addControls = ( controller, config, options ) => {
+	addFullscreenControl( controller, config, options );
+	addNativeControls( controller, config, options );
+};
+
+const getViewportSize = ( controller ) => {
+	const rect = controller.surface.getBoundingClientRect?.();
+	return { width: rect?.width || 0, height: rect?.height || 0 };
+};
+
 const addMarkers = async ( controller, core, config, options ) => {
+	closePopup( controller );
 	if ( ! config.markers.length ) {
 		controller.markerLayer = null;
-		controller.featuresLayer = null;
 		return;
 	}
 
-	controller.featuresLayer = new core.YMapDefaultFeaturesLayer();
-	controller.map.addChild( controller.featuresLayer );
 	const context = {
 		config,
+		controller,
 		ownerDocument: controller.ownerDocument,
 		ownerWindow: controller.ownerWindow,
 	};
 	const features = markersToFeatures( controller, config.markers );
+	// The bundled clusterer binds to the `ymaps3` global of this module's
+	// realm, so it is usable whenever that realm owns the SDK: on the frontend
+	// and in the editor, whose canvas iframe borrows the wp-admin SDK.
 	const canLoadBundledClusterer =
-		! options.editor && controller.ownerWindow === globalThis.window;
+		getYandexApiWindow( controller.ownerWindow ) === globalThis.window;
 
 	if (
 		config.cluster.enabled &&
@@ -678,7 +1027,10 @@ const addMarkers = async ( controller, core, config, options ) => {
 				);
 				element.addEventListener( 'click', () => {
 					controller.map.setLocation( {
-						bounds: getBounds( clusterFeatures ),
+						bounds: fitBoundsToViewport(
+							getFeatureBounds( clusterFeatures ),
+							getViewportSize( controller )
+						),
 						duration: prefersReducedMotion( controller.ownerWindow )
 							? 0
 							: 300,
@@ -709,31 +1061,15 @@ const addMarkers = async ( controller, core, config, options ) => {
 	} );
 };
 
-const removeChildSafely = ( map, child ) => {
-	if ( ! map || ! child ) {
-		return;
-	}
-	if ( typeof map.removeChild !== 'function' ) {
-		throw new Error( 'guyamap_api_remove_child_unavailable' );
-	}
-
-	try {
-		map.removeChild( child );
-	} catch {
-		// Optional entities may already have detached during SDK teardown.
-	}
-};
-
 const removeMarkers = ( controller ) => {
+	closePopup( controller );
 	const markerLayers = Array.isArray( controller.markerLayer )
 		? controller.markerLayer
 		: [ controller.markerLayer ];
 	markerLayers
 		.filter( Boolean )
 		.forEach( ( marker ) => removeChildSafely( controller.map, marker ) );
-	removeChildSafely( controller.map, controller.featuresLayer );
 	controller.markerLayer = null;
-	controller.featuresLayer = null;
 };
 
 const getInitialLocation = ( controller, config ) => {
@@ -745,14 +1081,17 @@ const getInitialLocation = ( controller, config ) => {
 	}
 
 	const features = markersToFeatures( controller, config.markers );
-	if ( features.length === 1 ) {
+	const bounds = getFeatureBounds( features );
+	if ( isPointBounds( bounds ) ) {
 		return {
 			center: features[ 0 ].geometry.coordinates,
 			zoom: config.zoom,
 		};
 	}
 
-	return { bounds: getBounds( features ) };
+	return {
+		bounds: fitBoundsToViewport( bounds, getViewportSize( controller ) ),
+	};
 };
 
 const setControllerState = ( controller, state ) => {
@@ -769,6 +1108,27 @@ const setControllerState = ( controller, state ) => {
 	);
 };
 
+const fingerprint = ( value ) => JSON.stringify( value );
+
+/**
+ * Converts a stored map area to the corner order the SDK enforces.
+ *
+ * Areas are stored as top-left and bottom-right corners, the order the
+ * reference gives for `LngLatBounds`. For `restrictMapArea` the SDK instead
+ * keeps the view north of the first corner and south of the second, so the
+ * documented order pins the camera just outside the area on its next move.
+ *
+ * @param {number[][]|false} area Stored area, or false.
+ * @return {number[][]|false} South-west and north-east corners, or false.
+ */
+const toRestrictedArea = ( area ) =>
+	Array.isArray( area )
+		? [
+				[ area[ 0 ][ 0 ], area[ 1 ][ 1 ] ],
+				[ area[ 1 ][ 0 ], area[ 0 ][ 1 ] ],
+		  ]
+		: false;
+
 const getMapProps = ( controller, config, options, animate = false ) => {
 	const duration =
 		animate && ! prefersReducedMotion( controller.ownerWindow ) ? 120 : 0;
@@ -781,6 +1141,7 @@ const getMapProps = ( controller, config, options, animate = false ) => {
 	if ( duration ) {
 		location.duration = duration;
 		location.easing = 'ease-out';
+		camera.azimuth = getNearestAzimuth( controller.map, camera.azimuth );
 		camera.duration = duration;
 		camera.easing = 'ease-out';
 	}
@@ -800,11 +1161,32 @@ const getMapProps = ( controller, config, options, animate = false ) => {
 		margin: config.mapOptions.margin,
 		copyrightsPosition: config.mapOptions.copyrightsPosition,
 		showScaleInCopyrights: config.mapOptions.showScaleInCopyrights,
-		restrictMapArea: config.mapOptions.restrictMapArea,
+		restrictMapArea: toRestrictedArea( config.mapOptions.restrictMapArea ),
 	};
 };
 
-const fingerprint = ( value ) => JSON.stringify( value );
+/**
+ * Applies a changed map-area restriction through the SDK's dedicated setter.
+ *
+ * `YMap.update( { restrictMapArea: false } )` leaves a previously restricted
+ * map in a state where the next bounds location is centered far from the
+ * requested bounds. `setRestrictMapArea()` releases the restriction cleanly,
+ * so it runs before the general update whenever the restriction changes.
+ *
+ * @param {Object} controller Map controller.
+ * @param {Object} config     Runtime configuration.
+ */
+const applyRestriction = ( controller, config ) => {
+	const restriction = fingerprint( config.mapOptions.restrictMapArea );
+	if ( restriction === controller.restrictionFingerprint ) {
+		return;
+	}
+
+	controller.map.setRestrictMapArea?.(
+		toRestrictedArea( config.mapOptions.restrictMapArea )
+	);
+	controller.restrictionFingerprint = restriction;
+};
 
 const getMapFingerprint = ( config, options ) =>
 	fingerprint( [
@@ -848,6 +1230,7 @@ const applyMapConfig = async ( controller, config, options ) => {
 				'guyamap_api_update_unavailable'
 			);
 		}
+		applyRestriction( controller, config );
 		controller.map.update(
 			getMapProps( controller, config, options, true )
 		);
@@ -885,8 +1268,7 @@ const applyMapConfig = async ( controller, config, options ) => {
 		controller.fullscreenCleanup = null;
 		controller.fullscreenButton?.remove();
 		controller.fullscreenButton = null;
-		addNativeControls( controller, config, options );
-		addFullscreenControl( controller, config, options );
+		addControls( controller, config, options );
 		controller.controlsFingerprint = controlsFingerprint;
 	}
 
@@ -897,6 +1279,8 @@ const applyMapConfig = async ( controller, config, options ) => {
 const initialize = async ( controller ) => {
 	let config = controller.config;
 	let options = controller.options;
+	controller.error = null;
+	delete controller.container.dataset.errorCode;
 	setControllerState( controller, 'loading' );
 	controller.container.setAttribute( 'aria-busy', 'true' );
 	controller.surface.replaceChildren(
@@ -949,6 +1333,13 @@ const initialize = async ( controller ) => {
 		customization: config.customization,
 	} );
 	controller.map.addChild( controller.schemeLayer );
+	// DOM markers (inline, clustered and the visitor's location) render here.
+	controller.featuresLayer = new core.YMapDefaultFeaturesLayer();
+	controller.map.addChild( controller.featuresLayer );
+	registerPopupDismissal( controller );
+	controller.restrictionFingerprint = fingerprint(
+		config.mapOptions.restrictMapArea
+	);
 	controller.mapFingerprint = getMapFingerprint( config, options );
 	controller.schemeFingerprint = fingerprint( config.customization );
 
@@ -975,8 +1366,7 @@ const initialize = async ( controller ) => {
 		return controller;
 	}
 
-	addNativeControls( controller, config, options );
-	addFullscreenControl( controller, config, options );
+	addControls( controller, config, options );
 	controller.controlsFingerprint = getControlsFingerprint( config, options );
 	controller.appliedConfig = config;
 	setControllerState( controller, 'ready' );
@@ -1002,10 +1392,86 @@ const showActivationGate = ( controller, config, start ) => {
 		config.i18n.activate
 	);
 	button.type = 'button';
-	button.addEventListener( 'click', start, { once: true } );
+	button.addEventListener(
+		'click',
+		() => {
+			const hadFocus = button.getRootNode?.()?.activeElement === button;
+			start();
+			// The focused button is removed; keep keyboard focus in the map.
+			if ( hadFocus && ! controller.destroyed ) {
+				const { container } = controller;
+				if ( ! container.hasAttribute( 'tabindex' ) ) {
+					container.setAttribute( 'tabindex', '-1' );
+				}
+				container.focus?.( { preventScroll: true } );
+			}
+		},
+		{ once: true }
+	);
 	gate.appendChild( button );
 	controller.surface.appendChild( gate );
 	controller.activationGate = gate;
+};
+
+const getErrorCode = ( error ) =>
+	typeof error?.code === 'string' && ERROR_CODES.includes( error.code )
+		? error.code
+		: 'render';
+
+/**
+ * Explains the failure to people who can fix it. Visitors keep the short
+ * generic message; the cause is only rendered when the server marked the
+ * current user as an administrator.
+ *
+ * @param {Object} controller Map controller.
+ * @param {Object} config     Runtime configuration.
+ * @param {string} code       Public error code.
+ * @return {HTMLElement|null} Diagnostics block.
+ */
+const createErrorDiagnostics = ( controller, config, code ) => {
+	const reason = config.i18n.errorDetails[ code ];
+	if ( ! config.diagnostics || ! reason ) {
+		return null;
+	}
+
+	const { ownerDocument, ownerWindow } = controller;
+	const details = ownerDocument.createElement( 'div' );
+	details.className = 'guyamap-map__error-details';
+	details.appendChild(
+		createTextElement(
+			ownerDocument,
+			'p',
+			'guyamap-map__error-reason',
+			reason
+		)
+	);
+
+	const settingsUrl = safeUrl(
+		config.settingsUrl,
+		ownerWindow,
+		config.baseUrl
+	);
+	if ( settingsUrl ) {
+		const link = createTextElement(
+			ownerDocument,
+			'a',
+			'guyamap-map__error-settings',
+			config.i18n.openSettings
+		);
+		link.href = settingsUrl;
+		details.appendChild( link );
+	}
+
+	details.appendChild(
+		createTextElement(
+			ownerDocument,
+			'p',
+			'guyamap-map__error-note',
+			config.i18n.adminOnly
+		)
+	);
+
+	return details;
 };
 
 const renderError = ( controller, config, error ) => {
@@ -1018,8 +1484,12 @@ const renderError = ( controller, config, error ) => {
 	} catch {
 		// Continue with a recoverable fallback if SDK teardown fails.
 	}
+	const code = getErrorCode( error );
 	controller.map = null;
+	controller.openPopup = null;
 	controller.error = error;
+	controller.errorCode = code;
+	controller.container.dataset.errorCode = code;
 	setControllerState( controller, 'error' );
 	controller.container.removeAttribute( 'aria-busy' );
 	const panel = controller.ownerDocument.createElement( 'div' );
@@ -1049,12 +1519,16 @@ const renderError = ( controller, config, error ) => {
 		link.rel = 'noopener noreferrer external';
 		panel.appendChild( link );
 	}
+	const diagnostics = createErrorDiagnostics( controller, config, code );
+	if ( diagnostics ) {
+		panel.appendChild( diagnostics );
+	}
 	controller.surface.replaceChildren( panel );
 	controller.container.dispatchEvent(
 		new controller.ownerWindow.CustomEvent( 'guyamap:error', {
 			bubbles: true,
 			composed: true,
-			detail: { error, config },
+			detail: { error, code, config },
 		} )
 	);
 	return controller;
@@ -1253,6 +1727,9 @@ export function destroyMap( instanceOrContainer ) {
 	controller.nativeControls?.remove();
 	controller.activationGate?.remove();
 	controller.announcement?.remove();
+	controller.openPopup = null;
+	controller.userLocationMarker = null;
+	delete controller.container.dataset.errorCode;
 	try {
 		controller.map?.destroy();
 	} catch {

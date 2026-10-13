@@ -35,18 +35,37 @@
 		text-align: center;
 	}
 
-	.guyamap-editor-preview__pick-hint {
+	// Covers the locked canvas: the block clips its overflow, so an error
+	// notice placed after the full-height canvas would never be visible.
+	.guyamap-editor-preview__error {
 		position: absolute;
-		inset-block-start: 12px;
-		inset-inline-start: 50%;
-		z-index: 1000;
-		padding: 8px 12px;
-		border-radius: 6px;
-		background: #1e1e1e;
-		color: #fff;
-		font-size: 13px;
-		pointer-events: none;
-		transform: translateX(-50%);
+		inset: 0;
+		z-index: 2;
+		box-sizing: border-box;
+		display: grid;
+		place-items: center;
+		padding: 16px;
+		overflow: auto;
+		background: #f0f0f1;
+
+		.components-notice {
+			box-sizing: border-box;
+			max-inline-size: 560px;
+			margin: 0;
+		}
+
+		p {
+			margin-block: 0 8px;
+			font-size: 13px;
+			line-height: 1.5;
+		}
+	}
+
+	.guyamap-editor-preview__error-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px;
 	}
 
 	&.is-selected {
@@ -115,9 +134,53 @@
 	border-block-start: 1px solid #ddd;
 }
 
+.guyamap-icon-picker {
+	position: relative;
+
+	.components-combobox-control {
+		inline-size: 100%;
+	}
+}
+
+// Sits inside the label row so it never shifts the field.
+.guyamap-icon-picker__preview {
+	position: absolute;
+	inset-block-start: -4px;
+	inset-inline-end: 0;
+	padding: 2px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.guyamap-icon-picker__option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	img {
+		flex: none;
+	}
+}
+
+.guyamap-control--invalid .components-text-control__input {
+	border-color: #cc1818;
+	box-shadow: 0 0 0 1px #cc1818;
+}
+
+.guyamap-control--invalid .components-base-control__help {
+	color: #cc1818;
+}
+
 .guyamap-json-control textarea {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	font-size: 12px;
+}
+
+.guyamap-json-control__problems {
+	margin: 0;
+	padding-inline-start: 1.2em;
+	list-style: disc;
 }
 
 @media (max-width: 480px) {

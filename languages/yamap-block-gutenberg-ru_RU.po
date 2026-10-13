@@ -1,26 +1,23 @@
-# Copyright (C) 2026 al5dy
-# This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
 "Project-Id-Version: Map Block for Yandex 2.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yamap-block-"
-"gutenberg\n"
-"POT-Creation-Date: 2026-08-21T17:48:49+02:00\n"
-"PO-Revision-Date: 2026-08-21T10:46:30+03:00\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yamap-block-gutenberg\n"
 "Last-Translator: al5dy\n"
 "Language-Team: Russian\n"
-"Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-21T17:48:49+02:00\n"
+"PO-Revision-Date: 2026-08-21T10:46:30+03:00\n"
+"Language: ru_RU\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: yamap-block-gutenberg\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Plugin Name of the plugin
-#: yamap-block-gutenberg.php includes/Admin/Settings.php:166
-#: includes/Admin/Settings.php:307
+#: yamap-block-gutenberg.php
+#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:414
 msgid "Map Block for Yandex"
 msgstr "Блок карт Яндекса"
 
@@ -31,12 +28,8 @@ msgstr "https://github.com/al5dy/yamap-block-gutenberg"
 
 #. Description of the plugin
 #: yamap-block-gutenberg.php
-msgid ""
-"A fast, accessible, and extensible Yandex Maps block for the WordPress block "
-"editor."
-msgstr ""
-"Быстрый, расширяемый блок Яндекс Карт с поддержкой специальных возможностей "
-"для редактора блоков WordPress."
+msgid "A fast, accessible, and extensible Yandex Maps block for the WordPress block editor."
+msgstr "Быстрый, расширяемый блок Яндекс Карт с поддержкой специальных возможностей для редактора блоков WordPress."
 
 #. Author of the plugin
 #: yamap-block-gutenberg.php
@@ -48,179 +41,160 @@ msgstr "al5dy"
 msgid "https://lokotkov.ru"
 msgstr "https://lokotkov.ru"
 
-#: includes/Admin/Settings.php:52
+#: includes/Admin/Settings.php:66
 msgid "Global settings for Map Block for Yandex."
 msgstr "Общие настройки блока карт Яндекса."
 
-#: includes/Admin/Settings.php:61
+#: includes/Admin/Settings.php:75
 msgid "Yandex Maps API"
 msgstr "API Яндекс Карт"
 
-#: includes/Admin/Settings.php:68
+#: includes/Admin/Settings.php:82
 msgid "API key"
 msgstr "Ключ API"
 
-#: includes/Admin/Settings.php:79
+#: includes/Admin/Settings.php:93
 msgid "Map language"
 msgstr "Язык карты"
 
-#: includes/Admin/Settings.php:96 includes/Admin/Settings.php:97
+#: includes/Admin/Settings.php:110
+#: includes/Admin/Settings.php:111
 msgid "Yandex Maps"
 msgstr "Яндекс Карты"
 
-#: includes/Admin/Settings.php:117
+#: includes/Admin/Settings.php:131
 msgid "Yandex Maps API Terms"
 msgstr "Условия использования API Яндекс Карт"
 
-#: includes/Admin/Settings.php:122
+#: includes/Admin/Settings.php:136
 msgid "Yandex Privacy Policy"
 msgstr "Политика конфиденциальности Яндекса"
 
-#: includes/Admin/Settings.php:127
+#: includes/Admin/Settings.php:141
 msgid "Suggested text:"
 msgstr "Рекомендуемый текст:"
 
-#: includes/Admin/Settings.php:130
-msgid ""
-"This site uses Yandex Maps to display interactive maps. The Yandex service "
-"is contacted only on pages that contain a map and, depending on the map "
-"settings, when the map approaches the visible area or after a visitor "
-"activates it."
-msgstr ""
-"Этот сайт использует Яндекс Карты для отображения интерактивных карт. "
-"Обращение к сервису Яндекса происходит только на страницах, содержащих "
-"карту, и — в зависимости от настроек карты — когда карта приближается к "
-"видимой области страницы либо после того, как посетитель активирует её."
+#: includes/Admin/Settings.php:144
+msgid "This site uses Yandex Maps to display interactive maps. The Yandex service is contacted only on pages that contain a map and, depending on the map settings, when the map approaches the visible area or after a visitor activates it."
+msgstr "Этот сайт использует Яндекс Карты для отображения интерактивных карт. Обращение к сервису Яндекса происходит только на страницах, содержащих карту, и — в зависимости от настроек карты — когда карта приближается к видимой области страницы либо после того, как посетитель активирует её."
 
-#: includes/Admin/Settings.php:136
-msgid ""
-"When a map is activated, the visitor's browser sends the configured public "
-"API key and map language to Yandex. Yandex may also receive technical "
-"request data, including the visitor's IP address, user agent, referring "
-"page, and interactions needed to provide map tiles and controls. Browser "
-"geolocation is requested only if the visitor uses the geolocation control "
-"and grants permission."
-msgstr ""
-"При активации карты браузер посетителя передаёт Яндексу настроенный открытый "
-"ключ API и выбранный язык карты. Яндекс также может получать технические "
-"данные запроса, в том числе IP-адрес посетителя, строку User-Agent, адрес "
-"страницы, с которой отправлен запрос, и сведения о действиях, необходимые "
-"для предоставления фрагментов карты и элементов управления. Доступ к "
-"геолокации через браузер запрашивается только в том случае, если посетитель "
-"использует элемент управления геолокацией и предоставляет разрешение."
+#: includes/Admin/Settings.php:150
+msgid "When a map is activated, the visitor's browser sends the configured public API key and map language to Yandex. Yandex may also receive technical request data, including the visitor's IP address, user agent, referring page, and interactions needed to provide map tiles and controls. Browser geolocation is requested only if the visitor uses the geolocation control and grants permission."
+msgstr "При активации карты браузер посетителя передаёт Яндексу настроенный открытый ключ API и выбранный язык карты. Яндекс также может получать технические данные запроса, в том числе IP-адрес посетителя, строку User-Agent, адрес страницы, с которой отправлен запрос, и сведения о действиях, необходимые для предоставления фрагментов карты и элементов управления. Доступ к геолокации через браузер запрашивается только в том случае, если посетитель использует элемент управления геолокацией и предоставляет разрешение."
 
 #. translators: 1: Yandex Maps API terms link, 2: Yandex privacy policy link.
-#: includes/Admin/Settings.php:144
+#: includes/Admin/Settings.php:158
 #, php-format
 msgid "For more information, see the %1$s and the %2$s."
 msgstr "Подробнее см. %1$s и %2$s."
 
-#: includes/Admin/Settings.php:303
+#: includes/Admin/Settings.php:405
 msgid "You are not allowed to manage these settings."
 msgstr "У вас нет прав на управление этими настройками."
 
-#: includes/Admin/Settings.php:327
-msgid ""
-"A Yandex JavaScript API key is required. The key is public by design, so "
-"restrict it to this site in the Yandex Developer Dashboard."
-msgstr ""
-"Требуется ключ JavaScript API Яндекс Карт. Ключ является открытым, поэтому "
-"ограничьте его использование этим сайтом в кабинете разработчика Яндекса."
+#: includes/Admin/Settings.php:513
+msgid "A Yandex JavaScript API key is required. The key is public by design, so restrict it to this site in the Yandex Developer Dashboard."
+msgstr "Требуется ключ JavaScript API Яндекс Карт. Ключ является открытым, поэтому ограничьте его использование этим сайтом в кабинете разработчика Яндекса."
 
-#: includes/Admin/Settings.php:329
+#: includes/Admin/Settings.php:515
 msgid "Get or configure an API key"
 msgstr "Получить или настроить ключ API"
 
-#: includes/Admin/Settings.php:352
+#: includes/Admin/Settings.php:547
 msgid "The GUYAMAP_YANDEX_API_KEY constant overrides this value."
 msgstr "Константа GUYAMAP_YANDEX_API_KEY переопределяет это значение."
 
-#: includes/Admin/Settings.php:468
+#: includes/Admin/Settings.php:663
 msgid "Automatic (site language)"
 msgstr "Автоматически (язык сайта)"
 
-#: includes/Admin/Settings.php:469
+#: includes/Admin/Settings.php:664
 msgid "Russian"
 msgstr "Русский"
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:665
 msgid "English"
 msgstr "Английский"
 
-#: includes/Admin/Settings.php:471
+#: includes/Admin/Settings.php:666
 msgid "English (Russia)"
 msgstr "Английский (Россия)"
 
-#: includes/Admin/Settings.php:472
+#: includes/Admin/Settings.php:667
 msgid "Russian (Ukraine)"
 msgstr "Русский (Украина)"
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:668
 msgid "Ukrainian"
 msgstr "Украинский"
 
-#: includes/Admin/Settings.php:474
+#: includes/Admin/Settings.php:669
 msgid "Turkish"
 msgstr "Турецкий"
 
-#: includes/Admin/Settings.php:475
+#: includes/Admin/Settings.php:670
 msgid "Hebrew"
 msgstr "Иврит"
 
-#: includes/Admin/Settings.php:476
+#: includes/Admin/Settings.php:671
 msgid "English (Israel)"
 msgstr "Английский (Израиль)"
 
-#: includes/Block/Map_Block.php:244 includes/Block/Map_Block.php:478
-#: includes/Support/Config_Normalizer.php:732
-#: src/components/InspectorPanels.js:819 src/components/InspectorPanels.js:930
-#: src/components/MapPreview.js:52
+#: includes/Block/Map_Block.php:260
+#: includes/Block/Map_Block.php:561
+#: includes/Support/Config_Normalizer.php:870
+#: src/components/InspectorPanels.js:864
+#: src/components/InspectorPanels.js:981
+#: src/components/MapPreview.js:57
 msgid "Loading map…"
 msgstr "Загрузка карты…"
 
-#: includes/Block/Map_Block.php:268 includes/Support/Config_Normalizer.php:229
+#: includes/Block/Map_Block.php:287
+#: includes/Support/Config_Normalizer.php:332
+#: src/components/MapPreview.js:192
 msgid "Interactive map"
 msgstr "Интерактивная карта"
 
-#: includes/Block/Map_Block.php:269 includes/Support/Config_Normalizer.php:234
+#: includes/Block/Map_Block.php:288
+#: includes/Support/Config_Normalizer.php:337
 msgid "Open this location in Yandex Maps"
 msgstr "Открыть это место в Яндекс Картах"
 
-#: includes/Block/Map_Block.php:476
+#: includes/Block/Map_Block.php:559
 msgid "Activate map"
 msgstr "Активировать карту"
 
-#: includes/Block/Map_Block.php:477
+#: includes/Block/Map_Block.php:560
 msgid "Toggle fullscreen map"
 msgstr "Переключить полноэкранный режим карты"
 
-#: includes/Block/Map_Block.php:479
+#: includes/Block/Map_Block.php:562
 msgid "The map could not be loaded."
 msgstr "Не удалось загрузить карту."
 
-#: includes/Block/Map_Block.php:480
+#: includes/Block/Map_Block.php:563
 msgid "Map marker"
 msgstr "Маркер на карте"
 
 #. translators: %d: Marker count.
-#: includes/Block/Map_Block.php:482
+#: includes/Block/Map_Block.php:565
 #, php-format
 msgid "Cluster of %d map markers"
 msgstr "Маркеров в кластере: %d"
 
-#: includes/Block/Map_Block.php:483
+#: includes/Block/Map_Block.php:566
 msgid "Zoom in"
 msgstr "Увеличить масштаб"
 
-#: includes/Block/Map_Block.php:484
+#: includes/Block/Map_Block.php:567
 msgid "Zoom out"
 msgstr "Уменьшить масштаб"
 
-#: includes/Block/Map_Block.php:485
+#: includes/Block/Map_Block.php:568
 msgid "Show my location"
 msgstr "Показать моё местоположение"
 
-#: includes/Block/Map_Block.php:486
+#: includes/Block/Map_Block.php:569
 msgid "Your location could not be determined."
 msgstr "Не удалось определить ваше местоположение."
 
@@ -236,589 +210,557 @@ msgstr "Для блока карт Яндекса требуется PHP 7.4 и�
 msgid "Map Block for Yandex requires WordPress 6.6 or newer."
 msgstr "Для блока карт Яндекса требуется WordPress 6.6 или новее."
 
-#: src/components/InspectorPanels.js:18
+#: src/components/InspectorPanels.js:34
 msgid "Drag"
 msgstr "Перетаскивание"
 
-#: src/components/InspectorPanels.js:20
+#: src/components/InspectorPanels.js:36
 msgid "Mouse-wheel zoom"
 msgstr "Масштабирование колёсиком мыши"
 
-#: src/components/InspectorPanels.js:23
+#: src/components/InspectorPanels.js:39
 msgid "Pinch zoom"
 msgstr "Масштабирование сведением пальцев"
 
-#: src/components/InspectorPanels.js:25
+#: src/components/InspectorPanels.js:41
 msgid "Double-click zoom"
 msgstr "Масштабирование двойным щелчком"
 
-#: src/components/InspectorPanels.js:28
+#: src/components/InspectorPanels.js:44
 msgid "Mouse tilt"
 msgstr "Наклон карты мышью"
 
-#: src/components/InspectorPanels.js:30
+#: src/components/InspectorPanels.js:46
 msgid "Mouse rotation"
 msgstr "Вращение карты мышью"
 
-#: src/components/InspectorPanels.js:33
+#: src/components/InspectorPanels.js:49
 msgid "Magnifier"
 msgstr "Лупа"
 
-#: src/components/InspectorPanels.js:35
+#: src/components/InspectorPanels.js:51
 msgid "One-finger zoom"
 msgstr "Масштабирование одним пальцем"
 
-#: src/components/InspectorPanels.js:39
+#: src/components/InspectorPanels.js:55
 msgid "Pinch rotation"
 msgstr "Вращение двумя пальцами"
 
-#: src/components/InspectorPanels.js:42
+#: src/components/InspectorPanels.js:58
 msgid "Pan and tilt"
 msgstr "Панорамирование и наклон"
 
-#: src/components/InspectorPanels.js:209
+#: src/components/InspectorPanels.js:231
 msgid "Viewport"
 msgstr "Область просмотра"
 
-#: src/components/InspectorPanels.js:213
+#: src/components/InspectorPanels.js:235
 msgid "Center latitude"
 msgstr "Широта центра"
 
-#: src/components/InspectorPanels.js:226
+#: src/components/InspectorPanels.js:248
 msgid "Center longitude"
 msgstr "Долгота центра"
 
-#: src/components/InspectorPanels.js:242
+#: src/components/InspectorPanels.js:264
 msgid "Zoom"
 msgstr "Масштаб"
 
-#: src/components/InspectorPanels.js:253
+#: src/components/InspectorPanels.js:275
 msgid "Minimum zoom"
 msgstr "Минимальный масштаб"
 
-#: src/components/InspectorPanels.js:266
+#: src/components/InspectorPanels.js:288
 msgid "Maximum zoom"
 msgstr "Максимальный масштаб"
 
-#: src/components/InspectorPanels.js:281
+#: src/components/InspectorPanels.js:304
 msgid "Camera tilt"
 msgstr "Наклон камеры"
 
-#: src/components/InspectorPanels.js:293
+#: src/components/InspectorPanels.js:316
 msgid "Camera azimuth"
 msgstr "Азимут камеры"
 
-#: src/components/InspectorPanels.js:306
+#: src/components/InspectorPanels.js:329
 msgid "Container"
 msgstr "Контейнер"
 
-#: src/components/InspectorPanels.js:311
+#: src/components/InspectorPanels.js:332
 msgid "Use a valid CSS length, for example 100% or 960px."
 msgstr "Укажите допустимую длину в формате CSS, например 100% или 960px."
 
-#: src/components/InspectorPanels.js:315
+#: src/components/InspectorPanels.js:337
 msgid "Width"
 msgstr "Ширина"
 
-#: src/components/InspectorPanels.js:324
+#: src/components/InspectorPanels.js:345
 msgid "Use a valid CSS length, for example 480px or 60vh."
 msgstr "Укажите допустимую длину в формате CSS, например 480px или 60vh."
 
-#: src/components/InspectorPanels.js:328
+#: src/components/InspectorPanels.js:350
 msgid "Height"
 msgstr "Высота"
 
-#: src/components/InspectorPanels.js:337
+#: src/components/InspectorPanels.js:359
 msgid "Minimum height"
 msgstr "Минимальная высота"
 
-#: src/components/InspectorPanels.js:346
-msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9."
-msgstr ""
-"Оставьте пустым для произвольной высоты или укажите соотношение, например "
-"16 / 9."
-
-#: src/components/InspectorPanels.js:350
+#: src/components/InspectorPanels.js:375
 msgid "Aspect ratio"
 msgstr "Соотношение сторон"
 
-#: src/components/InspectorPanels.js:360
+#: src/components/InspectorPanels.js:386
 msgid "Map appearance"
 msgstr "Внешний вид карты"
 
-#: src/components/InspectorPanels.js:365
+#: src/components/InspectorPanels.js:391
 msgid "Rendering mode"
 msgstr "Режим отрисовки"
 
-#: src/components/InspectorPanels.js:371 src/components/InspectorPanels.js:394
-#: src/components/InspectorPanels.js:566
+#: src/components/InspectorPanels.js:397
+#: src/components/InspectorPanels.js:420
+#: src/components/InspectorPanels.js:597
 msgid "Automatic"
 msgstr "Автоматически"
 
-#: src/components/InspectorPanels.js:375
+#: src/components/InspectorPanels.js:401
 msgid "Raster"
 msgstr "Растровый"
 
-#: src/components/InspectorPanels.js:379
+#: src/components/InspectorPanels.js:405
 msgid "Vector"
 msgstr "Векторный"
 
-#: src/components/InspectorPanels.js:388
+#: src/components/InspectorPanels.js:414
 msgid "Map theme"
 msgstr "Тема карты"
 
-#: src/components/InspectorPanels.js:398
+#: src/components/InspectorPanels.js:424
 msgid "Light"
 msgstr "Светлая"
 
-#: src/components/InspectorPanels.js:402
+#: src/components/InspectorPanels.js:428
 msgid "Dark"
 msgstr "Тёмная"
 
-#: src/components/InspectorPanels.js:410
-msgid "Advanced Yandex map customization rules."
-msgstr "Расширенные правила оформления карты Яндекса."
-
-#: src/components/InspectorPanels.js:414
+#: src/components/InspectorPanels.js:440
 msgid "Customization JSON"
 msgstr "JSON настроек оформления"
 
-#: src/components/InspectorPanels.js:427
+#: src/components/InspectorPanels.js:458
 msgid "Behaviors"
 msgstr "Взаимодействие с картой"
 
-#: src/components/InspectorPanels.js:430
-msgid ""
-"These behaviors apply on the frontend. The editor preview is intentionally "
-"controlled only from this sidebar."
-msgstr ""
-"Эти способы взаимодействия действуют на опубликованной карте. Предпросмотр в "
-"редакторе намеренно управляется только из этой боковой панели."
+#: src/components/InspectorPanels.js:461
+msgid "These behaviors apply on the frontend. The editor preview is intentionally controlled only from this sidebar."
+msgstr "Эти способы взаимодействия действуют на опубликованной карте. Предпросмотр в редакторе намеренно управляется только из этой боковой панели."
 
-#: src/components/InspectorPanels.js:450
+#: src/components/InspectorPanels.js:481
 msgid "Controls"
 msgstr "Элементы управления"
 
-#: src/components/InspectorPanels.js:455
+#: src/components/InspectorPanels.js:486
 msgid "Zoom control"
 msgstr "Элемент управления масштабом"
 
-#: src/components/InspectorPanels.js:465
+#: src/components/InspectorPanels.js:496
 msgid "Geolocation control"
 msgstr "Элемент управления геолокацией"
 
-#: src/components/InspectorPanels.js:476
+#: src/components/InspectorPanels.js:507
 msgid "Fullscreen control"
 msgstr "Элемент полноэкранного режима"
 
-#: src/components/InspectorPanels.js:487
+#: src/components/InspectorPanels.js:518
 msgid "Controls position"
 msgstr "Положение элементов управления"
 
-#: src/components/InspectorPanels.js:493
+#: src/components/InspectorPanels.js:524
 msgid "Right"
 msgstr "Справа"
 
-#: src/components/InspectorPanels.js:497
+#: src/components/InspectorPanels.js:528
 msgid "Left"
 msgstr "Слева"
 
-#: src/components/InspectorPanels.js:507
+#: src/components/InspectorPanels.js:538
 msgid "Advanced map options"
 msgstr "Расширенные параметры карты"
 
-#: src/components/InspectorPanels.js:512
+#: src/components/InspectorPanels.js:543
 msgid "Copyrights position"
 msgstr "Положение сведений об авторских правах"
 
-#: src/components/InspectorPanels.js:523
+#: src/components/InspectorPanels.js:554
 msgid "Bottom right"
 msgstr "Справа внизу"
 
-#: src/components/InspectorPanels.js:530
+#: src/components/InspectorPanels.js:561
 msgid "Bottom left"
 msgstr "Слева внизу"
 
-#: src/components/InspectorPanels.js:534
+#: src/components/InspectorPanels.js:565
 msgid "Top right"
 msgstr "Справа вверху"
 
-#: src/components/InspectorPanels.js:538
+#: src/components/InspectorPanels.js:569
 msgid "Top left"
 msgstr "Слева вверху"
 
-#: src/components/InspectorPanels.js:547
+#: src/components/InspectorPanels.js:578
 msgid "Show scale in copyrights"
 msgstr "Показывать масштаб в блоке авторских прав"
 
-#: src/components/InspectorPanels.js:560
+#: src/components/InspectorPanels.js:591
 msgid "Zoom rounding"
 msgstr "Округление масштаба"
 
-#: src/components/InspectorPanels.js:570
+#: src/components/InspectorPanels.js:601
 msgid "Smooth"
 msgstr "Плавное"
 
-#: src/components/InspectorPanels.js:574
+#: src/components/InspectorPanels.js:605
 msgid "Snap"
 msgstr "По шагам"
 
-#: src/components/InspectorPanels.js:583
+#: src/components/InspectorPanels.js:614
 msgid "Zoom strategy"
 msgstr "Стратегия масштабирования"
 
-#: src/components/InspectorPanels.js:589
+#: src/components/InspectorPanels.js:620
 msgid "Zoom to pointer"
 msgstr "Масштабирование относительно указателя"
 
-#: src/components/InspectorPanels.js:596
+#: src/components/InspectorPanels.js:627
 msgid "Zoom to center"
 msgstr "Масштабирование относительно центра"
 
-#: src/components/InspectorPanels.js:608
+#: src/components/InspectorPanels.js:643
 msgid "Restrict map area"
 msgstr "Ограничить область карты"
 
-#: src/components/InspectorPanels.js:620
+#: src/components/InspectorPanels.js:655
 msgid "West longitude"
 msgstr "Западная долгота"
 
-#: src/components/InspectorPanels.js:633
+#: src/components/InspectorPanels.js:668
 msgid "North latitude"
 msgstr "Северная широта"
 
-#: src/components/InspectorPanels.js:646
+#: src/components/InspectorPanels.js:681
 msgid "East longitude"
 msgstr "Восточная долгота"
 
-#: src/components/InspectorPanels.js:659
+#: src/components/InspectorPanels.js:694
 msgid "South latitude"
 msgstr "Южная широта"
 
-#: src/components/InspectorPanels.js:676
+#: src/components/InspectorPanels.js:711
 msgid "Fit viewport to markers"
 msgstr "Вписать маркеры в область просмотра"
 
-#: src/components/InspectorPanels.js:686
+#: src/components/InspectorPanels.js:721
 msgid "Top margin"
 msgstr "Отступ сверху"
 
-#: src/components/InspectorPanels.js:687
+#: src/components/InspectorPanels.js:722
 msgid "Right margin"
 msgstr "Отступ справа"
 
-#: src/components/InspectorPanels.js:688
+#: src/components/InspectorPanels.js:723
 msgid "Bottom margin"
 msgstr "Отступ снизу"
 
-#: src/components/InspectorPanels.js:689
+#: src/components/InspectorPanels.js:724
 msgid "Left margin"
 msgstr "Отступ слева"
 
-#: src/components/InspectorPanels.js:707
+#: src/components/InspectorPanels.js:742
 msgid "Markers"
 msgstr "Маркеры"
 
-#: src/components/InspectorPanels.js:722
+#: src/components/InspectorPanels.js:757
 msgid "Clustering"
 msgstr "Кластеризация"
 
-#: src/components/InspectorPanels.js:727
+#: src/components/InspectorPanels.js:762
 msgid "Enable clustering"
 msgstr "Включить кластеризацию"
 
-#: src/components/InspectorPanels.js:733
+#: src/components/InspectorPanels.js:768
 msgid "Cluster grid size"
 msgstr "Размер сетки кластеризации"
 
-#: src/components/InspectorPanels.js:743
+#: src/components/InspectorPanels.js:778
 msgid "Maximum clustering zoom"
 msgstr "Максимальный масштаб кластеризации"
 
-#: src/components/InspectorPanels.js:758
+#: src/components/InspectorPanels.js:793
 msgid "Cluster color"
 msgstr "Цвет кластера"
 
-#: src/components/InspectorPanels.js:768
+#: src/components/InspectorPanels.js:804
 msgid "Loading and interaction"
 msgstr "Загрузка и взаимодействие"
 
-#: src/components/InspectorPanels.js:776
+#: src/components/InspectorPanels.js:818
 msgid "Lazy-load the map"
 msgstr "Отложенная загрузка карты"
 
-#: src/components/InspectorPanels.js:784
+#: src/components/InspectorPanels.js:824
 msgid "Intersection Observer margin, for example 300px."
 msgstr "Отступ Intersection Observer, например 300px."
 
-#: src/components/InspectorPanels.js:788
+#: src/components/InspectorPanels.js:832
 msgid "Preload distance"
 msgstr "Расстояние предварительной загрузки"
 
-#: src/components/InspectorPanels.js:797
+#: src/components/InspectorPanels.js:842
 msgid "Require click to activate"
 msgstr "Активировать карту только по нажатию"
 
-#: src/components/InspectorPanels.js:808
+#: src/components/InspectorPanels.js:853
 msgid "When disabled, the map is shown immediately without a loading overlay."
 msgstr "Если отключено, карта отображается сразу без индикатора загрузки."
 
-#: src/components/InspectorPanels.js:812
+#: src/components/InspectorPanels.js:857
 msgid "Show preloader"
 msgstr "Показывать прелоадер"
 
-#: src/components/InspectorPanels.js:828
+#: src/components/InspectorPanels.js:873
 msgid "Preloader style"
 msgstr "Стиль прелоадера"
 
-#: src/components/InspectorPanels.js:835
+#: src/components/InspectorPanels.js:880
 msgid "Spinner"
 msgstr "Круговой индикатор"
 
-#: src/components/InspectorPanels.js:842
+#: src/components/InspectorPanels.js:887
 msgid "Bouncing dots"
 msgstr "Прыгающие точки"
 
-#: src/components/InspectorPanels.js:849
+#: src/components/InspectorPanels.js:894
 msgid "Pulse"
 msgstr "Пульсация"
 
-#: src/components/InspectorPanels.js:862
+#: src/components/InspectorPanels.js:907
 msgid "Loader color"
 msgstr "Цвет индикатора"
 
-#: src/components/InspectorPanels.js:875
+#: src/components/InspectorPanels.js:923
 msgid "Background color"
 msgstr "Цвет фона"
 
-#: src/components/InspectorPanels.js:889
+#: src/components/InspectorPanels.js:940
 msgid "Loader size"
 msgstr "Размер индикатора"
 
-#: src/components/InspectorPanels.js:902
+#: src/components/InspectorPanels.js:953
 msgid "Fade-in duration in milliseconds."
 msgstr "Длительность плавного появления в миллисекундах."
 
-#: src/components/InspectorPanels.js:906
+#: src/components/InspectorPanels.js:957
 msgid "Transition duration"
 msgstr "Длительность перехода"
 
-#: src/components/InspectorPanels.js:921
+#: src/components/InspectorPanels.js:972
 msgid "Accessible loading text"
 msgstr "Доступный текст загрузки"
 
-#: src/components/InspectorPanels.js:939
+#: src/components/InspectorPanels.js:990
 msgid "Accessibility and fallback"
 msgstr "Специальные возможности и резервный вариант"
 
-#: src/components/InspectorPanels.js:947
+#: src/components/InspectorPanels.js:998
 msgid "Accessible label"
 msgstr "Метка для специальных возможностей"
 
-#: src/components/InspectorPanels.js:956
+#: src/components/InspectorPanels.js:1007
 msgid "Error and no-JavaScript link text"
 msgstr "Текст ссылки при ошибке и отключённом JavaScript"
 
-#: src/components/JsonControl.js:42
+#: src/components/JsonControl.js:44
 msgid "The value must be a JSON array."
 msgstr "Значение должно быть массивом JSON."
 
-#: src/components/JsonControl.js:46
+#: src/components/JsonControl.js:48
 msgid "The value must be a JSON object."
 msgstr "Значение должно быть объектом JSON."
 
-#: src/components/JsonControl.js:61
+#: src/components/JsonControl.js:32
 msgid "Enter valid JSON before applying this value."
 msgstr "Перед применением введите корректный JSON."
 
-#: src/components/MapPreview.js:92 src/components/MapPreview.js:108
-#: src/components/MapPreview.js:145
+#: src/components/MapPreview.js:213
 msgid "The map preview could not be loaded."
 msgstr "Не удалось загрузить предпросмотр карты."
 
-#: src/components/MapPreview.js:162
+#: src/components/MapPreview.js:172
 msgid "Add a Yandex Maps API key to display the interactive preview."
-msgstr ""
-"Добавьте ключ API Яндекс Карт, чтобы отобразить интерактивный предпросмотр."
+msgstr "Добавьте ключ API Яндекс Карт, чтобы отобразить интерактивный предпросмотр."
 
-#: src/components/MapPreview.js:166
+#: src/components/MapPreview.js:176
 msgid "Yandex Map"
 msgstr "Карта Яндекса"
 
-#: src/components/MapPreview.js:170
+#: includes/Block/Map_Block.php:602
+#: src/components/MapPreview.js:180
+#: src/components/MapPreview.js:242
 msgid "Open map settings"
 msgstr "Открыть настройки карты"
 
-#: src/components/MapPreview.js:188
+#: src/components/MapPreview.js:201
 msgid "Loading map preview…"
 msgstr "Загрузка предпросмотра карты…"
 
-#: src/components/MapPreview.js:204
+#: src/components/MapPreview.js:235
 msgid "Retry map preview"
 msgstr "Повторить загрузку карты"
 
 #. translators: %s: marker title.
-#: src/components/MarkerEditor.js:159
+#: src/components/MarkerEditor.js:158
+#, js-format
 msgid "%s (copy)"
 msgstr "%s (копия)"
 
-#: src/components/MarkerEditor.js:162
+#: src/components/MarkerEditor.js:161
 msgid "Marker copy"
 msgstr "Копия маркера"
 
-#: src/components/MarkerEditor.js:207
+#: src/components/MarkerEditor.js:211
 msgid "Add at map center"
 msgstr "Добавить в центре карты"
 
-#: src/components/MarkerEditor.js:215
+#: src/components/MarkerEditor.js:232
 msgid "Search markers"
 msgstr "Поиск маркеров"
 
-#: src/components/MarkerEditor.js:223
+#: src/components/MarkerEditor.js:240
 msgid "Map markers"
 msgstr "Маркеры на карте"
 
 #. translators: %d: marker number.
-#: src/components/MarkerEditor.js:250
+#: src/components/MarkerEditor.js:267
+#, js-format
 msgid "Marker %d"
 msgstr "Маркер %d"
 
 #. translators: 1: visible marker count, 2: matching marker count.
-#: src/components/MarkerEditor.js:271
+#: src/components/MarkerEditor.js:288
+#, js-format
 msgid "Showing the first %1$d of %2$d matching markers."
 msgstr "Показаны первые %1$d из %2$d найденных маркеров."
 
-#: src/components/MarkerEditor.js:283
-msgid ""
-"Add a marker at the current map center, then edit its coordinates in this "
-"panel."
-msgstr ""
-"Добавьте маркер в текущем центре карты, затем измените его координаты в этой "
-"панели."
+#: src/components/MarkerEditor.js:300
+msgid "Add a marker at the current map center, then edit its coordinates in this panel."
+msgstr "Добавьте маркер в текущем центре карты, затем измените его координаты в этой панели."
 
-#: src/components/MarkerEditor.js:295
+#: src/components/MarkerEditor.js:312
 msgid "Title"
 msgstr "Заголовок"
 
-#: src/components/MarkerEditor.js:304
+#: src/components/MarkerEditor.js:325
 msgid "Hint"
 msgstr "Подсказка"
 
-#: src/components/MarkerEditor.js:312
+#: src/components/MarkerEditor.js:333
 msgid "Description"
 msgstr "Описание"
 
-#: src/components/MarkerEditor.js:322
+#: src/components/MarkerEditor.js:343
 msgid "Address"
 msgstr "Адрес"
 
-#: src/components/MarkerEditor.js:331
+#: src/components/MarkerEditor.js:356
 msgid "Category"
 msgstr "Категория"
 
-#: src/components/MarkerEditor.js:340
+#: src/components/MarkerEditor.js:365
 msgid "Link URL"
 msgstr "URL ссылки"
 
-#: src/components/MarkerEditor.js:348
+#: src/components/MarkerEditor.js:373
 msgid "Link label"
 msgstr "Текст ссылки"
 
-#: src/components/MarkerEditor.js:357
+#: src/components/MarkerEditor.js:382
 msgid "Open link in a new tab"
 msgstr "Открывать ссылку в новой вкладке"
 
-#: src/components/MarkerEditor.js:368
+#: src/components/MarkerEditor.js:393
 msgid "Latitude"
 msgstr "Широта"
 
-#: src/components/MarkerEditor.js:378
+#: src/components/MarkerEditor.js:403
 msgid "Longitude"
 msgstr "Долгота"
 
-#: src/components/MarkerEditor.js:392
-msgid "This affects the frontend map; the editor preview remains locked."
-msgstr ""
-"Эта настройка действует на опубликованной карте; предпросмотр в редакторе "
-"остаётся заблокированным."
-
-#: src/components/MarkerEditor.js:396
-msgid "Draggable marker"
-msgstr "Разрешить перетаскивание маркера"
-
-#: src/components/MarkerEditor.js:407
-msgid "Map follows while dragging"
-msgstr "Карта следует за маркером при перетаскивании"
-
-#: src/components/MarkerEditor.js:418
+#: src/components/MarkerEditor.js:417
 msgid "Hide outside viewport"
 msgstr "Скрывать за пределами области просмотра"
 
-#: src/components/MarkerEditor.js:427
+#: src/components/MarkerEditor.js:426
 msgid "Z-index"
 msgstr "Z-индекс"
 
-#: src/components/MarkerEditor.js:438
+#: src/components/MarkerEditor.js:439
 msgid "Icon type"
 msgstr "Тип значка"
 
-#: src/components/MarkerEditor.js:442
+#: src/components/MarkerEditor.js:443
 msgid "Default marker"
 msgstr "Стандартный маркер"
 
-#: src/components/MarkerEditor.js:449
+#: src/components/MarkerEditor.js:450
 msgid "Custom image"
 msgstr "Пользовательское изображение"
 
-#: src/components/MarkerEditor.js:461
-msgid "Icon name"
-msgstr "Название значка"
-
-#: src/components/MarkerEditor.js:468
+#: src/components/MarkerEditor.js:474
 msgid "Marker size"
 msgstr "Размер маркера"
 
-#: src/components/MarkerEditor.js:474
+#: src/components/MarkerEditor.js:483
 msgid "Normal"
 msgstr "Обычный"
 
-#: src/components/MarkerEditor.js:478
+#: src/components/MarkerEditor.js:490
 msgid "Small"
 msgstr "Маленький"
 
-#: src/components/MarkerEditor.js:482
+#: src/components/MarkerEditor.js:497
 msgid "Micro"
 msgstr "Миниатюрный"
 
-#: src/components/MarkerEditor.js:491
+#: src/components/MarkerEditor.js:519
 msgid "Marker color"
 msgstr "Цвет маркера"
 
-#: src/components/MarkerEditor.js:501
+#: src/components/MarkerEditor.js:531
 msgid "Image URL"
 msgstr "URL изображения"
 
-#: src/components/MarkerEditor.js:512
+#: src/components/MarkerEditor.js:543
 msgid "Icon width"
 msgstr "Ширина значка"
 
-#: src/components/MarkerEditor.js:526
+#: src/components/MarkerEditor.js:558
 msgid "Icon height"
 msgstr "Высота значка"
 
-#: src/components/MarkerEditor.js:540
+#: src/components/MarkerEditor.js:573
 msgid "Horizontal offset"
 msgstr "Горизонтальное смещение"
 
-#: src/components/MarkerEditor.js:556
+#: src/components/MarkerEditor.js:591
 msgid "Vertical offset"
 msgstr "Вертикальное смещение"
 
-#: src/components/MarkerEditor.js:575
+#: src/components/MarkerEditor.js:619
 msgid "Duplicate marker"
 msgstr "Дублировать маркер"
 
-#: src/components/MarkerEditor.js:585
+#: src/components/MarkerEditor.js:629
 msgid "Remove marker"
 msgstr "Удалить маркер"
 
@@ -830,9 +772,7 @@ msgstr "Карта Яндекса"
 #: src/block.json
 msgctxt "block description"
 msgid "A fast, accessible Yandex map with markers and clustering."
-msgstr ""
-"Быстрая карта Яндекса с поддержкой специальных возможностей, маркерами и "
-"кластеризацией."
+msgstr "Быстрая карта Яндекса с поддержкой специальных возможностей, маркерами и кластеризацией."
 
 #: src/block.json
 msgctxt "block keyword"
@@ -849,8 +789,209 @@ msgctxt "block keyword"
 msgid "location"
 msgstr "местоположение"
 
-#~ msgid "https://ziscod.com"
-#~ msgstr "https://ziscod.com"
+#: includes/Admin/Settings.php:425
+msgid "Check API key"
+msgstr "Проверить ключ API"
 
-#~ msgid "Fallback link text"
-#~ msgstr "Текст резервной ссылки"
+#: includes/Admin/Settings.php:429
+msgid "The check sends one request with the saved key and this site address from the server to Yandex. It also runs after the settings are saved."
+msgstr "При проверке сервер отправляет в Яндекс один запрос с сохранённым ключом и адресом этого сайта. Проверка также выполняется после сохранения настроек."
+
+#. translators: %s: Site host name.
+#: includes/Admin/Settings.php:458
+#, php-format
+msgid "Yandex accepts this API key for %s."
+msgstr "Яндекс принимает этот ключ API для %s."
+
+#. translators: 1: Site host name, 2: HTTP status code, 3: Response message from Yandex.
+#: includes/Admin/Settings.php:466
+#, php-format
+msgid "Yandex rejects this API key for %1$s (HTTP %2$d: %3$s). Maps will not load on this site. Open the key in the Yandex Developer Dashboard and add %1$s to its HTTP Referer restrictions, or enter a key issued for the JavaScript API."
+msgstr "Яндекс отклоняет этот ключ API для %1$s (HTTP %2$d: %3$s). Карты на этом сайте загружаться не будут. Откройте ключ в кабинете разработчика Яндекса и добавьте %1$s в ограничения по HTTP Referer либо укажите ключ, выпущенный для JavaScript API."
+
+#: includes/Admin/Settings.php:469
+msgid "no details"
+msgstr "без подробностей"
+
+#: includes/Admin/Settings.php:474
+msgid "Yandex is rate limiting requests from this server (HTTP 429), so the key could not be verified. Try again in a minute."
+msgstr "Яндекс ограничивает частоту запросов с этого сервера (HTTP 429), поэтому проверить ключ не удалось. Повторите попытку через минуту."
+
+#. translators: %s: Connection error message.
+#: includes/Admin/Settings.php:480
+#, php-format
+msgid "The server could not contact Yandex to verify the key: %s This check runs from the server, so maps may still load in visitors' browsers."
+msgstr "Серверу не удалось связаться с Яндексом для проверки ключа: %s Проверка выполняется с сервера, поэтому в браузерах посетителей карты всё равно могут загружаться."
+
+#: includes/Admin/Settings.php:486
+msgid "No API key is saved. Maps cannot be displayed without a Yandex JavaScript API key."
+msgstr "Ключ API не сохранён. Без ключа JavaScript API Яндекс Карт карты отображаться не будут."
+
+#. translators: %d: HTTP status code.
+#: includes/Admin/Settings.php:492
+#, php-format
+msgid "Yandex returned an unexpected response (HTTP %d), so the key could not be verified."
+msgstr "Яндекс вернул неожиданный ответ (HTTP %d), поэтому проверить ключ не удалось."
+
+#: includes/Admin/Settings.php:522
+msgid "HTTP Referer to allow for this site:"
+msgstr "HTTP Referer, который нужно разрешить для этого сайта:"
+
+#: includes/Block/Map_Block.php:570
+msgid "Location access was denied. Allow it in the browser to use this button."
+msgstr "Доступ к местоположению запрещён. Разрешите его в браузере, чтобы использовать эту кнопку."
+
+#: includes/Block/Map_Block.php:571
+msgid "Your location"
+msgstr "Ваше местоположение"
+
+#: includes/Block/Map_Block.php:588
+msgid "No Yandex Maps API key is configured. Add a JavaScript API key in the map settings."
+msgstr "Ключ API Яндекс Карт не задан. Добавьте ключ JavaScript API в настройках карты."
+
+#. translators: %s: Site host name, for example example.com.
+#: includes/Block/Map_Block.php:591
+#, php-format
+msgid "Yandex refused to serve the Maps API to %s. The API key is invalid, or its HTTP Referer restrictions do not include this domain. Open the key in the Yandex Developer Dashboard and allow this domain, or enter a different key."
+msgstr "Яндекс отказался отдавать API Карт для %s. Ключ API недействителен, либо в его ограничениях по HTTP Referer нет этого домена. Откройте ключ в кабинете разработчика Яндекса и разрешите этот домен или укажите другой ключ."
+
+#: includes/Block/Map_Block.php:594
+msgid "The Yandex Maps API could not be reached from this browser. Check the internet connection and any ad blocker, firewall, or privacy extension."
+msgstr "Не удалось связаться с API Яндекс Карт из этого браузера. Проверьте подключение к интернету, а также блокировщик рекламы, файрвол или расширения для защиты приватности."
+
+#: includes/Block/Map_Block.php:595
+msgid "The Content Security Policy of this site blocks the Yandex Maps API. Allow https://api-maps.yandex.ru and https://yastatic.net in script-src and connect-src."
+msgstr "Политика безопасности содержимого (Content Security Policy) этого сайта блокирует API Яндекс Карт. Разрешите https://api-maps.yandex.ru и https://yastatic.net в директивах script-src и connect-src."
+
+#: includes/Block/Map_Block.php:596
+msgid "The Yandex Maps API did not respond in time. Reload the page to try again."
+msgstr "API Яндекс Карт не ответил вовремя. Перезагрузите страницу, чтобы повторить попытку."
+
+#: includes/Block/Map_Block.php:597
+msgid "The Yandex Maps API was loaded but did not start. Another script on the page may conflict with it."
+msgstr "API Яндекс Карт загрузился, но не запустился. Возможно, с ним конфликтует другой скрипт на странице."
+
+#: includes/Block/Map_Block.php:598
+msgid "The Yandex Maps API script could not be loaded. Check the API key, its HTTP Referer restrictions, and the network connection."
+msgstr "Не удалось загрузить скрипт API Яндекс Карт. Проверьте ключ API, его ограничения по HTTP Referer и сетевое подключение."
+
+#: includes/Block/Map_Block.php:599
+msgid "The map could not be initialized. Open the browser console for the technical error."
+msgstr "Не удалось инициализировать карту. Техническая ошибка указана в консоли браузера."
+
+#: includes/Block/Map_Block.php:601
+msgid "Only site administrators see these details."
+msgstr "Эти подробности видят только администраторы сайта."
+
+#: src/components/InspectorPanels.js:174
+msgid "Enter a number with a unit: px, %, em, rem, vh, vw, vmin, vmax or ch."
+msgstr "Введите число с единицей измерения: px, %, em, rem, vh, vw, vmin, vmax или ch."
+
+#: src/components/InspectorPanels.js:367
+msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9. A ratio replaces the height and minimum height."
+msgstr "Оставьте пустым для произвольной высоты или укажите соотношение, например 16 / 9. Соотношение заменяет высоту и минимальную высоту."
+
+#: src/components/InspectorPanels.js:371
+msgid "Enter a ratio of two positive numbers, for example 16 / 9."
+msgstr "Введите соотношение двух положительных чисел, например 16 / 9."
+
+#: src/components/InspectorPanels.js:639
+msgid "Keep the area larger than the visible map at the minimum zoom, otherwise the map cannot stay inside it."
+msgstr "Область должна быть больше видимой части карты при минимальном масштабе, иначе карта не сможет оставаться в её пределах."
+
+#: src/components/InspectorPanels.js:828
+msgid "Enter one to four px or % values, for example 300px or 200px 0px."
+msgstr "Введите от одного до четырёх значений в px или %, например 300px или 200px 0px."
+
+#. translators: %d: maximum number of markers.
+#: src/components/MarkerEditor.js:219
+#, js-format
+msgid "A map shows at most %d markers. Markers beyond this limit are not displayed."
+msgstr "Карта показывает не более %d маркеров. Маркеры сверх этого лимита не отображаются."
+
+#: src/components/MarkerEditor.js:321
+msgid "Short tooltip shown on hover and keyboard focus."
+msgstr "Короткая подсказка, которая показывается при наведении и при фокусе с клавиатуры."
+
+#: src/components/MarkerEditor.js:513
+msgid "Shown when the image cannot be loaded."
+msgstr "Показывается, если изображение не удалось загрузить."
+
+#: src/components/IconPicker.js:63
+msgid "Type to search the bundled icons."
+msgstr "Начните вводить название, чтобы найти встроенную иконку."
+
+#: src/components/IconPicker.js:67
+msgid "Icon"
+msgstr "Иконка"
+
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:21
+#, js-format
+msgid "Rule %d must be an object."
+msgstr "Правило %d должно быть объектом."
+
+#. translators: 1: rule number, 2: property path, for example stylers[0].glow.
+#: src/components/customization-messages.js:27
+#, js-format
+msgid "Rule %1$d: \"%2$s\" is not a supported styler property."
+msgstr "Правило %1$d: «%2$s» — неподдерживаемое свойство стиля."
+
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:37
+#, js-format
+msgid "Rule %d needs at least one styler with a supported property."
+msgstr "В правиле %d нужен хотя бы один элемент «stylers» с поддерживаемым свойством."
+
+#. translators: %d: maximum number of rules.
+#: src/components/customization-messages.js:46
+#, js-format
+msgid "A style can contain at most %d rules."
+msgstr "Стиль может содержать не более %d правил."
+
+#. translators: 1: rule number, 2: maximum number of stylers.
+#: src/components/customization-messages.js:55
+#, js-format
+msgid "Rule %1$d has more than %2$d stylers."
+msgstr "В правиле %1$d больше %2$d элементов «stylers»."
+
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:65
+#, js-format
+msgid "The style is too large: rule %d and the rules after it do not fit."
+msgstr "Стиль слишком велик: правило %d и следующие за ним не помещаются."
+
+#. translators: 1: rule number, 2: property path, for example stylers[0].color.
+#: src/components/customization-messages.js:74
+#, js-format
+msgid "Rule %1$d: \"%2$s\" has an unsupported value."
+msgstr "Правило %1$d: у «%2$s» неподдерживаемое значение."
+
+#. translators: %d: number of further problems.
+#: src/components/customization-messages.js:100
+#, js-format
+msgid "And %d more problem."
+msgid_plural "And %d more problems."
+msgstr[0] "И ещё %d проблема."
+msgstr[1] "И ещё %d проблемы."
+msgstr[2] "И ещё %d проблем."
+
+#: src/components/customization-messages.js:133
+msgid "This style is too long for raster tiles, so the map stays empty. Shorten the style or use the vector rendering mode."
+msgstr "Стиль слишком длинный для растровых фрагментов карты, поэтому карта остаётся пустой. Сократите стиль или выберите векторный режим отрисовки."
+
+#: src/components/customization-messages.js:137
+msgid "This style is too long for raster tiles. Devices that cannot draw the vector map will show an empty map."
+msgstr "Стиль слишком длинный для растровых фрагментов карты. На устройствах, которые не могут отрисовать векторную карту, карта будет пустой."
+
+#: src/components/InspectorPanels.js:436
+msgid "Advanced Yandex map customization rules. A rule selects map objects with \"tags\", \"types\" and \"elements\" and changes them with \"stylers\"."
+msgstr "Расширенные правила оформления карты Яндекса. Правило выбирает объекты карты с помощью «tags», «types» и «elements» и изменяет их через «stylers»."
+
+#: src/components/InspectorPanels.js:810
+msgid "These options apply on the published page. The editor preview always loads the map right away."
+msgstr "Эти параметры действуют на опубликованной странице. В редакторе карта всегда загружается сразу."
+
+#: src/components/MarkerEditor.js:352
+msgid "Shown above the title in the marker popup."
+msgstr "Отображается над заголовком во всплывающем окне маркера."

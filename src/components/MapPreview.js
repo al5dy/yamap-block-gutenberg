@@ -2,10 +2,13 @@ import { Button, Notice, Placeholder } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
+import { resetYandexApi } from '../runtime/api-loader';
 import { destroyMap, mountMap, updateMap } from '../runtime/map';
 import Preloader, { normalizePreloaderPresentation } from './Preloader';
 
 const EMPTY_I18N = Object.freeze( {} );
+// One retry recovers every failed preview: the usual cause is shared (the key).
+const RETRY_EVENT = 'guyamap:retry-preview';
 
 const getEditorSettings = () => {
 	if ( typeof window === 'undefined' ) {
@@ -33,8 +36,10 @@ export default function MapPreview( { attributes } ) {
 	const configRef = useRef( null );
 	const generationRef = useRef( 0 );
 	const [ status, setStatus ] = useState( 'idle' );
-	const [ errorMessage, setErrorMessage ] = useState( '' );
+	const [ errorCode, setErrorCode ] = useState( '' );
 	const [ retryRevision, setRetryRevision ] = useState( 0 );
+	const statusRef = useRef( status );
+	statusRef.current = status;
 	const editorSettings = getEditorSettings();
 	const apiKey = editorSettings.apiKey ?? '';
 	const language =
@@ -79,7 +84,7 @@ export default function MapPreview( { attributes } ) {
 		}
 
 		setStatus( 'loading' );
-		setErrorMessage( '' );
+		setErrorCode( '' );
 		const instance = mountMap( container, configRef.current, {
 			editor: true,
 			interactive: false,
@@ -88,12 +93,7 @@ export default function MapPreview( { attributes } ) {
 
 		if ( ! instance ) {
 			setStatus( 'error' );
-			setErrorMessage(
-				__(
-					'The map preview could not be loaded.',
-					'yamap-block-gutenberg'
-				)
-			);
+			setErrorCode( 'render' );
 			return undefined;
 		}
 
@@ -104,12 +104,7 @@ export default function MapPreview( { attributes } ) {
 
 			if ( container.dataset.state === 'error' || ! instance.map ) {
 				setStatus( 'error' );
-				setErrorMessage(
-					__(
-						'The map preview could not be loaded.',
-						'yamap-block-gutenberg'
-					)
-				);
+				setErrorCode( instance.errorCode || 'render' );
 				return;
 			}
 
@@ -124,6 +119,17 @@ export default function MapPreview( { attributes } ) {
 			}
 		};
 	}, [ apiKey, language, retryRevision ] );
+
+	useEffect( () => {
+		const handleRetry = () => {
+			if ( statusRef.current === 'error' ) {
+				setRetryRevision( ( revision ) => revision + 1 );
+			}
+		};
+		window.addEventListener( RETRY_EVENT, handleRetry );
+
+		return () => window.removeEventListener( RETRY_EVENT, handleRetry );
+	}, [] );
 
 	useEffect( () => {
 		const instance = instanceRef.current;
@@ -141,18 +147,22 @@ export default function MapPreview( { attributes } ) {
 			}
 
 			setStatus( 'error' );
-			setErrorMessage(
-				__(
-					'The map preview could not be loaded.',
-					'yamap-block-gutenberg'
-				)
-			);
+			setErrorCode( 'render' );
 		} );
 
 		return () => {
 			active = false;
 		};
 	}, [ config ] );
+
+	const errorDetails =
+		i18n.errorDetails && typeof i18n.errorDetails === 'object'
+			? i18n.errorDetails
+			: EMPTY_I18N;
+	const errorReason =
+		typeof errorDetails[ errorCode ] === 'string'
+			? errorDetails[ errorCode ]
+			: '';
 
 	if ( ! apiKey ) {
 		return (
@@ -177,7 +187,10 @@ export default function MapPreview( { attributes } ) {
 	return (
 		<div className="guyamap-editor-preview">
 			<guyamap-map-view
-				aria-label={ attributes.ariaLabel }
+				aria-label={
+					attributes.ariaLabel?.trim() ||
+					__( 'Interactive map', 'yamap-block-gutenberg' )
+				}
 				className="guyamap-editor-preview__canvas"
 				ref={ containerRef }
 				role="region"
@@ -193,17 +206,48 @@ export default function MapPreview( { attributes } ) {
 				/>
 			) }
 			{ status === 'error' && (
-				<Notice isDismissible={ false } status="error">
-					<p>{ errorMessage }</p>
-					<Button
-						onClick={ () =>
-							setRetryRevision( ( revision ) => revision + 1 )
-						}
-						variant="secondary"
-					>
-						{ __( 'Retry map preview', 'yamap-block-gutenberg' ) }
-					</Button>
-				</Notice>
+				<div className="guyamap-editor-preview__error">
+					<Notice isDismissible={ false } status="error">
+						<p>
+							<strong>
+								{ __(
+									'The map preview could not be loaded.',
+									'yamap-block-gutenberg'
+								) }
+							</strong>
+						</p>
+						{ errorReason && <p>{ errorReason }</p> }
+						<div className="guyamap-editor-preview__error-actions">
+							<Button
+								onClick={ () => {
+									// Forget a remembered refusal so the retry
+									// reaches Yandex again.
+									resetYandexApi(
+										containerRef.current?.ownerDocument
+											?.defaultView
+									);
+									window.dispatchEvent(
+										new window.CustomEvent( RETRY_EVENT )
+									);
+								} }
+								variant="secondary"
+							>
+								{ __(
+									'Retry map preview',
+									'yamap-block-gutenberg'
+								) }
+							</Button>
+							{ settingsUrl && (
+								<Button href={ settingsUrl } variant="link">
+									{ __(
+										'Open map settings',
+										'yamap-block-gutenberg'
+									) }
+								</Button>
+							) }
+						</div>
+					</Notice>
+				</div>
 			) }
 		</div>
 	);

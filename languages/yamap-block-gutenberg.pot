@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-21T17:48:49+02:00\n"
+"POT-Creation-Date: 2026-10-13T12:48:18+02:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: yamap-block-gutenberg\n"
 
 #. Plugin Name of the plugin
 #: yamap-block-gutenberg.php
-#: includes/Admin/Settings.php:166
-#: includes/Admin/Settings.php:307
+#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:414
 msgid "Map Block for Yandex"
 msgstr ""
 
@@ -41,160 +41,261 @@ msgstr ""
 msgid "https://lokotkov.ru"
 msgstr ""
 
-#: includes/Admin/Settings.php:52
+#: includes/Admin/Settings.php:66
 msgid "Global settings for Map Block for Yandex."
 msgstr ""
 
-#: includes/Admin/Settings.php:61
+#: includes/Admin/Settings.php:75
 msgid "Yandex Maps API"
 msgstr ""
 
-#: includes/Admin/Settings.php:68
+#: includes/Admin/Settings.php:82
 msgid "API key"
 msgstr ""
 
-#: includes/Admin/Settings.php:79
+#: includes/Admin/Settings.php:93
 msgid "Map language"
 msgstr ""
 
-#: includes/Admin/Settings.php:96
-#: includes/Admin/Settings.php:97
+#: includes/Admin/Settings.php:110
+#: includes/Admin/Settings.php:111
 msgid "Yandex Maps"
 msgstr ""
 
-#: includes/Admin/Settings.php:117
+#: includes/Admin/Settings.php:131
 msgid "Yandex Maps API Terms"
 msgstr ""
 
-#: includes/Admin/Settings.php:122
+#: includes/Admin/Settings.php:136
 msgid "Yandex Privacy Policy"
 msgstr ""
 
-#: includes/Admin/Settings.php:127
+#: includes/Admin/Settings.php:141
 msgid "Suggested text:"
 msgstr ""
 
-#: includes/Admin/Settings.php:130
+#: includes/Admin/Settings.php:144
 msgid "This site uses Yandex Maps to display interactive maps. The Yandex service is contacted only on pages that contain a map and, depending on the map settings, when the map approaches the visible area or after a visitor activates it."
 msgstr ""
 
-#: includes/Admin/Settings.php:136
+#: includes/Admin/Settings.php:150
 msgid "When a map is activated, the visitor's browser sends the configured public API key and map language to Yandex. Yandex may also receive technical request data, including the visitor's IP address, user agent, referring page, and interactions needed to provide map tiles and controls. Browser geolocation is requested only if the visitor uses the geolocation control and grants permission."
 msgstr ""
 
 #. translators: 1: Yandex Maps API terms link, 2: Yandex privacy policy link.
-#: includes/Admin/Settings.php:144
+#: includes/Admin/Settings.php:158
 #, php-format
 msgid "For more information, see the %1$s and the %2$s."
 msgstr ""
 
-#: includes/Admin/Settings.php:303
+#: includes/Admin/Settings.php:405
 msgid "You are not allowed to manage these settings."
 msgstr ""
 
-#: includes/Admin/Settings.php:327
-msgid "A Yandex JavaScript API key is required. The key is public by design, so restrict it to this site in the Yandex Developer Dashboard."
+#: includes/Admin/Settings.php:425
+msgid "Check API key"
 msgstr ""
 
-#: includes/Admin/Settings.php:329
-msgid "Get or configure an API key"
+#: includes/Admin/Settings.php:429
+msgid "The check sends one request with the saved key and this site address from the server to Yandex. It also runs after the settings are saved."
 msgstr ""
 
-#: includes/Admin/Settings.php:352
-msgid "The GUYAMAP_YANDEX_API_KEY constant overrides this value."
+#. translators: %s: Site host name.
+#: includes/Admin/Settings.php:458
+#, php-format
+msgid "Yandex accepts this API key for %s."
 msgstr ""
 
-#: includes/Admin/Settings.php:468
-msgid "Automatic (site language)"
+#. translators: 1: Site host name, 2: HTTP status code, 3: Response message from Yandex.
+#: includes/Admin/Settings.php:466
+#, php-format
+msgid "Yandex rejects this API key for %1$s (HTTP %2$d: %3$s). Maps will not load on this site. Open the key in the Yandex Developer Dashboard and add %1$s to its HTTP Referer restrictions, or enter a key issued for the JavaScript API."
 msgstr ""
 
 #: includes/Admin/Settings.php:469
-msgid "Russian"
-msgstr ""
-
-#: includes/Admin/Settings.php:470
-msgid "English"
-msgstr ""
-
-#: includes/Admin/Settings.php:471
-msgid "English (Russia)"
-msgstr ""
-
-#: includes/Admin/Settings.php:472
-msgid "Russian (Ukraine)"
-msgstr ""
-
-#: includes/Admin/Settings.php:473
-msgid "Ukrainian"
+msgid "no details"
 msgstr ""
 
 #: includes/Admin/Settings.php:474
+msgid "Yandex is rate limiting requests from this server (HTTP 429), so the key could not be verified. Try again in a minute."
+msgstr ""
+
+#. translators: %s: Connection error message.
+#: includes/Admin/Settings.php:480
+#, php-format
+msgid "The server could not contact Yandex to verify the key: %s This check runs from the server, so maps may still load in visitors' browsers."
+msgstr ""
+
+#: includes/Admin/Settings.php:486
+msgid "No API key is saved. Maps cannot be displayed without a Yandex JavaScript API key."
+msgstr ""
+
+#. translators: %d: HTTP status code.
+#: includes/Admin/Settings.php:492
+#, php-format
+msgid "Yandex returned an unexpected response (HTTP %d), so the key could not be verified."
+msgstr ""
+
+#: includes/Admin/Settings.php:513
+msgid "A Yandex JavaScript API key is required. The key is public by design, so restrict it to this site in the Yandex Developer Dashboard."
+msgstr ""
+
+#: includes/Admin/Settings.php:515
+msgid "Get or configure an API key"
+msgstr ""
+
+#: includes/Admin/Settings.php:522
+msgid "HTTP Referer to allow for this site:"
+msgstr ""
+
+#: includes/Admin/Settings.php:547
+msgid "The GUYAMAP_YANDEX_API_KEY constant overrides this value."
+msgstr ""
+
+#: includes/Admin/Settings.php:663
+msgid "Automatic (site language)"
+msgstr ""
+
+#: includes/Admin/Settings.php:664
+msgid "Russian"
+msgstr ""
+
+#: includes/Admin/Settings.php:665
+msgid "English"
+msgstr ""
+
+#: includes/Admin/Settings.php:666
+msgid "English (Russia)"
+msgstr ""
+
+#: includes/Admin/Settings.php:667
+msgid "Russian (Ukraine)"
+msgstr ""
+
+#: includes/Admin/Settings.php:668
+msgid "Ukrainian"
+msgstr ""
+
+#: includes/Admin/Settings.php:669
 msgid "Turkish"
 msgstr ""
 
-#: includes/Admin/Settings.php:475
+#: includes/Admin/Settings.php:670
 msgid "Hebrew"
 msgstr ""
 
-#: includes/Admin/Settings.php:476
+#: includes/Admin/Settings.php:671
 msgid "English (Israel)"
 msgstr ""
 
-#: includes/Block/Map_Block.php:244
-#: includes/Block/Map_Block.php:478
-#: includes/Support/Config_Normalizer.php:732
-#: src/components/InspectorPanels.js:819
-#: src/components/InspectorPanels.js:930
-#: src/components/MapPreview.js:52
+#: includes/Block/Map_Block.php:260
+#: includes/Block/Map_Block.php:561
+#: includes/Support/Config_Normalizer.php:870
+#: src/components/InspectorPanels.js:864
+#: src/components/InspectorPanels.js:981
+#: src/components/MapPreview.js:57
 msgid "Loading map…"
 msgstr ""
 
-#: includes/Block/Map_Block.php:268
-#: includes/Support/Config_Normalizer.php:229
+#: includes/Block/Map_Block.php:287
+#: includes/Support/Config_Normalizer.php:332
+#: src/components/MapPreview.js:192
 msgid "Interactive map"
 msgstr ""
 
-#: includes/Block/Map_Block.php:269
-#: includes/Support/Config_Normalizer.php:234
+#: includes/Block/Map_Block.php:288
+#: includes/Support/Config_Normalizer.php:337
 msgid "Open this location in Yandex Maps"
 msgstr ""
 
-#: includes/Block/Map_Block.php:476
+#: includes/Block/Map_Block.php:559
 msgid "Activate map"
 msgstr ""
 
-#: includes/Block/Map_Block.php:477
+#: includes/Block/Map_Block.php:560
 msgid "Toggle fullscreen map"
 msgstr ""
 
-#: includes/Block/Map_Block.php:479
+#: includes/Block/Map_Block.php:562
 msgid "The map could not be loaded."
 msgstr ""
 
-#: includes/Block/Map_Block.php:480
+#: includes/Block/Map_Block.php:563
 msgid "Map marker"
 msgstr ""
 
 #. translators: %d: Marker count.
-#: includes/Block/Map_Block.php:482
+#: includes/Block/Map_Block.php:565
 #, php-format
 msgid "Cluster of %d map markers"
 msgstr ""
 
-#: includes/Block/Map_Block.php:483
+#: includes/Block/Map_Block.php:566
 msgid "Zoom in"
 msgstr ""
 
-#: includes/Block/Map_Block.php:484
+#: includes/Block/Map_Block.php:567
 msgid "Zoom out"
 msgstr ""
 
-#: includes/Block/Map_Block.php:485
+#: includes/Block/Map_Block.php:568
 msgid "Show my location"
 msgstr ""
 
-#: includes/Block/Map_Block.php:486
+#: includes/Block/Map_Block.php:569
 msgid "Your location could not be determined."
+msgstr ""
+
+#: includes/Block/Map_Block.php:570
+msgid "Location access was denied. Allow it in the browser to use this button."
+msgstr ""
+
+#: includes/Block/Map_Block.php:571
+msgid "Your location"
+msgstr ""
+
+#: includes/Block/Map_Block.php:588
+msgid "No Yandex Maps API key is configured. Add a JavaScript API key in the map settings."
+msgstr ""
+
+#. translators: %s: Site host name, for example example.com.
+#: includes/Block/Map_Block.php:591
+#, php-format
+msgid "Yandex refused to serve the Maps API to %s. The API key is invalid, or its HTTP Referer restrictions do not include this domain. Open the key in the Yandex Developer Dashboard and allow this domain, or enter a different key."
+msgstr ""
+
+#: includes/Block/Map_Block.php:594
+msgid "The Yandex Maps API could not be reached from this browser. Check the internet connection and any ad blocker, firewall, or privacy extension."
+msgstr ""
+
+#: includes/Block/Map_Block.php:595
+msgid "The Content Security Policy of this site blocks the Yandex Maps API. Allow https://api-maps.yandex.ru and https://yastatic.net in script-src and connect-src."
+msgstr ""
+
+#: includes/Block/Map_Block.php:596
+msgid "The Yandex Maps API did not respond in time. Reload the page to try again."
+msgstr ""
+
+#: includes/Block/Map_Block.php:597
+msgid "The Yandex Maps API was loaded but did not start. Another script on the page may conflict with it."
+msgstr ""
+
+#: includes/Block/Map_Block.php:598
+msgid "The Yandex Maps API script could not be loaded. Check the API key, its HTTP Referer restrictions, and the network connection."
+msgstr ""
+
+#: includes/Block/Map_Block.php:599
+msgid "The map could not be initialized. Open the browser console for the technical error."
+msgstr ""
+
+#: includes/Block/Map_Block.php:601
+msgid "Only site administrators see these details."
+msgstr ""
+
+#: includes/Block/Map_Block.php:602
+#: src/components/MapPreview.js:180
+#: src/components/MapPreview.js:242
+msgid "Open map settings"
 msgstr ""
 
 #: includes/Plugin.php:344
@@ -209,581 +310,663 @@ msgstr ""
 msgid "Map Block for Yandex requires WordPress 6.6 or newer."
 msgstr ""
 
-#: src/components/InspectorPanels.js:18
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:21
+#, js-format
+msgid "Rule %d must be an object."
+msgstr ""
+
+#. translators: 1: rule number, 2: property path, for example stylers[0].glow.
+#: src/components/customization-messages.js:27
+#, js-format
+msgid "Rule %1$d: \"%2$s\" is not a supported styler property."
+msgstr ""
+
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:37
+#, js-format
+msgid "Rule %d needs at least one styler with a supported property."
+msgstr ""
+
+#. translators: %d: maximum number of rules.
+#: src/components/customization-messages.js:46
+#, js-format
+msgid "A style can contain at most %d rules."
+msgstr ""
+
+#. translators: 1: rule number, 2: maximum number of stylers.
+#: src/components/customization-messages.js:55
+#, js-format
+msgid "Rule %1$d has more than %2$d stylers."
+msgstr ""
+
+#. translators: %d: rule number.
+#: src/components/customization-messages.js:65
+#, js-format
+msgid "The style is too large: rule %d and the rules after it do not fit."
+msgstr ""
+
+#. translators: 1: rule number, 2: property path, for example stylers[0].color.
+#: src/components/customization-messages.js:74
+#, js-format
+msgid "Rule %1$d: \"%2$s\" has an unsupported value."
+msgstr ""
+
+#. translators: %d: number of further problems.
+#: src/components/customization-messages.js:100
+#, js-format
+msgid "And %d more problem."
+msgid_plural "And %d more problems."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/components/customization-messages.js:133
+msgid "This style is too long for raster tiles, so the map stays empty. Shorten the style or use the vector rendering mode."
+msgstr ""
+
+#: src/components/customization-messages.js:137
+msgid "This style is too long for raster tiles. Devices that cannot draw the vector map will show an empty map."
+msgstr ""
+
+#: src/components/IconPicker.js:63
+msgid "Type to search the bundled icons."
+msgstr ""
+
+#: src/components/IconPicker.js:67
+msgid "Icon"
+msgstr ""
+
+#: src/components/InspectorPanels.js:34
 msgid "Drag"
 msgstr ""
 
-#: src/components/InspectorPanels.js:20
+#: src/components/InspectorPanels.js:36
 msgid "Mouse-wheel zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:23
+#: src/components/InspectorPanels.js:39
 msgid "Pinch zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:25
+#: src/components/InspectorPanels.js:41
 msgid "Double-click zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:28
+#: src/components/InspectorPanels.js:44
 msgid "Mouse tilt"
 msgstr ""
 
-#: src/components/InspectorPanels.js:30
+#: src/components/InspectorPanels.js:46
 msgid "Mouse rotation"
 msgstr ""
 
-#: src/components/InspectorPanels.js:33
+#: src/components/InspectorPanels.js:49
 msgid "Magnifier"
 msgstr ""
 
-#: src/components/InspectorPanels.js:35
+#: src/components/InspectorPanels.js:51
 msgid "One-finger zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:39
+#: src/components/InspectorPanels.js:55
 msgid "Pinch rotation"
 msgstr ""
 
-#: src/components/InspectorPanels.js:42
+#: src/components/InspectorPanels.js:58
 msgid "Pan and tilt"
 msgstr ""
 
-#: src/components/InspectorPanels.js:209
+#: src/components/InspectorPanels.js:174
+msgid "Enter a number with a unit: px, %, em, rem, vh, vw, vmin, vmax or ch."
+msgstr ""
+
+#: src/components/InspectorPanels.js:231
 msgid "Viewport"
 msgstr ""
 
-#: src/components/InspectorPanels.js:213
+#: src/components/InspectorPanels.js:235
 msgid "Center latitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:226
+#: src/components/InspectorPanels.js:248
 msgid "Center longitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:242
+#: src/components/InspectorPanels.js:264
 msgid "Zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:253
+#: src/components/InspectorPanels.js:275
 msgid "Minimum zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:266
+#: src/components/InspectorPanels.js:288
 msgid "Maximum zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:281
+#: src/components/InspectorPanels.js:304
 msgid "Camera tilt"
 msgstr ""
 
-#: src/components/InspectorPanels.js:293
+#: src/components/InspectorPanels.js:316
 msgid "Camera azimuth"
 msgstr ""
 
-#: src/components/InspectorPanels.js:306
+#: src/components/InspectorPanels.js:329
 msgid "Container"
 msgstr ""
 
-#: src/components/InspectorPanels.js:311
+#: src/components/InspectorPanels.js:332
 msgid "Use a valid CSS length, for example 100% or 960px."
 msgstr ""
 
-#: src/components/InspectorPanels.js:315
+#: src/components/InspectorPanels.js:337
 msgid "Width"
 msgstr ""
 
-#: src/components/InspectorPanels.js:324
+#: src/components/InspectorPanels.js:345
 msgid "Use a valid CSS length, for example 480px or 60vh."
 msgstr ""
 
-#: src/components/InspectorPanels.js:328
+#: src/components/InspectorPanels.js:350
 msgid "Height"
 msgstr ""
 
-#: src/components/InspectorPanels.js:337
+#: src/components/InspectorPanels.js:359
 msgid "Minimum height"
 msgstr ""
 
-#: src/components/InspectorPanels.js:346
-msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9."
-msgstr ""
-
-#: src/components/InspectorPanels.js:350
-msgid "Aspect ratio"
-msgstr ""
-
-#: src/components/InspectorPanels.js:360
-msgid "Map appearance"
-msgstr ""
-
-#: src/components/InspectorPanels.js:365
-msgid "Rendering mode"
+#: src/components/InspectorPanels.js:367
+msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9. A ratio replaces the height and minimum height."
 msgstr ""
 
 #: src/components/InspectorPanels.js:371
-#: src/components/InspectorPanels.js:394
-#: src/components/InspectorPanels.js:566
-msgid "Automatic"
+msgid "Enter a ratio of two positive numbers, for example 16 / 9."
 msgstr ""
 
 #: src/components/InspectorPanels.js:375
+msgid "Aspect ratio"
+msgstr ""
+
+#: src/components/InspectorPanels.js:386
+msgid "Map appearance"
+msgstr ""
+
+#: src/components/InspectorPanels.js:391
+msgid "Rendering mode"
+msgstr ""
+
+#: src/components/InspectorPanels.js:397
+#: src/components/InspectorPanels.js:420
+#: src/components/InspectorPanels.js:597
+msgid "Automatic"
+msgstr ""
+
+#: src/components/InspectorPanels.js:401
 msgid "Raster"
 msgstr ""
 
-#: src/components/InspectorPanels.js:379
+#: src/components/InspectorPanels.js:405
 msgid "Vector"
 msgstr ""
 
-#: src/components/InspectorPanels.js:388
+#: src/components/InspectorPanels.js:414
 msgid "Map theme"
 msgstr ""
 
-#: src/components/InspectorPanels.js:398
+#: src/components/InspectorPanels.js:424
 msgid "Light"
 msgstr ""
 
-#: src/components/InspectorPanels.js:402
+#: src/components/InspectorPanels.js:428
 msgid "Dark"
 msgstr ""
 
-#: src/components/InspectorPanels.js:410
-msgid "Advanced Yandex map customization rules."
+#: src/components/InspectorPanels.js:436
+msgid "Advanced Yandex map customization rules. A rule selects map objects with \"tags\", \"types\" and \"elements\" and changes them with \"stylers\"."
 msgstr ""
 
-#: src/components/InspectorPanels.js:414
+#: src/components/InspectorPanels.js:440
 msgid "Customization JSON"
 msgstr ""
 
-#: src/components/InspectorPanels.js:427
+#: src/components/InspectorPanels.js:458
 msgid "Behaviors"
 msgstr ""
 
-#: src/components/InspectorPanels.js:430
+#: src/components/InspectorPanels.js:461
 msgid "These behaviors apply on the frontend. The editor preview is intentionally controlled only from this sidebar."
 msgstr ""
 
-#: src/components/InspectorPanels.js:450
+#: src/components/InspectorPanels.js:481
 msgid "Controls"
 msgstr ""
 
-#: src/components/InspectorPanels.js:455
+#: src/components/InspectorPanels.js:486
 msgid "Zoom control"
 msgstr ""
 
-#: src/components/InspectorPanels.js:465
+#: src/components/InspectorPanels.js:496
 msgid "Geolocation control"
 msgstr ""
 
-#: src/components/InspectorPanels.js:476
+#: src/components/InspectorPanels.js:507
 msgid "Fullscreen control"
 msgstr ""
 
-#: src/components/InspectorPanels.js:487
+#: src/components/InspectorPanels.js:518
 msgid "Controls position"
 msgstr ""
 
-#: src/components/InspectorPanels.js:493
+#: src/components/InspectorPanels.js:524
 msgid "Right"
 msgstr ""
 
-#: src/components/InspectorPanels.js:497
+#: src/components/InspectorPanels.js:528
 msgid "Left"
 msgstr ""
 
-#: src/components/InspectorPanels.js:507
+#: src/components/InspectorPanels.js:538
 msgid "Advanced map options"
 msgstr ""
 
-#: src/components/InspectorPanels.js:512
+#: src/components/InspectorPanels.js:543
 msgid "Copyrights position"
 msgstr ""
 
-#: src/components/InspectorPanels.js:523
+#: src/components/InspectorPanels.js:554
 msgid "Bottom right"
 msgstr ""
 
-#: src/components/InspectorPanels.js:530
+#: src/components/InspectorPanels.js:561
 msgid "Bottom left"
 msgstr ""
 
-#: src/components/InspectorPanels.js:534
+#: src/components/InspectorPanels.js:565
 msgid "Top right"
 msgstr ""
 
-#: src/components/InspectorPanels.js:538
+#: src/components/InspectorPanels.js:569
 msgid "Top left"
 msgstr ""
 
-#: src/components/InspectorPanels.js:547
+#: src/components/InspectorPanels.js:578
 msgid "Show scale in copyrights"
 msgstr ""
 
-#: src/components/InspectorPanels.js:560
+#: src/components/InspectorPanels.js:591
 msgid "Zoom rounding"
 msgstr ""
 
-#: src/components/InspectorPanels.js:570
+#: src/components/InspectorPanels.js:601
 msgid "Smooth"
 msgstr ""
 
-#: src/components/InspectorPanels.js:574
+#: src/components/InspectorPanels.js:605
 msgid "Snap"
 msgstr ""
 
-#: src/components/InspectorPanels.js:583
+#: src/components/InspectorPanels.js:614
 msgid "Zoom strategy"
 msgstr ""
 
-#: src/components/InspectorPanels.js:589
+#: src/components/InspectorPanels.js:620
 msgid "Zoom to pointer"
 msgstr ""
 
-#: src/components/InspectorPanels.js:596
+#: src/components/InspectorPanels.js:627
 msgid "Zoom to center"
 msgstr ""
 
-#: src/components/InspectorPanels.js:608
+#: src/components/InspectorPanels.js:639
+msgid "Keep the area larger than the visible map at the minimum zoom, otherwise the map cannot stay inside it."
+msgstr ""
+
+#: src/components/InspectorPanels.js:643
 msgid "Restrict map area"
 msgstr ""
 
-#: src/components/InspectorPanels.js:620
+#: src/components/InspectorPanels.js:655
 msgid "West longitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:633
+#: src/components/InspectorPanels.js:668
 msgid "North latitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:646
+#: src/components/InspectorPanels.js:681
 msgid "East longitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:659
+#: src/components/InspectorPanels.js:694
 msgid "South latitude"
 msgstr ""
 
-#: src/components/InspectorPanels.js:676
+#: src/components/InspectorPanels.js:711
 msgid "Fit viewport to markers"
 msgstr ""
 
-#: src/components/InspectorPanels.js:686
+#: src/components/InspectorPanels.js:721
 msgid "Top margin"
 msgstr ""
 
-#: src/components/InspectorPanels.js:687
+#: src/components/InspectorPanels.js:722
 msgid "Right margin"
 msgstr ""
 
-#: src/components/InspectorPanels.js:688
+#: src/components/InspectorPanels.js:723
 msgid "Bottom margin"
 msgstr ""
 
-#: src/components/InspectorPanels.js:689
+#: src/components/InspectorPanels.js:724
 msgid "Left margin"
 msgstr ""
 
-#: src/components/InspectorPanels.js:707
+#: src/components/InspectorPanels.js:742
 msgid "Markers"
 msgstr ""
 
-#: src/components/InspectorPanels.js:722
+#: src/components/InspectorPanels.js:757
 msgid "Clustering"
 msgstr ""
 
-#: src/components/InspectorPanels.js:727
+#: src/components/InspectorPanels.js:762
 msgid "Enable clustering"
 msgstr ""
 
-#: src/components/InspectorPanels.js:733
+#: src/components/InspectorPanels.js:768
 msgid "Cluster grid size"
 msgstr ""
 
-#: src/components/InspectorPanels.js:743
+#: src/components/InspectorPanels.js:778
 msgid "Maximum clustering zoom"
 msgstr ""
 
-#: src/components/InspectorPanels.js:758
+#: src/components/InspectorPanels.js:793
 msgid "Cluster color"
 msgstr ""
 
-#: src/components/InspectorPanels.js:768
+#: src/components/InspectorPanels.js:804
 msgid "Loading and interaction"
 msgstr ""
 
-#: src/components/InspectorPanels.js:776
+#: src/components/InspectorPanels.js:810
+msgid "These options apply on the published page. The editor preview always loads the map right away."
+msgstr ""
+
+#: src/components/InspectorPanels.js:818
 msgid "Lazy-load the map"
 msgstr ""
 
-#: src/components/InspectorPanels.js:784
+#: src/components/InspectorPanels.js:824
 msgid "Intersection Observer margin, for example 300px."
 msgstr ""
 
-#: src/components/InspectorPanels.js:788
+#: src/components/InspectorPanels.js:828
+msgid "Enter one to four px or % values, for example 300px or 200px 0px."
+msgstr ""
+
+#: src/components/InspectorPanels.js:832
 msgid "Preload distance"
 msgstr ""
 
-#: src/components/InspectorPanels.js:797
+#: src/components/InspectorPanels.js:842
 msgid "Require click to activate"
 msgstr ""
 
-#: src/components/InspectorPanels.js:808
+#: src/components/InspectorPanels.js:853
 msgid "When disabled, the map is shown immediately without a loading overlay."
 msgstr ""
 
-#: src/components/InspectorPanels.js:812
+#: src/components/InspectorPanels.js:857
 msgid "Show preloader"
 msgstr ""
 
-#: src/components/InspectorPanels.js:828
+#: src/components/InspectorPanels.js:873
 msgid "Preloader style"
 msgstr ""
 
-#: src/components/InspectorPanels.js:835
+#: src/components/InspectorPanels.js:880
 msgid "Spinner"
 msgstr ""
 
-#: src/components/InspectorPanels.js:842
+#: src/components/InspectorPanels.js:887
 msgid "Bouncing dots"
 msgstr ""
 
-#: src/components/InspectorPanels.js:849
+#: src/components/InspectorPanels.js:894
 msgid "Pulse"
 msgstr ""
 
-#: src/components/InspectorPanels.js:862
+#: src/components/InspectorPanels.js:907
 msgid "Loader color"
 msgstr ""
 
-#: src/components/InspectorPanels.js:875
+#: src/components/InspectorPanels.js:923
 msgid "Background color"
 msgstr ""
 
-#: src/components/InspectorPanels.js:889
+#: src/components/InspectorPanels.js:940
 msgid "Loader size"
 msgstr ""
 
-#: src/components/InspectorPanels.js:902
+#: src/components/InspectorPanels.js:953
 msgid "Fade-in duration in milliseconds."
 msgstr ""
 
-#: src/components/InspectorPanels.js:906
+#: src/components/InspectorPanels.js:957
 msgid "Transition duration"
 msgstr ""
 
-#: src/components/InspectorPanels.js:921
+#: src/components/InspectorPanels.js:972
 msgid "Accessible loading text"
 msgstr ""
 
-#: src/components/InspectorPanels.js:939
+#: src/components/InspectorPanels.js:990
 msgid "Accessibility and fallback"
 msgstr ""
 
-#: src/components/InspectorPanels.js:947
+#: src/components/InspectorPanels.js:998
 msgid "Accessible label"
 msgstr ""
 
-#: src/components/InspectorPanels.js:956
+#: src/components/InspectorPanels.js:1007
 msgid "Error and no-JavaScript link text"
 msgstr ""
 
-#: src/components/JsonControl.js:42
-msgid "The value must be a JSON array."
-msgstr ""
-
-#: src/components/JsonControl.js:46
-msgid "The value must be a JSON object."
-msgstr ""
-
-#: src/components/JsonControl.js:61
+#: src/components/JsonControl.js:32
 msgid "Enter valid JSON before applying this value."
 msgstr ""
 
-#: src/components/MapPreview.js:92
-#: src/components/MapPreview.js:108
-#: src/components/MapPreview.js:145
-msgid "The map preview could not be loaded."
+#: src/components/JsonControl.js:44
+msgid "The value must be a JSON array."
 msgstr ""
 
-#: src/components/MapPreview.js:162
+#: src/components/JsonControl.js:48
+msgid "The value must be a JSON object."
+msgstr ""
+
+#: src/components/MapPreview.js:172
 msgid "Add a Yandex Maps API key to display the interactive preview."
 msgstr ""
 
-#: src/components/MapPreview.js:166
+#: src/components/MapPreview.js:176
 msgid "Yandex Map"
 msgstr ""
 
-#: src/components/MapPreview.js:170
-msgid "Open map settings"
-msgstr ""
-
-#: src/components/MapPreview.js:188
+#: src/components/MapPreview.js:201
 msgid "Loading map preview…"
 msgstr ""
 
-#: src/components/MapPreview.js:204
+#: src/components/MapPreview.js:213
+msgid "The map preview could not be loaded."
+msgstr ""
+
+#: src/components/MapPreview.js:235
 msgid "Retry map preview"
 msgstr ""
 
 #. translators: %s: marker title.
-#: src/components/MarkerEditor.js:159
+#: src/components/MarkerEditor.js:158
 #, js-format
 msgid "%s (copy)"
 msgstr ""
 
-#: src/components/MarkerEditor.js:162
+#: src/components/MarkerEditor.js:161
 msgid "Marker copy"
 msgstr ""
 
-#: src/components/MarkerEditor.js:207
+#: src/components/MarkerEditor.js:211
 msgid "Add at map center"
 msgstr ""
 
-#: src/components/MarkerEditor.js:215
+#. translators: %d: maximum number of markers.
+#: src/components/MarkerEditor.js:219
+#, js-format
+msgid "A map shows at most %d markers. Markers beyond this limit are not displayed."
+msgstr ""
+
+#: src/components/MarkerEditor.js:232
 msgid "Search markers"
 msgstr ""
 
-#: src/components/MarkerEditor.js:223
+#: src/components/MarkerEditor.js:240
 msgid "Map markers"
 msgstr ""
 
 #. translators: %d: marker number.
-#: src/components/MarkerEditor.js:250
+#: src/components/MarkerEditor.js:267
 #, js-format
 msgid "Marker %d"
 msgstr ""
 
 #. translators: 1: visible marker count, 2: matching marker count.
-#: src/components/MarkerEditor.js:271
+#: src/components/MarkerEditor.js:288
 #, js-format
 msgid "Showing the first %1$d of %2$d matching markers."
 msgstr ""
 
-#: src/components/MarkerEditor.js:283
+#: src/components/MarkerEditor.js:300
 msgid "Add a marker at the current map center, then edit its coordinates in this panel."
 msgstr ""
 
-#: src/components/MarkerEditor.js:295
+#: src/components/MarkerEditor.js:312
 msgid "Title"
 msgstr ""
 
-#: src/components/MarkerEditor.js:304
+#: src/components/MarkerEditor.js:321
+msgid "Short tooltip shown on hover and keyboard focus."
+msgstr ""
+
+#: src/components/MarkerEditor.js:325
 msgid "Hint"
 msgstr ""
 
-#: src/components/MarkerEditor.js:312
+#: src/components/MarkerEditor.js:333
 msgid "Description"
 msgstr ""
 
-#: src/components/MarkerEditor.js:322
+#: src/components/MarkerEditor.js:343
 msgid "Address"
 msgstr ""
 
-#: src/components/MarkerEditor.js:331
+#: src/components/MarkerEditor.js:352
+msgid "Shown above the title in the marker popup."
+msgstr ""
+
+#: src/components/MarkerEditor.js:356
 msgid "Category"
 msgstr ""
 
-#: src/components/MarkerEditor.js:340
+#: src/components/MarkerEditor.js:365
 msgid "Link URL"
 msgstr ""
 
-#: src/components/MarkerEditor.js:348
+#: src/components/MarkerEditor.js:373
 msgid "Link label"
 msgstr ""
 
-#: src/components/MarkerEditor.js:357
+#: src/components/MarkerEditor.js:382
 msgid "Open link in a new tab"
 msgstr ""
 
-#: src/components/MarkerEditor.js:368
+#: src/components/MarkerEditor.js:393
 msgid "Latitude"
 msgstr ""
 
-#: src/components/MarkerEditor.js:378
+#: src/components/MarkerEditor.js:403
 msgid "Longitude"
 msgstr ""
 
-#: src/components/MarkerEditor.js:392
-msgid "This affects the frontend map; the editor preview remains locked."
-msgstr ""
-
-#: src/components/MarkerEditor.js:396
-msgid "Draggable marker"
-msgstr ""
-
-#: src/components/MarkerEditor.js:407
-msgid "Map follows while dragging"
-msgstr ""
-
-#: src/components/MarkerEditor.js:418
+#: src/components/MarkerEditor.js:417
 msgid "Hide outside viewport"
 msgstr ""
 
-#: src/components/MarkerEditor.js:427
+#: src/components/MarkerEditor.js:426
 msgid "Z-index"
 msgstr ""
 
-#: src/components/MarkerEditor.js:438
+#: src/components/MarkerEditor.js:439
 msgid "Icon type"
 msgstr ""
 
-#: src/components/MarkerEditor.js:442
+#: src/components/MarkerEditor.js:443
 msgid "Default marker"
 msgstr ""
 
-#: src/components/MarkerEditor.js:449
+#: src/components/MarkerEditor.js:450
 msgid "Custom image"
 msgstr ""
 
-#: src/components/MarkerEditor.js:461
-msgid "Icon name"
-msgstr ""
-
-#: src/components/MarkerEditor.js:468
+#: src/components/MarkerEditor.js:474
 msgid "Marker size"
 msgstr ""
 
-#: src/components/MarkerEditor.js:474
+#: src/components/MarkerEditor.js:483
 msgid "Normal"
 msgstr ""
 
-#: src/components/MarkerEditor.js:478
+#: src/components/MarkerEditor.js:490
 msgid "Small"
 msgstr ""
 
-#: src/components/MarkerEditor.js:482
+#: src/components/MarkerEditor.js:497
 msgid "Micro"
 msgstr ""
 
-#: src/components/MarkerEditor.js:491
+#: src/components/MarkerEditor.js:513
+msgid "Shown when the image cannot be loaded."
+msgstr ""
+
+#: src/components/MarkerEditor.js:519
 msgid "Marker color"
 msgstr ""
 
-#: src/components/MarkerEditor.js:501
+#: src/components/MarkerEditor.js:531
 msgid "Image URL"
 msgstr ""
 
-#: src/components/MarkerEditor.js:512
+#: src/components/MarkerEditor.js:543
 msgid "Icon width"
 msgstr ""
 
-#: src/components/MarkerEditor.js:526
+#: src/components/MarkerEditor.js:558
 msgid "Icon height"
 msgstr ""
 
-#: src/components/MarkerEditor.js:540
+#: src/components/MarkerEditor.js:573
 msgid "Horizontal offset"
 msgstr ""
 
-#: src/components/MarkerEditor.js:556
+#: src/components/MarkerEditor.js:591
 msgid "Vertical offset"
 msgstr ""
 
-#: src/components/MarkerEditor.js:575
+#: src/components/MarkerEditor.js:619
 msgid "Duplicate marker"
 msgstr ""
 
-#: src/components/MarkerEditor.js:585
+#: src/components/MarkerEditor.js:629
 msgid "Remove marker"
 msgstr ""
 

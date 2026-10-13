@@ -333,6 +333,281 @@ guyamap_smoke_assert(
 	'The WordPress privacy-policy integration is missing.'
 );
 
+// The Yandex API throws "Invalid zoom range, min >= max" for an empty interval.
+$guyamap_equal_zoom = $guyamap_normalizer->normalize(
+	array(
+		'zoom'      => 8,
+		'zoomRange' => array(
+			'min' => 8,
+			'max' => 8,
+		),
+	)
+);
+guyamap_smoke_assert(
+	8.0 === $guyamap_equal_zoom['zoomRange']['min'] && 9.0 === $guyamap_equal_zoom['zoomRange']['max'],
+	'An empty zoom interval was not widened.'
+);
+$guyamap_top_zoom = $guyamap_normalizer->normalize(
+	array(
+		'zoomRange' => array(
+			'min' => 99,
+			'max' => 99,
+		),
+	)
+);
+guyamap_smoke_assert(
+	22.0 === $guyamap_top_zoom['zoomRange']['min'] && 23.0 === $guyamap_top_zoom['zoomRange']['max'],
+	'An empty zoom interval at the upper bound was not widened downwards.'
+);
+$guyamap_swapped_zoom = $guyamap_normalizer->normalize(
+	array(
+		'zoomRange' => array(
+			'min' => 15,
+			'max' => 4,
+		),
+	)
+);
+guyamap_smoke_assert(
+	4.0 === $guyamap_swapped_zoom['zoomRange']['min'] && 15.0 === $guyamap_swapped_zoom['zoomRange']['max'],
+	'A reversed zoom interval was not reordered.'
+);
+
+// A percentage width is exposed as a unitless share for the stylesheet.
+$guyamap_half_html = guyamap_smoke_render( array( 'width' => '50%' ) );
+guyamap_smoke_assert(
+	false !== strpos( $guyamap_half_html, 'data-guyamap-width-ratio="0.5"' ) &&
+	false !== strpos( $guyamap_half_html, '--guyamap-width-ratio:0.5' ),
+	'A percentage width did not expose its ratio.'
+);
+guyamap_smoke_assert(
+	false === strpos( guyamap_smoke_render( array( 'width' => '520px' ) ), 'guyamap-width-ratio' ),
+	'A fixed width exposed a percentage ratio.'
+);
+
+// Only bundled preset icons reach the frontend, so a typo cannot cause a 404.
+$guyamap_icon_markers = array();
+foreach ( array( 'airport', 'does_not_exist_zz', '../../wp-config', 'AIRPORT', '' ) as $guyamap_icon_name ) {
+	$guyamap_icon_markers[] = array(
+		'coordinates' => array(
+			'latitude'  => 1,
+			'longitude' => 1,
+		),
+		'icon'        => array( 'name' => $guyamap_icon_name ),
+	);
+}
+$guyamap_icon_config = $guyamap_normalizer->normalize( array( 'markers' => $guyamap_icon_markers ) );
+guyamap_smoke_assert(
+	array( 'airport', 'fallback', 'fallback', 'fallback', 'fallback' ) === array_column( array_column( $guyamap_icon_config['markers'], 'icon' ), 'name' ),
+	'An icon name without a bundled file crossed the server boundary.'
+);
+guyamap_smoke_assert(
+	is_readable( GUYAMAP_PLUGIN_PATH . 'assets/icons/fallback_24.svg' ),
+	'The fallback marker icon is missing from the bundle.'
+);
+
+// Markers are not draggable. Options saved by earlier 2.0 builds are ignored.
+$guyamap_dragged_marker = $guyamap_normalizer->normalize(
+	array(
+		'markers' => array(
+			array(
+				'coordinates'         => array(
+					'latitude'  => 1,
+					'longitude' => 1,
+				),
+				'draggable'           => true,
+				'mapFollowsOnDrag'    => true,
+				'hideOutsideViewport' => false,
+			),
+		),
+	)
+)['markers'][0];
+guyamap_smoke_assert(
+	! array_key_exists( 'draggable', $guyamap_dragged_marker ) &&
+	! array_key_exists( 'mapFollowsOnDrag', $guyamap_dragged_marker ) &&
+	false === $guyamap_dragged_marker['hideOutsideViewport'],
+	'A marker drag option crossed the server boundary.'
+);
+
+// Customization rules follow the schema documented by Yandex. The same cases
+// run against the browser normalizer in tests/js/customization.test.js.
+$guyamap_customization_cases = wp_json_file_decode(
+	GUYAMAP_PLUGIN_PATH . 'tests/fixtures/customization.json',
+	array( 'associative' => true )
+);
+guyamap_smoke_assert(
+	is_array( $guyamap_customization_cases ) && count( $guyamap_customization_cases ) > 5,
+	'The shared customization cases could not be read.'
+);
+foreach ( $guyamap_customization_cases as $guyamap_customization_case ) {
+	$guyamap_customization = $guyamap_normalizer->normalize(
+		array( 'customization' => $guyamap_customization_case['input'] )
+	)['customization'];
+	guyamap_smoke_assert(
+		wp_json_encode( $guyamap_customization_case['expected'] ) === wp_json_encode( $guyamap_customization ),
+		sprintf(
+			'Customization case "%1$s" differs from the browser normalizer: %2$s',
+			$guyamap_customization_case['name'],
+			wp_json_encode( $guyamap_customization )
+		)
+	);
+}
+
+// An oversized style is cut at a rule boundary; it never yields null rules,
+// which the Yandex vector worker dereferences without a check.
+$guyamap_style_rule = array(
+	'tags'    => array( 'any' => array() ),
+	'stylers' => array( array( 'color' => '#00ff00' ) ),
+);
+for ( $guyamap_index = 0; $guyamap_index < 64; $guyamap_index++ ) {
+	$guyamap_style_rule['tags']['any'][] = 'tag_' . $guyamap_index;
+}
+$guyamap_large_style = $guyamap_normalizer->normalize(
+	array( 'customization' => array_fill( 0, 300, $guyamap_style_rule ) )
+)['customization'];
+guyamap_smoke_assert(
+	63 === count( $guyamap_large_style ) && end( $guyamap_large_style ) === $guyamap_style_rule,
+	'An oversized customization was not cut at a rule boundary.'
+);
+$guyamap_many_rules = $guyamap_normalizer->normalize(
+	array( 'customization' => array_fill( 0, 300, array( 'stylers' => array( 'opacity' => 0.5 ) ) ) )
+)['customization'];
+guyamap_smoke_assert( 256 === count( $guyamap_many_rules ), 'The customization rule limit was not applied.' );
+$guyamap_hostile_style = guyamap_smoke_extract_config(
+	guyamap_smoke_render(
+		array(
+			'customization' => array(
+				null,
+				array( 'stylers' => null ),
+				array( 'stylers' => array( null ) ),
+				array(
+					'tags'    => array( 'all' => array( 'water', null ) ),
+					'stylers' => array( array( 'color' => '#ff0000' ) ),
+				),
+				array(
+					'tags'    => 'water',
+					'stylers' => array(
+						array(
+							'color'   => '<script>alert(1)</script>',
+							'opacity' => 0.5,
+						),
+					),
+				),
+			),
+		)
+	)
+);
+guyamap_smoke_assert(
+	array(
+		array(
+			'tags'    => 'water',
+			'stylers' => array( array( 'opacity' => 0.5 ) ),
+		),
+	) === $guyamap_hostile_style['customization'],
+	'A hostile customization crossed the render boundary.'
+);
+
+// Failure causes are only sent to people who can fix the map.
+$guyamap_previous_user = get_current_user_id();
+wp_set_current_user( 0 );
+$guyamap_visitor_json = guyamap_smoke_extract_json( guyamap_smoke_render( array() ) );
+guyamap_smoke_assert(
+	false === strpos( $guyamap_visitor_json, 'diagnostics' ) &&
+	false === strpos( $guyamap_visitor_json, 'errorDetails' ) &&
+	false === strpos( $guyamap_visitor_json, 'settingsUrl' ) &&
+	false === strpos( $guyamap_visitor_json, 'wp-admin' ),
+	'Administrator diagnostics leaked into visitor output.'
+);
+
+$guyamap_admins = get_users(
+	array(
+		'role'   => 'administrator',
+		'number' => 1,
+		'fields' => 'ID',
+	)
+);
+if ( ! empty( $guyamap_admins ) ) {
+	wp_set_current_user( (int) $guyamap_admins[0] );
+	$guyamap_admin_config = guyamap_smoke_extract_config( guyamap_smoke_render( array() ) );
+	$guyamap_site_host    = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+	guyamap_smoke_assert( true === ( $guyamap_admin_config['diagnostics'] ?? false ), 'Administrators do not receive failure diagnostics.' );
+	guyamap_smoke_assert(
+		false !== strpos( (string) ( $guyamap_admin_config['settingsUrl'] ?? '' ), 'page=guyamap' ),
+		'The diagnostics do not link to the settings screen.'
+	);
+	guyamap_smoke_assert(
+		false !== strpos( (string) ( $guyamap_admin_config['i18n']['errorDetails']['api_key_rejected'] ?? '' ), $guyamap_site_host ),
+		'The rejected-key explanation does not name the site host.'
+	);
+	foreach ( array( 'missing_api_key', 'network', 'csp', 'timeout', 'api_unavailable', 'load_failed', 'render' ) as $guyamap_error_code ) {
+		guyamap_smoke_assert(
+			'' !== (string) ( $guyamap_admin_config['i18n']['errorDetails'][ $guyamap_error_code ] ?? '' ),
+			'A runtime error code has no administrator explanation.'
+		);
+	}
+}
+wp_set_current_user( $guyamap_previous_user );
+
+// The API key check reports the real Yandex verdict without leaving the fixed origin.
+$guyamap_http_request = array();
+$guyamap_http_reply   = array();
+$guyamap_http_filter  = static function ( $preempt, $parsed_args, $url ) use ( &$guyamap_http_request, &$guyamap_http_reply ) {
+	unset( $preempt );
+	$guyamap_http_request = array(
+		'url'  => $url,
+		'args' => $parsed_args,
+	);
+
+	return $guyamap_http_reply;
+};
+$guyamap_key_filter   = static function (): string {
+	return 'smoke-test-key';
+};
+add_filter( 'pre_http_request', $guyamap_http_filter, 10, 3 );
+add_filter( 'guyamap_yandex_api_key', $guyamap_key_filter );
+
+$guyamap_http_reply = array(
+	'response' => array(
+		'code'    => 403,
+		'message' => 'Forbidden',
+	),
+	'headers'  => array(),
+	'body'     => '{"statusCode":403,"error":"Forbidden","message":"Invalid api key <script>"}',
+);
+$guyamap_check      = guyamap()->settings()->check_api_key();
+guyamap_smoke_assert( 'rejected' === $guyamap_check['status'] && 403 === $guyamap_check['code'], 'A refused key was not reported as rejected.' );
+guyamap_smoke_assert( 'Invalid api key' === $guyamap_check['message'], 'The remote rejection message was not reduced to safe text.' );
+guyamap_smoke_assert( 0 === strpos( (string) $guyamap_http_request['url'], 'https://api-maps.yandex.ru/v3/?' ), 'The key check left the fixed Yandex origin.' );
+guyamap_smoke_assert( false !== strpos( (string) $guyamap_http_request['url'], 'apikey=smoke-test-key' ), 'The key check did not send the configured key.' );
+guyamap_smoke_assert( home_url( '/' ) === ( $guyamap_http_request['args']['headers']['Referer'] ?? '' ), 'The key check did not present the site as HTTP Referer.' );
+guyamap_smoke_assert( 0 === (int) $guyamap_http_request['args']['redirection'], 'The key check follows redirects.' );
+guyamap_smoke_assert( (int) $guyamap_http_request['args']['limit_response_size'] <= 4096, 'The key check reads an unbounded response.' );
+
+$guyamap_http_reply['response']['code'] = 200;
+$guyamap_http_reply['body']             = '(()=>{})();';
+guyamap_smoke_assert( 'accepted' === guyamap()->settings()->check_api_key()['status'], 'An accepted key was not reported as accepted.' );
+
+$guyamap_http_reply['response']['code'] = 429;
+$guyamap_http_reply['body']             = 'limited';
+guyamap_smoke_assert( 'limited' === guyamap()->settings()->check_api_key()['status'], 'Rate limiting was not reported separately from a rejected key.' );
+
+$guyamap_http_reply['response']['code'] = 502;
+guyamap_smoke_assert( 'unexpected' === guyamap()->settings()->check_api_key()['status'], 'An upstream failure was reported as a key verdict.' );
+
+$guyamap_http_reply = new WP_Error( 'http_request_failed', 'cURL error 28: timed out' );
+$guyamap_check      = guyamap()->settings()->check_api_key();
+guyamap_smoke_assert( 'unreachable' === $guyamap_check['status'] && 0 === $guyamap_check['code'], 'A connection failure was not reported as unreachable.' );
+
+remove_filter( 'guyamap_yandex_api_key', $guyamap_key_filter );
+$guyamap_empty_key_filter = static function (): string {
+	return '';
+};
+add_filter( 'guyamap_yandex_api_key', $guyamap_empty_key_filter );
+$guyamap_http_request = array();
+guyamap_smoke_assert( 'missing' === guyamap()->settings()->check_api_key()['status'], 'A missing key was not reported.' );
+guyamap_smoke_assert( array() === $guyamap_http_request, 'A missing key still triggered a remote request.' );
+remove_filter( 'guyamap_yandex_api_key', $guyamap_empty_key_filter );
+remove_filter( 'pre_http_request', $guyamap_http_filter, 10 );
+
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	WP_CLI::success( 'Map Block for Yandex WordPress smoke test passed.' );
 }

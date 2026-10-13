@@ -49,7 +49,24 @@ describe( 'normalizeConfig', () => {
 			longitude: 37.61,
 		} );
 		expect( config.markers[ 0 ].icon.size ).toEqual( [ 1, 512 ] );
-		expect( config.markers[ 0 ].mapFollowsOnDrag ).toBe( true );
+	} );
+
+	it( 'drops the marker drag options saved by earlier 2.0 builds', () => {
+		const [ marker ] = normalizeConfig( {
+			markers: [
+				{
+					id: 'office',
+					coordinates: { latitude: 55.75, longitude: 37.61 },
+					draggable: true,
+					mapFollowsOnDrag: true,
+					hideOutsideViewport: false,
+				},
+			],
+		} ).markers;
+
+		expect( marker ).not.toHaveProperty( 'draggable' );
+		expect( marker ).not.toHaveProperty( 'mapFollowsOnDrag' );
+		expect( marker.hideOutsideViewport ).toBe( false );
 	} );
 
 	it( 'rejects executable CSS values for marker and cluster colors', () => {
@@ -106,13 +123,14 @@ describe( 'normalizeConfig', () => {
 
 	it( 'removes prototype keys from advanced customization', () => {
 		const customization = JSON.parse(
-			'[{"tags":{"all":["road"]},"__proto__":{"polluted":true}}]'
+			'[{"tags":{"all":["road"]},"stylers":{"color":"#f00","__proto__":{"polluted":true}},"__proto__":{"polluted":true}}]'
 		);
 		const config = normalizeConfig( { customization } );
 
-		expect( config.customization[ 0 ].tags ).toEqual( {
-			all: [ 'road' ],
-		} );
+		expect( config.customization ).toEqual( [
+			{ tags: { all: [ 'road' ] }, stylers: [ { color: '#f00' } ] },
+		] );
+		expect( {}.polluted ).toBeUndefined();
 		expect(
 			Object.prototype.hasOwnProperty.call(
 				config.customization[ 0 ],
@@ -167,5 +185,40 @@ describe( 'toLngLat', () => {
 		expect(
 			toLngLat( { latitude: 55.751244, longitude: 37.618423 } )
 		).toEqual( [ 37.618423, 55.751244 ] );
+	} );
+
+	it( 'never produces an empty zoom interval, which the Yandex API rejects', () => {
+		expect(
+			normalizeConfig( { zoom: 8, zoomRange: { min: 8, max: 8 } } )
+		).toMatchObject( { zoom: 8, zoomRange: { min: 8, max: 9 } } );
+		expect(
+			normalizeConfig( { zoomRange: { min: 99, max: 99 } } ).zoomRange
+		).toEqual( { min: 22, max: 23 } );
+		expect(
+			normalizeConfig( { zoomRange: { min: 15, max: 4 } } ).zoomRange
+		).toEqual( { min: 4, max: 15 } );
+		expect(
+			normalizeConfig( { zoomRange: { min: 10, max: 10.4 } } ).zoomRange
+		).toEqual( { min: 10, max: 11 } );
+	} );
+
+	it( 'always returns four integer map margins in top, right, bottom, left order', () => {
+		expect(
+			normalizeConfig( { mapOptions: { margin: [ 10.9, '20' ] } } )
+				.mapOptions.margin
+		).toEqual( [ 10, 20, 0, 0 ] );
+		expect(
+			normalizeConfig( {
+				mapOptions: { margin: [ 1, 2, 3, 4, 5, 6 ] },
+			} ).mapOptions.margin
+		).toEqual( [ 1, 2, 3, 4 ] );
+		expect(
+			normalizeConfig( { mapOptions: { margin: 'nope' } } ).mapOptions
+				.margin
+		).toEqual( [ 0, 0, 0, 0 ] );
+		expect(
+			normalizeConfig( { mapOptions: { margin: [ -5, 99999 ] } } )
+				.mapOptions.margin
+		).toEqual( [ 0, 2000, 0, 0 ] );
 	} );
 } );

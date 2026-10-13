@@ -71,6 +71,109 @@ final class Config_Normalizer {
 	public const MAX_RENDER_CONFIG_BYTES = 1048576;
 
 	/**
+	 * Highest zoom level accepted by the Yandex Maps JavaScript API.
+	 *
+	 * @var float
+	 */
+	private const MAX_ZOOM = 23.0;
+
+	/**
+	 * Smallest zoom interval; the API requires the minimum to be below the maximum.
+	 *
+	 * @var float
+	 */
+	private const MIN_ZOOM_SPAN = 1.0;
+
+	/**
+	 * Maximum customization rules passed to the map.
+	 *
+	 * @var int
+	 */
+	private const MAX_CUSTOMIZATION_RULES = 256;
+
+	/**
+	 * Maximum selector words and styler properties across all customization rules.
+	 *
+	 * @var int
+	 */
+	private const MAX_CUSTOMIZATION_VALUES = 4096;
+
+	/**
+	 * Maximum tags in one customization tag list.
+	 *
+	 * @var int
+	 */
+	private const MAX_CUSTOMIZATION_TAGS = 64;
+
+	/**
+	 * Maximum stylers in one customization rule.
+	 *
+	 * @var int
+	 */
+	private const MAX_CUSTOMIZATION_STYLERS = 32;
+
+	/**
+	 * Tag selector keys documented for customization rules.
+	 *
+	 * @var string[]
+	 */
+	private const CUSTOMIZATION_TAG_KEYS = array( 'all', 'any', 'none' );
+
+	/**
+	 * Geometry types documented for customization rules.
+	 *
+	 * @var string[]
+	 */
+	private const CUSTOMIZATION_TYPES = array( 'point', 'polyline', 'polygon' );
+
+	/**
+	 * Map object elements documented for customization rules.
+	 *
+	 * @var string[]
+	 */
+	private const CUSTOMIZATION_ELEMENTS = array(
+		'geometry',
+		'geometry.fill',
+		'geometry.fill.pattern',
+		'geometry.outline',
+		'label',
+		'label.icon',
+		'label.text',
+		'label.text.fill',
+		'label.text.outline',
+	);
+
+	/**
+	 * Numeric styler properties and the range each one is clamped to.
+	 *
+	 * @var array<string, int[]>
+	 */
+	private const CUSTOMIZATION_NUMBER_STYLERS = array(
+		'saturation' => array( -1, 1 ),
+		'lightness'  => array( -1, 1 ),
+		'opacity'    => array( 0, 100 ),
+		'scale'      => array( 0, 100 ),
+	);
+
+	/**
+	 * Styler properties in output order, shared with the browser normalizer.
+	 *
+	 * @var string[]
+	 */
+	private const CUSTOMIZATION_STYLER_KEYS = array(
+		'visibility',
+		'hue',
+		'saturation',
+		'lightness',
+		'color',
+		'secondary-color',
+		'tertiary-color',
+		'opacity',
+		'scale',
+		'zoom',
+	);
+
+	/**
 	 * Normalizes a block attribute payload.
 	 *
 	 * @param array<string, mixed> $attributes Raw block attributes.
@@ -212,7 +315,7 @@ final class Config_Normalizer {
 					? $attributes['mapOptions']
 					: array()
 			),
-			'customization' => $this->sanitize_structured_value( $attributes['customization'] ?? array() ),
+			'customization' => $this->normalize_customization( $attributes['customization'] ?? array() ),
 			'markers'       => $this->normalize_markers( $attributes['markers'] ?? array(), $apply_marker_filters ),
 			'cluster'       => $this->normalize_cluster(
 				isset( $attributes['cluster'] ) && is_array( $attributes['cluster'] )
@@ -328,13 +431,22 @@ final class Config_Normalizer {
 	 * @return array<string, float>
 	 */
 	private function normalize_zoom_range( array $zoom_range ): array {
-		$minimum = $this->normalize_float( $zoom_range['min'] ?? 1, 1.0, 0.0, 23.0 );
-		$maximum = $this->normalize_float( $zoom_range['max'] ?? 21, 21.0, 0.0, 23.0 );
+		$minimum = $this->normalize_float( $zoom_range['min'] ?? 1, 1.0, 0.0, self::MAX_ZOOM );
+		$maximum = $this->normalize_float( $zoom_range['max'] ?? 21, 21.0, 0.0, self::MAX_ZOOM );
 
 		if ( $maximum < $minimum ) {
 			$original_minimum = $minimum;
 			$minimum          = $maximum;
 			$maximum          = $original_minimum;
+		}
+
+		// Yandex rejects an empty interval ("min >= max") and refuses to render.
+		if ( $maximum - $minimum < self::MIN_ZOOM_SPAN ) {
+			if ( $minimum + self::MIN_ZOOM_SPAN <= self::MAX_ZOOM ) {
+				$maximum = $minimum + self::MIN_ZOOM_SPAN;
+			} else {
+				$minimum = $maximum - self::MIN_ZOOM_SPAN;
+			}
 		}
 
 		return array(
@@ -581,7 +693,7 @@ final class Config_Normalizer {
 				'type'       => $icon_type,
 				'color'      => $this->normalize_color( $icon['color'] ?? ( $marker['color'] ?? '#ff4433' ), '#ff4433' ),
 				'url'        => $this->normalize_http_url( $icon_url ),
-				'name'       => $this->normalize_non_empty_text( $icon['name'] ?? 'fallback', 'fallback', 128 ),
+				'name'       => $this->normalize_icon_name( $icon['name'] ?? 'fallback' ),
 				'markerSize' => $this->normalize_enum(
 					$icon['markerSize'] ?? 'normal',
 					array( 'normal', 'small', 'micro' ),
@@ -590,8 +702,6 @@ final class Config_Normalizer {
 				'size'       => $this->normalize_number_pair( $icon['size'] ?? array(), array( 40, 40 ), 1, 512 ),
 				'offset'     => $this->normalize_number_pair( $icon['offset'] ?? array(), array( -20, -40 ), -512, 512 ),
 			),
-			'draggable'           => $this->normalize_boolean( $marker['draggable'] ?? false ),
-			'mapFollowsOnDrag'    => $this->normalize_boolean( $marker['mapFollowsOnDrag'] ?? true ),
 			'hideOutsideViewport' => $this->normalize_boolean( $marker['hideOutsideViewport'] ?? true ),
 			'zIndex'              => $this->normalize_integer( $marker['zIndex'] ?? $index, $index, -100000, 100000 ),
 			'link'                => array(
@@ -619,6 +729,34 @@ final class Config_Normalizer {
 		return is_array( $filtered_marker )
 			? $this->normalize_marker( $filtered_marker, $index, false )
 			: $normalized;
+	}
+
+	/**
+	 * Returns a bundled preset icon name, or the fallback glyph.
+	 *
+	 * The frontend builds `assets/icons/{name}_24.svg` from this value, so a name
+	 * without a bundled file would only produce a 404 request.
+	 *
+	 * @param mixed $value Raw icon name.
+	 * @return string
+	 */
+	private function normalize_icon_name( $value ): string {
+		static $bundled = array();
+
+		$name = $this->normalize_plain_text( $value, false, 64 );
+		if ( 1 !== preg_match( '/^[a-z0-9_]{1,64}$/', $name ) ) {
+			return 'fallback';
+		}
+
+		if ( ! defined( 'GUYAMAP_PLUGIN_PATH' ) ) {
+			return $name;
+		}
+
+		if ( ! isset( $bundled[ $name ] ) ) {
+			$bundled[ $name ] = is_readable( GUYAMAP_PLUGIN_PATH . 'assets/icons/' . $name . '_24.svg' );
+		}
+
+		return $bundled[ $name ] ? $name : 'fallback';
 	}
 
 	/**
@@ -734,6 +872,274 @@ final class Config_Normalizer {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Reduces map customization rules to the schema documented by Yandex.
+	 *
+	 * The SDK does not validate this structure: a null rule or styler throws in
+	 * its vector worker and the raster tile server refuses every tile whose style
+	 * carries an unknown key or value. A rule with an unusable selector is
+	 * discarded as a whole, because dropping only the selector would apply the
+	 * rule to every map object. src/runtime/customization.js applies the same
+	 * rules in the browser; tests/fixtures/customization.json covers both.
+	 *
+	 * @param mixed $value Raw customization.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function normalize_customization( $value ): array {
+		if ( ! is_array( $value ) || ! $this->is_list( $value ) ) {
+			return array();
+		}
+
+		$rules  = array();
+		$budget = self::MAX_CUSTOMIZATION_VALUES;
+
+		foreach ( $value as $source ) {
+			if ( count( $rules ) >= self::MAX_CUSTOMIZATION_RULES ) {
+				break;
+			}
+			if ( ! $this->is_map( $source ) ) {
+				continue;
+			}
+
+			$rule = array();
+			$cost = 0;
+			$tags = $this->normalize_customization_tags( $source );
+			if ( false === $tags ) {
+				continue;
+			}
+			if ( null !== $tags ) {
+				$rule['tags'] = $tags;
+				foreach ( (array) $tags as $words ) {
+					$cost += is_array( $words ) ? count( $words ) : 1;
+				}
+			}
+
+			$selectors = array(
+				'types'    => self::CUSTOMIZATION_TYPES,
+				'elements' => self::CUSTOMIZATION_ELEMENTS,
+			);
+			foreach ( $selectors as $key => $allowed ) {
+				if ( ! array_key_exists( $key, $source ) ) {
+					continue;
+				}
+
+				$words = $this->normalize_customization_words( $source[ $key ], $allowed, count( $allowed ) );
+				if ( null === $words ) {
+					continue 2;
+				}
+				$rule[ $key ] = $words;
+				$cost        += is_array( $words ) ? count( $words ) : 1;
+			}
+
+			$stylers = $this->normalize_customization_stylers( $source );
+			if ( ! $stylers ) {
+				continue;
+			}
+			$rule['stylers'] = $stylers;
+			foreach ( $stylers as $styler ) {
+				$cost += count( $styler );
+			}
+
+			if ( $cost > $budget ) {
+				break;
+			}
+			$budget -= $cost;
+			$rules[] = $rule;
+		}
+
+		return $rules;
+	}
+
+	/**
+	 * Normalizes the tag selector of a customization rule.
+	 *
+	 * @param array<string, mixed> $rule Raw rule.
+	 * @return string|array<string, string|string[]>|false|null Selector, null when
+	 *         the rule has none, false when the selector cannot be applied.
+	 */
+	private function normalize_customization_tags( array $rule ) {
+		if ( ! array_key_exists( 'tags', $rule ) || array() === $rule['tags'] ) {
+			return null;
+		}
+
+		$value = $rule['tags'];
+		if ( is_string( $value ) ) {
+			return null !== $this->normalize_customization_words( $value, null, 1 ) ? $value : false;
+		}
+		if ( ! $this->is_map( $value ) || array_diff( array_keys( $value ), self::CUSTOMIZATION_TAG_KEYS ) ) {
+			return false;
+		}
+
+		$tags = array();
+		foreach ( self::CUSTOMIZATION_TAG_KEYS as $key ) {
+			if ( ! array_key_exists( $key, $value ) ) {
+				continue;
+			}
+
+			$words = $this->normalize_customization_words( $value[ $key ], null, self::MAX_CUSTOMIZATION_TAGS );
+			if ( null === $words ) {
+				return false;
+			}
+			$tags[ $key ] = $words;
+		}
+
+		return $tags;
+	}
+
+	/**
+	 * Normalizes a selector that accepts one allowed word or a list of them.
+	 *
+	 * @param mixed         $value   Raw selector.
+	 * @param string[]|null $allowed Allowed words, or null for any tag name.
+	 * @param int           $limit   Maximum list length.
+	 * @return string|string[]|null Normalized selector, or null when unusable.
+	 */
+	private function normalize_customization_words( $value, ?array $allowed, int $limit ) {
+		$words = is_string( $value ) ? array( $value ) : $value;
+		if ( ! is_array( $words ) || array() === $words || count( $words ) > $limit || ! $this->is_list( $words ) ) {
+			return null;
+		}
+
+		foreach ( $words as $word ) {
+			$is_valid = is_string( $word ) && (
+				null === $allowed
+					? 1 === preg_match( '/^[A-Za-z0-9_.:-]{1,64}$/D', $word )
+					: in_array( $word, $allowed, true )
+			);
+			if ( ! $is_valid ) {
+				return null;
+			}
+		}
+
+		return is_string( $value ) ? $value : array_values( array_unique( $words ) );
+	}
+
+	/**
+	 * Normalizes the stylers of a customization rule.
+	 *
+	 * @param array<string, mixed> $rule Raw rule.
+	 * @return array<int, array<string, mixed>> Stylers with at least one property each.
+	 */
+	private function normalize_customization_stylers( array $rule ): array {
+		$raw_stylers = $rule['stylers'] ?? array();
+		if ( ! is_array( $raw_stylers ) ) {
+			return array();
+		}
+		// A single styler object is accepted in place of a list.
+		if ( array() !== $raw_stylers && ! $this->is_list( $raw_stylers ) ) {
+			$raw_stylers = array( $raw_stylers );
+		}
+
+		$stylers = array();
+		foreach ( $raw_stylers as $raw_styler ) {
+			if ( count( $stylers ) >= self::MAX_CUSTOMIZATION_STYLERS ) {
+				break;
+			}
+			if ( ! $this->is_map( $raw_styler ) ) {
+				continue;
+			}
+
+			$styler = array();
+			foreach ( self::CUSTOMIZATION_STYLER_KEYS as $key ) {
+				$normalized = array_key_exists( $key, $raw_styler )
+					? $this->normalize_customization_styler_value( $key, $raw_styler[ $key ] )
+					: null;
+				if ( null !== $normalized ) {
+					$styler[ $key ] = $normalized;
+				}
+			}
+			if ( $styler ) {
+				$stylers[] = $styler;
+			}
+		}
+
+		return $stylers;
+	}
+
+	/**
+	 * Normalizes one styler property.
+	 *
+	 * @param string $key   Styler property.
+	 * @param mixed  $value Raw value.
+	 * @return mixed Value accepted by the SDK, or null.
+	 */
+	private function normalize_customization_styler_value( string $key, $value ) {
+		if ( 'visibility' === $key ) {
+			return 'off' === $value ? $value : null;
+		}
+
+		if ( 'zoom' === $key ) {
+			$maximum = (int) self::MAX_ZOOM;
+			if ( $this->is_finite_number( $value ) ) {
+				return max( 0, min( $maximum, $value ) );
+			}
+			if (
+				! is_array( $value ) ||
+				2 !== count( $value ) ||
+				! $this->is_list( $value ) ||
+				! $this->is_finite_number( $value[0] ) ||
+				! $this->is_finite_number( $value[1] )
+			) {
+				return null;
+			}
+
+			// The SDK expects the lesser zoom first.
+			return array(
+				max( 0, min( $maximum, min( $value ) ) ),
+				max( 0, min( $maximum, max( $value ) ) ),
+			);
+		}
+
+		if ( isset( self::CUSTOMIZATION_NUMBER_STYLERS[ $key ] ) ) {
+			list( $minimum, $maximum ) = self::CUSTOMIZATION_NUMBER_STYLERS[ $key ];
+
+			return $this->is_finite_number( $value ) ? max( $minimum, min( $maximum, $value ) ) : null;
+		}
+
+		return is_string( $value ) && 1 === preg_match( '/^(?:#|0x)?(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/iD', $value )
+			? $value
+			: null;
+	}
+
+	/**
+	 * Whether a decoded JSON value is a list: an array with sequential keys.
+	 *
+	 * @param array<int|string, mixed> $value Decoded JSON array.
+	 * @return bool
+	 */
+	private function is_list( array $value ): bool {
+		$expected = 0;
+		foreach ( $value as $key => $unused ) {
+			if ( $key !== $expected ) {
+				return false;
+			}
+			++$expected;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether a decoded JSON value is an object. Decoding cannot tell an empty
+	 * object from an empty list, so an empty array counts as an object.
+	 *
+	 * @param mixed $value Decoded JSON value.
+	 * @return bool
+	 */
+	private function is_map( $value ): bool {
+		return is_array( $value ) && ( array() === $value || ! $this->is_list( $value ) );
+	}
+
+	/**
+	 * Whether a decoded JSON value is a finite number.
+	 *
+	 * @param mixed $value Decoded JSON value.
+	 * @return bool
+	 */
+	private function is_finite_number( $value ): bool {
+		return is_int( $value ) || ( is_float( $value ) && is_finite( $value ) );
 	}
 
 	/**
