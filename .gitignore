@@ -1,10 +1,85 @@
-/.idea/
-/node_modules/
+# Dependencies
 /vendor/
-/.phpunit.result.cache
-/playwright-report/
-/test-results/
+/node_modules/
+
+# Release and temporary build output
+/dist/
 /production/
-/gutenberg-yandex-maps.zip
+/tmp/
+/.cache/
+/.release-baseline/
+
+# Test caches and reports
+/.phpunit.result.cache
+/.phpunit.cache/
+/.eslintcache
+/.stylelintcache
+/coverage/
+/test-results/
+/playwright-report/
+/output/
+/.playwright-cli/
+*.trace.zip
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+auth.json
+credentials.json
+secrets.json
+*.local.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+
+# Database dumps and backups
+*.sql
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+*.backup
+
+# Logs
+*.log
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# IDE and operating-system files
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*~
+*.orig
+*.rej
+*.tmp
+*.temp
+*.po~
+
+# Local engineering documentation; keep the public root README
+/docs/
+*.md
+!/README.md
+!/.github/PULL_REQUEST_TEMPLATE.md
+!/.github/SECURITY.md
+!/.github/ISSUE_TEMPLATE/*.md
+
+# Local archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
