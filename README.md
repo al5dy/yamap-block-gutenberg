@@ -216,7 +216,13 @@ A `vX.Y.Z` tag triggers `.github/workflows/release.yml`. It verifies that the ta
 bash scripts/release-wordpress-org.sh 2.0.1
 ```
 
-The release entrypoint validates versions, builds and verifies the ZIP, and prepares `production/trunk/` and `production/tags/2.0.1/` from that one artifact. It never contacts Subversion. Publication is a separate controlled operation performed by an operator against the existing WordPress.org working copy, so previous tags and the WordPress.org page assets are left untouched.
+The release entrypoint validates versions, builds and verifies the ZIP, and prepares `production/trunk/` and `production/tags/2.0.1/` from that one artifact. It never contacts Subversion.
+
+```bash
+bash scripts/publish-wordpress-org.sh 2.0.1 --svn-path /path/to/wordpress.org-svn
+```
+
+`scripts/publish-wordpress-org.sh` performs the publication. It takes the files from the release ZIP — the single verified artifact — and compares them with the staged tree before it touches the working copy. It refuses to run on a dirty working copy or when the tag already exists, removes obsolete trunk files with SVN-aware commands, creates `tags/2.0.1` with `svn copy` so the copy history is preserved, checks that trunk and tag are identical, and commits once. `--dry-run` shows the resulting `svn status` and restores the working copy afterwards.
 
 GitHub **Source code** archives contain development source and test infrastructure. The production ZIP attached to a GitHub Release contains only the installable plugin. WordPress.org trunk and its version tag are staged from the same verified production ZIP, not by copying the development directory.
 
