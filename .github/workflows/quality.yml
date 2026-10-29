@@ -1,0 +1,419 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      release:
+        description: Mark the run as a release-quality build.
+        type: boolean
+        default: false
+      require_real_sdk:
+        description: Fail when a real Yandex SDK key is unavailable.
+        type: boolean
+        default: false
+    outputs:
+      zip_name:
+        value: ${{ jobs.package.outputs.zip_name }}
+      zip_sha256:
+        value: ${{ jobs.package.outputs.zip_sha256 }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  COMPOSER_VERSION: '2.10.3'
+  GUYAMAP_TEST_DB_HOST: 127.0.0.1:3306
+  GUYAMAP_TEST_DB_USER: root
+  GUYAMAP_TEST_DB_PASSWORD: guyamap-ci-only
+
+jobs:
+  composer-validation:
+    name: Composer validation and audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.10.3
+          coverage: none
+      - run: composer --version | grep -F "Composer version $COMPOSER_VERSION "
+      - run: composer validate --strict
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer audit --locked
+      - name: No runtime Composer packages are required
+        run: |
+          runtime=$(composer show --no-dev --name-only 2>/dev/null || true)
+          [[ -z "$runtime" ]] || { echo "::error::Runtime Composer packages would have to be shipped: $runtime"; exit 1; }
+
+  php-syntax:
+    name: PHP syntax (${{ matrix.php }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.2', '8.4']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+      - run: find includes tests/php build -type f -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+      - run: php -l yamap-block-gutenberg.php && php -l uninstall.php
+
+  phpcs:
+    name: PHPCS and PHPCompatibility
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.10.3
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer lint
+
+  shell-scripts:
+    name: Shell scripts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: shellcheck -S warning scripts/*.sh
+
+  frontend:
+    name: JavaScript, styles, icons and production build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:js
+      - run: npm run lint:css
+      - run: npm run test:unit
+      - run: npm run icons:check
+      - run: npm run icons:verify
+      - run: npm run build
+      - name: Generated assets match the sources
+        run: git diff --exit-code -- build
+
+  translations:
+    name: Translation completeness and compiled catalogs
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: ./.github/actions/setup-wp-cli
+      - run: bash scripts/check-translations.sh
+
+  readme:
+    name: WordPress.org readme validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: bash scripts/check-readme.sh
+
+  source-audit:
+    name: Source, version and credential audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run audit:source
+      - run: npm run check:versions
+
+  dependency-audit:
+    name: Locked npm and Composer dependency audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:2.10.3
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: npm ci
+      - run: composer audit --locked
+      - run: npm audit --omit=dev
+      - name: Report development dependency advisories (production audit remains blocking)
+        run: |
+          if ! npm audit; then
+            echo "::warning::Development-only advisories remain in the locked toolchain. They are not reported as a clean audit and must be reviewed; no forced or major upgrade is applied."
+          fi
+
+  package:
+    name: Package once, verify and hash
+    runs-on: ubuntu-24.04
+    outputs:
+      zip_name: ${{ steps.identity.outputs.zip_name }}
+      zip_sha256: ${{ steps.identity.outputs.zip_sha256 }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run plugin-zip
+      - run: npm run verify:package
+      - name: Rebuild is byte-identical
+        run: |
+          version=$(node -p "require('./package.json').version")
+          GUYAMAP_DIST_DIR=rebuild node scripts/plugin-zip.js
+          cmp "dist/yamap-block-gutenberg-$version.zip" "rebuild/yamap-block-gutenberg-$version.zip"
+      - id: identity
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "zip_name=yamap-block-gutenberg-$version.zip" >> "$GITHUB_OUTPUT"
+          echo "zip_sha256=$(sha256sum "dist/yamap-block-gutenberg-$version.zip" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: yamap-block-gutenberg-zip
+          path: |
+            dist/yamap-block-gutenberg-*.zip
+            dist/yamap-block-gutenberg-*.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  package-smoke:
+    name: ZIP install and upgrade (WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }})
+    needs: package
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { php: '7.4', wordpress: '6.6.11' }
+          - { php: '8.4', wordpress: '7.1.4' }
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: guyamap-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      GUYAMAP_TEST_WP_VERSION: '${{ matrix.wordpress }}'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '${{ matrix.php }}'
+          extensions: mysqli, mbstring, dom, gd
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: ./.github/actions/setup-wp-cli
+      - uses: actions/download-artifact@v8
+        with:
+          name: yamap-block-gutenberg-zip
+          path: dist
+      - run: bash scripts/test-package-smoke.sh
+
+  plugin-check:
+    name: WordPress Plugin Check (release ZIP)
+    needs: package
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: guyamap-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, dom, gd
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: ./.github/actions/setup-wp-cli
+      - uses: actions/download-artifact@v8
+        with:
+          name: yamap-block-gutenberg-zip
+          path: dist
+      - run: bash scripts/test-plugin-check.sh
+
+  browser-e2e:
+    name: Deterministic Playwright E2E (release ZIP)
+    needs: package
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: guyamap-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, dom, gd
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/setup-wp-cli
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: yamap-block-gutenberg-zip
+          path: dist
+      - run: bash scripts/install-playwright-browser.sh
+      - run: bash scripts/test-browser-e2e.sh
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-output
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  real-yandex:
+    name: Real Yandex SDK integration
+    needs: package
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    outputs:
+      executed: ${{ steps.gate.outputs.executed }}
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: guyamap-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      GUYAMAP_E2E_YANDEX_API_KEY: ${{ secrets.GUYAMAP_E2E_YANDEX_API_KEY }}
+      REQUIRE_REAL_SDK: ${{ inputs.require_real_sdk && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, mbstring, dom, gd
+          coverage: none
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: ./.github/actions/setup-wp-cli
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: yamap-block-gutenberg-zip
+          path: dist
+      - run: bash scripts/install-playwright-browser.sh
+      - id: gate
+        shell: bash
+        run: |
+          echo "executed=false" >> "$GITHUB_OUTPUT"
+          if [[ -z "$GUYAMAP_E2E_YANDEX_API_KEY" ]]; then
+            if [[ "$REQUIRE_REAL_SDK" == true ]]; then
+              echo "::error::Real Yandex SDK checks are required but no key is configured."
+              exit 1
+            fi
+            echo "::notice::Real Yandex SDK checks NOT EXECUTED: no external key is configured. Deterministic mocked-SDK checks are still mandatory."
+            echo "Real Yandex SDK: NOT EXECUTED (no external key)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          bash scripts/test-browser-e2e.sh real
+          echo "executed=true" >> "$GITHUB_OUTPUT"
+          echo "Real Yandex SDK: EXECUTED and passed" >> "$GITHUB_STEP_SUMMARY"
+
+  quality-gate:
+    name: Quality Gate
+    needs:
+      - composer-validation
+      - php-syntax
+      - phpcs
+      - shell-scripts
+      - frontend
+      - translations
+      - readme
+      - source-audit
+      - dependency-audit
+      - package
+      - package-smoke
+      - plugin-check
+      - browser-e2e
+      - real-yandex
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Every required deterministic job succeeded
+        shell: bash
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          REQUIRE_REAL_SDK: ${{ inputs.require_real_sdk && 'true' || 'false' }}
+          REAL_EXECUTED: ${{ needs.real-yandex.outputs.executed }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key)=\(.value.result)"'
+          for job in composer-validation php-syntax phpcs shell-scripts frontend translations readme source-audit dependency-audit package package-smoke plugin-check browser-e2e; do
+            result=$(echo "$RESULTS" | jq -r --arg job "$job" '.[$job].result')
+            [[ "$result" == success ]] || { echo "::error::$job: $result"; exit 1; }
+          done
+          real_result=$(echo "$RESULTS" | jq -r '.["real-yandex"].result')
+          [[ "$real_result" == success || "$real_result" == skipped ]] || { echo "::error::real-yandex: $real_result"; exit 1; }
+          if [[ "$REQUIRE_REAL_SDK" == true && "$REAL_EXECUTED" != true ]]; then
+            echo "::error::The real Yandex SDK gate did not execute."
+            exit 1
+          fi
+          if [[ "$REAL_EXECUTED" != true ]]; then
+            echo "::notice::Real Yandex SDK was NOT EXECUTED; this is not reported as an external integration pass."
+          fi

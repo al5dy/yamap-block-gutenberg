@@ -17,11 +17,19 @@ async function login( page, username, password ) {
 		maxRedirects: 0,
 	} );
 
-	// WordPress redirects after a successful login and re-renders the form
-	// with HTTP 200 when the credentials are rejected.
-	expect( response.status(), 'WordPress accepted the test login' ).toBe(
-		302
-	);
+	// WordPress and reverse proxies can answer a successful login with 301 or
+	// 302. The auth cookie, not a particular redirect status, proves the login.
+	expect(
+		[ 301, 302 ],
+		'WordPress accepted the test login redirect'
+	).toContain( response.status() );
+	const cookies = await page.context().cookies();
+	expect(
+		cookies.some( ( cookie ) =>
+			cookie.name.startsWith( 'wordpress_logged_in_' )
+		),
+		'WordPress issued an authenticated session cookie'
+	).toBe( true );
 }
 
 module.exports = { login };
