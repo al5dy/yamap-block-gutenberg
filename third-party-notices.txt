@@ -1,7 +1,7 @@
 THIRD-PARTY NOTICES
 ===================
 
-Map Block for Yandex includes production code from:
+Yandex Maps for Gutenberg includes production code from:
 
 * @yandex/ymaps3-clusterer 0.0.12 - Copyright 2023 Yandex authors.
 

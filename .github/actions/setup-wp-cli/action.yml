@@ -1,0 +1,10 @@
+name: Set up WP-CLI
+description: Install and verify the pinned WP-CLI release.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        bash scripts/install-wp-cli.sh "$RUNNER_TEMP/guyamap-tools"
+        echo "$RUNNER_TEMP/guyamap-tools" >> "$GITHUB_PATH"
+        "$RUNNER_TEMP/guyamap-tools/wp" --info

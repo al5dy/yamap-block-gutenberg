@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-tag:
+    name: Verify protected tag and versions
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Tag commit belongs to master
+        run: |
+          git fetch origin master
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/master || { echo "::error::Release tags must point to a commit contained in master."; exit 1; }
+      - id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Invalid release tag $GITHUB_REF_NAME"; exit 1; }
+          node scripts/check-versions.js "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  quality:
+    name: Full release quality gate
+    needs: verify-tag
+    uses: ./.github/workflows/quality.yml
+    with:
+      release: true
+      require_real_sdk: false
+    secrets: inherit
+
+  release:
+    name: Publish the tested ZIP and checksum
+    needs: [verify-tag, quality]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: yamap-block-gutenberg-zip
+          path: dist
+      - name: Verify artifact identity before publication
+        env:
+          EXPECTED_NAME: ${{ needs.quality.outputs.zip_name }}
+          EXPECTED_SHA: ${{ needs.quality.outputs.zip_sha256 }}
+          VERSION: ${{ needs.verify-tag.outputs.version }}
+        run: |
+          [[ "$EXPECTED_NAME" == "yamap-block-gutenberg-$VERSION.zip" ]] || { echo "::error::Artifact name mismatch: $EXPECTED_NAME"; exit 1; }
+          actual=$(sha256sum "dist/$EXPECTED_NAME" | cut -d' ' -f1)
+          [[ "$actual" == "$EXPECTED_SHA" ]] || { echo "::error::Tested SHA $EXPECTED_SHA differs from publication SHA $actual"; exit 1; }
+          (cd dist && sha256sum -c "$EXPECTED_NAME.sha256")
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify-tag.outputs.version }}
+          SHA: ${{ needs.quality.outputs.zip_sha256 }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/yamap-block-gutenberg-$VERSION.zip" \
+            "dist/yamap-block-gutenberg-$VERSION.zip.sha256" \
+            --title "Yandex Maps for Gutenberg $VERSION" \
+            --notes "Release ZIP SHA-256: \`$SHA\`. Built and tested once by the quality gate of this workflow run. See the changelog in readme.txt." \
+            --verify-tag

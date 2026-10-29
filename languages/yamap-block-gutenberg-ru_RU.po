@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Map Block for Yandex 2.0.0\n"
+"Project-Id-Version: Yandex Maps for Gutenberg 2.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yamap-block-gutenberg\n"
 "Last-Translator: al5dy\n"
 "Language-Team: Russian\n"
@@ -13,13 +13,6 @@ msgstr ""
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: yamap-block-gutenberg\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-
-#. Plugin Name of the plugin
-#: yamap-block-gutenberg.php
-#: includes/Admin/Settings.php:180
-#: includes/Admin/Settings.php:414
-msgid "Map Block for Yandex"
-msgstr "Блок карт Яндекса"
 
 #. Plugin URI of the plugin
 #: yamap-block-gutenberg.php
@@ -35,15 +28,6 @@ msgstr "Быстрый, расширяемый блок Яндекс Карт с
 #: yamap-block-gutenberg.php
 msgid "al5dy"
 msgstr "al5dy"
-
-#. Author URI of the plugin
-#: yamap-block-gutenberg.php
-msgid "https://lokotkov.ru"
-msgstr "https://lokotkov.ru"
-
-#: includes/Admin/Settings.php:66
-msgid "Global settings for Map Block for Yandex."
-msgstr "Общие настройки блока карт Яндекса."
 
 #: includes/Admin/Settings.php:75
 msgid "Yandex Maps API"
@@ -143,6 +127,7 @@ msgstr "Английский (Израиль)"
 #: includes/Block/Map_Block.php:260
 #: includes/Block/Map_Block.php:561
 #: includes/Support/Config_Normalizer.php:870
+#: build/index.js:13
 #: src/components/InspectorPanels.js:864
 #: src/components/InspectorPanels.js:981
 #: src/components/MapPreview.js:57
@@ -151,6 +136,7 @@ msgstr "Загрузка карты…"
 
 #: includes/Block/Map_Block.php:287
 #: includes/Support/Config_Normalizer.php:332
+#: build/index.js:13
 #: src/components/MapPreview.js:192
 msgid "Interactive map"
 msgstr "Интерактивная карта"
@@ -202,588 +188,721 @@ msgstr "Не удалось определить ваше местоположе
 msgid "Settings"
 msgstr "Настройки"
 
-#: yamap-block-gutenberg.php:27
-msgid "Map Block for Yandex requires PHP 7.4 or newer."
-msgstr "Для блока карт Яндекса требуется PHP 7.4 или новее."
-
-#: yamap-block-gutenberg.php:42
-msgid "Map Block for Yandex requires WordPress 6.6 or newer."
-msgstr "Для блока карт Яндекса требуется WordPress 6.6 или новее."
-
+#: build/index.js:13
 #: src/components/InspectorPanels.js:34
 msgid "Drag"
 msgstr "Перетаскивание"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:36
 msgid "Mouse-wheel zoom"
 msgstr "Масштабирование колёсиком мыши"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:39
 msgid "Pinch zoom"
 msgstr "Масштабирование сведением пальцев"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:41
 msgid "Double-click zoom"
 msgstr "Масштабирование двойным щелчком"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:44
 msgid "Mouse tilt"
 msgstr "Наклон карты мышью"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:46
 msgid "Mouse rotation"
 msgstr "Вращение карты мышью"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:49
 msgid "Magnifier"
 msgstr "Лупа"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:51
 msgid "One-finger zoom"
 msgstr "Масштабирование одним пальцем"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:55
 msgid "Pinch rotation"
 msgstr "Вращение двумя пальцами"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:58
 msgid "Pan and tilt"
 msgstr "Панорамирование и наклон"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:231
 msgid "Viewport"
 msgstr "Область просмотра"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:235
 msgid "Center latitude"
 msgstr "Широта центра"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:248
 msgid "Center longitude"
 msgstr "Долгота центра"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:264
 msgid "Zoom"
 msgstr "Масштаб"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:275
 msgid "Minimum zoom"
 msgstr "Минимальный масштаб"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:288
 msgid "Maximum zoom"
 msgstr "Максимальный масштаб"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:304
 msgid "Camera tilt"
 msgstr "Наклон камеры"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:316
 msgid "Camera azimuth"
 msgstr "Азимут камеры"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:329
 msgid "Container"
 msgstr "Контейнер"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:332
 msgid "Use a valid CSS length, for example 100% or 960px."
 msgstr "Укажите допустимую длину в формате CSS, например 100% или 960px."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:337
 msgid "Width"
 msgstr "Ширина"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:345
 msgid "Use a valid CSS length, for example 480px or 60vh."
 msgstr "Укажите допустимую длину в формате CSS, например 480px или 60vh."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:350
 msgid "Height"
 msgstr "Высота"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:359
 msgid "Minimum height"
 msgstr "Минимальная высота"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:375
 msgid "Aspect ratio"
 msgstr "Соотношение сторон"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:386
 msgid "Map appearance"
 msgstr "Внешний вид карты"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:391
 msgid "Rendering mode"
 msgstr "Режим отрисовки"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:397
 #: src/components/InspectorPanels.js:420
 #: src/components/InspectorPanels.js:597
 msgid "Automatic"
 msgstr "Автоматически"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:401
 msgid "Raster"
 msgstr "Растровый"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:405
 msgid "Vector"
 msgstr "Векторный"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:414
 msgid "Map theme"
 msgstr "Тема карты"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:424
 msgid "Light"
 msgstr "Светлая"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:428
 msgid "Dark"
 msgstr "Тёмная"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:440
 msgid "Customization JSON"
 msgstr "JSON настроек оформления"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:458
 msgid "Behaviors"
 msgstr "Взаимодействие с картой"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:461
 msgid "These behaviors apply on the frontend. The editor preview is intentionally controlled only from this sidebar."
 msgstr "Эти способы взаимодействия действуют на опубликованной карте. Предпросмотр в редакторе намеренно управляется только из этой боковой панели."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:481
 msgid "Controls"
 msgstr "Элементы управления"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:486
 msgid "Zoom control"
 msgstr "Элемент управления масштабом"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:496
 msgid "Geolocation control"
 msgstr "Элемент управления геолокацией"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:507
 msgid "Fullscreen control"
 msgstr "Элемент полноэкранного режима"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:518
 msgid "Controls position"
 msgstr "Положение элементов управления"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:524
 msgid "Right"
 msgstr "Справа"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:528
 msgid "Left"
 msgstr "Слева"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:538
 msgid "Advanced map options"
 msgstr "Расширенные параметры карты"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:543
 msgid "Copyrights position"
 msgstr "Положение сведений об авторских правах"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:554
 msgid "Bottom right"
 msgstr "Справа внизу"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:561
 msgid "Bottom left"
 msgstr "Слева внизу"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:565
 msgid "Top right"
 msgstr "Справа вверху"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:569
 msgid "Top left"
 msgstr "Слева вверху"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:578
 msgid "Show scale in copyrights"
 msgstr "Показывать масштаб в блоке авторских прав"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:591
 msgid "Zoom rounding"
 msgstr "Округление масштаба"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:601
 msgid "Smooth"
 msgstr "Плавное"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:605
 msgid "Snap"
 msgstr "По шагам"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:614
 msgid "Zoom strategy"
 msgstr "Стратегия масштабирования"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:620
 msgid "Zoom to pointer"
 msgstr "Масштабирование относительно указателя"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:627
 msgid "Zoom to center"
 msgstr "Масштабирование относительно центра"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:643
 msgid "Restrict map area"
 msgstr "Ограничить область карты"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:655
 msgid "West longitude"
 msgstr "Западная долгота"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:668
 msgid "North latitude"
 msgstr "Северная широта"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:681
 msgid "East longitude"
 msgstr "Восточная долгота"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:694
 msgid "South latitude"
 msgstr "Южная широта"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:711
 msgid "Fit viewport to markers"
 msgstr "Вписать маркеры в область просмотра"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:721
 msgid "Top margin"
 msgstr "Отступ сверху"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:722
 msgid "Right margin"
 msgstr "Отступ справа"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:723
 msgid "Bottom margin"
 msgstr "Отступ снизу"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:724
 msgid "Left margin"
 msgstr "Отступ слева"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:742
 msgid "Markers"
 msgstr "Маркеры"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:757
 msgid "Clustering"
 msgstr "Кластеризация"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:762
 msgid "Enable clustering"
 msgstr "Включить кластеризацию"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:768
 msgid "Cluster grid size"
 msgstr "Размер сетки кластеризации"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:778
 msgid "Maximum clustering zoom"
 msgstr "Максимальный масштаб кластеризации"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:793
 msgid "Cluster color"
 msgstr "Цвет кластера"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:804
 msgid "Loading and interaction"
 msgstr "Загрузка и взаимодействие"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:818
 msgid "Lazy-load the map"
 msgstr "Отложенная загрузка карты"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:824
 msgid "Intersection Observer margin, for example 300px."
 msgstr "Отступ Intersection Observer, например 300px."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:832
 msgid "Preload distance"
 msgstr "Расстояние предварительной загрузки"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:842
 msgid "Require click to activate"
 msgstr "Активировать карту только по нажатию"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:853
 msgid "When disabled, the map is shown immediately without a loading overlay."
 msgstr "Если отключено, карта отображается сразу без индикатора загрузки."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:857
 msgid "Show preloader"
 msgstr "Показывать прелоадер"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:873
 msgid "Preloader style"
 msgstr "Стиль прелоадера"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:880
 msgid "Spinner"
 msgstr "Круговой индикатор"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:887
 msgid "Bouncing dots"
 msgstr "Прыгающие точки"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:894
 msgid "Pulse"
 msgstr "Пульсация"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:907
 msgid "Loader color"
 msgstr "Цвет индикатора"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:923
 msgid "Background color"
 msgstr "Цвет фона"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:940
 msgid "Loader size"
 msgstr "Размер индикатора"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:953
 msgid "Fade-in duration in milliseconds."
 msgstr "Длительность плавного появления в миллисекундах."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:957
 msgid "Transition duration"
 msgstr "Длительность перехода"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:972
 msgid "Accessible loading text"
 msgstr "Доступный текст загрузки"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:990
 msgid "Accessibility and fallback"
 msgstr "Специальные возможности и резервный вариант"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:998
 msgid "Accessible label"
 msgstr "Метка для специальных возможностей"
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:1007
 msgid "Error and no-JavaScript link text"
 msgstr "Текст ссылки при ошибке и отключённом JavaScript"
 
+#: build/index.js:1
 #: src/components/JsonControl.js:44
 msgid "The value must be a JSON array."
 msgstr "Значение должно быть массивом JSON."
 
+#: build/index.js:1
 #: src/components/JsonControl.js:48
 msgid "The value must be a JSON object."
 msgstr "Значение должно быть объектом JSON."
 
+#: build/index.js:1
 #: src/components/JsonControl.js:32
 msgid "Enter valid JSON before applying this value."
 msgstr "Перед применением введите корректный JSON."
 
+#: build/index.js:13
 #: src/components/MapPreview.js:213
 msgid "The map preview could not be loaded."
 msgstr "Не удалось загрузить предпросмотр карты."
 
+#: build/index.js:13
 #: src/components/MapPreview.js:172
 msgid "Add a Yandex Maps API key to display the interactive preview."
 msgstr "Добавьте ключ API Яндекс Карт, чтобы отобразить интерактивный предпросмотр."
 
+#: build/index.js:13
 #: src/components/MapPreview.js:176
 msgid "Yandex Map"
 msgstr "Карта Яндекса"
 
 #: includes/Block/Map_Block.php:602
+#: build/index.js:13
 #: src/components/MapPreview.js:180
 #: src/components/MapPreview.js:242
 msgid "Open map settings"
 msgstr "Открыть настройки карты"
 
+#: build/index.js:13
 #: src/components/MapPreview.js:201
 msgid "Loading map preview…"
 msgstr "Загрузка предпросмотра карты…"
 
+#: build/index.js:13
 #: src/components/MapPreview.js:235
 msgid "Retry map preview"
 msgstr "Повторить загрузку карты"
 
 #. translators: %s: marker title.
+#: build/index.js:5
 #: src/components/MarkerEditor.js:158
 #, js-format
 msgid "%s (copy)"
 msgstr "%s (копия)"
 
+#: build/index.js:5
 #: src/components/MarkerEditor.js:161
 msgid "Marker copy"
 msgstr "Копия маркера"
 
+#: build/index.js:1
 #: src/components/MarkerEditor.js:211
 msgid "Add at map center"
 msgstr "Добавить в центре карты"
 
+#: build/index.js:2
 #: src/components/MarkerEditor.js:232
 msgid "Search markers"
 msgstr "Поиск маркеров"
 
+#: build/index.js:2
 #: src/components/MarkerEditor.js:240
 msgid "Map markers"
 msgstr "Маркеры на карте"
 
 #. translators: %d: marker number.
+#: build/index.js:3
 #: src/components/MarkerEditor.js:267
 #, js-format
 msgid "Marker %d"
 msgstr "Маркер %d"
 
 #. translators: 1: visible marker count, 2: matching marker count.
+#: build/index.js:4
 #: src/components/MarkerEditor.js:288
 #, js-format
 msgid "Showing the first %1$d of %2$d matching markers."
 msgstr "Показаны первые %1$d из %2$d найденных маркеров."
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:300
 msgid "Add a marker at the current map center, then edit its coordinates in this panel."
 msgstr "Добавьте маркер в текущем центре карты, затем измените его координаты в этой панели."
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:312
 msgid "Title"
 msgstr "Заголовок"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:325
 msgid "Hint"
 msgstr "Подсказка"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:333
 msgid "Description"
 msgstr "Описание"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:343
 msgid "Address"
 msgstr "Адрес"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:356
 msgid "Category"
 msgstr "Категория"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:365
 msgid "Link URL"
 msgstr "URL ссылки"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:373
 msgid "Link label"
 msgstr "Текст ссылки"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:382
 msgid "Open link in a new tab"
 msgstr "Открывать ссылку в новой вкладке"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:393
 msgid "Latitude"
 msgstr "Широта"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:403
 msgid "Longitude"
 msgstr "Долгота"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:417
 msgid "Hide outside viewport"
 msgstr "Скрывать за пределами области просмотра"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:426
 msgid "Z-index"
 msgstr "Z-индекс"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:439
 msgid "Icon type"
 msgstr "Тип значка"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:443
 msgid "Default marker"
 msgstr "Стандартный маркер"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:450
 msgid "Custom image"
 msgstr "Пользовательское изображение"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:474
 msgid "Marker size"
 msgstr "Размер маркера"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:483
 msgid "Normal"
 msgstr "Обычный"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:490
 msgid "Small"
 msgstr "Маленький"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:497
 msgid "Micro"
 msgstr "Миниатюрный"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:519
 msgid "Marker color"
 msgstr "Цвет маркера"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:531
 msgid "Image URL"
 msgstr "URL изображения"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:543
 msgid "Icon width"
 msgstr "Ширина значка"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:558
 msgid "Icon height"
 msgstr "Высота значка"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:573
 msgid "Horizontal offset"
 msgstr "Горизонтальное смещение"
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:591
 msgid "Vertical offset"
 msgstr "Вертикальное смещение"
 
+#: build/index.js:5
 #: src/components/MarkerEditor.js:619
 msgid "Duplicate marker"
 msgstr "Дублировать маркер"
 
+#: build/index.js:5
 #: src/components/MarkerEditor.js:629
 msgid "Remove marker"
 msgstr "Удалить маркер"
 
+#: build/block.json
 #: src/block.json
 msgctxt "block title"
 msgid "Yandex Map"
 msgstr "Карта Яндекса"
 
+#: build/block.json
 #: src/block.json
 msgctxt "block description"
 msgid "A fast, accessible Yandex map with markers and clustering."
 msgstr "Быстрая карта Яндекса с поддержкой специальных возможностей, маркерами и кластеризацией."
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "map"
 msgstr "карта"
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "yandex"
 msgstr "яндекс"
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "location"
@@ -883,91 +1002,109 @@ msgstr "Не удалось инициализировать карту. Тех�
 msgid "Only site administrators see these details."
 msgstr "Эти подробности видят только администраторы сайта."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:174
 msgid "Enter a number with a unit: px, %, em, rem, vh, vw, vmin, vmax or ch."
 msgstr "Введите число с единицей измерения: px, %, em, rem, vh, vw, vmin, vmax или ch."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:367
 msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9. A ratio replaces the height and minimum height."
 msgstr "Оставьте пустым для произвольной высоты или укажите соотношение, например 16 / 9. Соотношение заменяет высоту и минимальную высоту."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:371
 msgid "Enter a ratio of two positive numbers, for example 16 / 9."
 msgstr "Введите соотношение двух положительных чисел, например 16 / 9."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:639
 msgid "Keep the area larger than the visible map at the minimum zoom, otherwise the map cannot stay inside it."
 msgstr "Область должна быть больше видимой части карты при минимальном масштабе, иначе карта не сможет оставаться в её пределах."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:828
 msgid "Enter one to four px or % values, for example 300px or 200px 0px."
 msgstr "Введите от одного до четырёх значений в px или %, например 300px или 200px 0px."
 
 #. translators: %d: maximum number of markers.
+#: build/index.js:2
 #: src/components/MarkerEditor.js:219
 #, js-format
 msgid "A map shows at most %d markers. Markers beyond this limit are not displayed."
 msgstr "Карта показывает не более %d маркеров. Маркеры сверх этого лимита не отображаются."
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:321
 msgid "Short tooltip shown on hover and keyboard focus."
 msgstr "Короткая подсказка, которая показывается при наведении и при фокусе с клавиатуры."
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:513
 msgid "Shown when the image cannot be loaded."
 msgstr "Показывается, если изображение не удалось загрузить."
 
+#: build/index.js:1
 #: src/components/IconPicker.js:63
 msgid "Type to search the bundled icons."
 msgstr "Начните вводить название, чтобы найти встроенную иконку."
 
+#: build/index.js:1
 #: src/components/IconPicker.js:67
 msgid "Icon"
 msgstr "Иконка"
 
 #. translators: %d: rule number.
+#: build/index.js:6
 #: src/components/customization-messages.js:21
 #, js-format
 msgid "Rule %d must be an object."
 msgstr "Правило %d должно быть объектом."
 
 #. translators: 1: rule number, 2: property path, for example stylers[0].glow.
+#: build/index.js:7
 #: src/components/customization-messages.js:27
 #, js-format
 msgid "Rule %1$d: \"%2$s\" is not a supported styler property."
 msgstr "Правило %1$d: «%2$s» — неподдерживаемое свойство стиля."
 
 #. translators: %d: rule number.
+#: build/index.js:8
 #: src/components/customization-messages.js:37
 #, js-format
 msgid "Rule %d needs at least one styler with a supported property."
 msgstr "В правиле %d нужен хотя бы один элемент «stylers» с поддерживаемым свойством."
 
 #. translators: %d: maximum number of rules.
+#: build/index.js:9
 #: src/components/customization-messages.js:46
 #, js-format
 msgid "A style can contain at most %d rules."
 msgstr "Стиль может содержать не более %d правил."
 
 #. translators: 1: rule number, 2: maximum number of stylers.
+#: build/index.js:10
 #: src/components/customization-messages.js:55
 #, js-format
 msgid "Rule %1$d has more than %2$d stylers."
 msgstr "В правиле %1$d больше %2$d элементов «stylers»."
 
 #. translators: %d: rule number.
+#: build/index.js:11
 #: src/components/customization-messages.js:65
 #, js-format
 msgid "The style is too large: rule %d and the rules after it do not fit."
 msgstr "Стиль слишком велик: правило %d и следующие за ним не помещаются."
 
 #. translators: 1: rule number, 2: property path, for example stylers[0].color.
+#: build/index.js:12
 #: src/components/customization-messages.js:74
 #, js-format
 msgid "Rule %1$d: \"%2$s\" has an unsupported value."
 msgstr "Правило %1$d: у «%2$s» неподдерживаемое значение."
 
 #. translators: %d: number of further problems.
+#: build/index.js:13
 #: src/components/customization-messages.js:100
 #, js-format
 msgid "And %d more problem."
@@ -976,22 +1113,51 @@ msgstr[0] "И ещё %d проблема."
 msgstr[1] "И ещё %d проблемы."
 msgstr[2] "И ещё %d проблем."
 
+#: build/index.js:13
 #: src/components/customization-messages.js:133
 msgid "This style is too long for raster tiles, so the map stays empty. Shorten the style or use the vector rendering mode."
 msgstr "Стиль слишком длинный для растровых фрагментов карты, поэтому карта остаётся пустой. Сократите стиль или выберите векторный режим отрисовки."
 
+#: build/index.js:13
 #: src/components/customization-messages.js:137
 msgid "This style is too long for raster tiles. Devices that cannot draw the vector map will show an empty map."
 msgstr "Стиль слишком длинный для растровых фрагментов карты. На устройствах, которые не могут отрисовать векторную карту, карта будет пустой."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:436
 msgid "Advanced Yandex map customization rules. A rule selects map objects with \"tags\", \"types\" and \"elements\" and changes them with \"stylers\"."
 msgstr "Расширенные правила оформления карты Яндекса. Правило выбирает объекты карты с помощью «tags», «types» и «elements» и изменяет их через «stylers»."
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:810
 msgid "These options apply on the published page. The editor preview always loads the map right away."
 msgstr "Эти параметры действуют на опубликованной странице. В редакторе карта всегда загружается сразу."
 
+#: build/index.js:4
 #: src/components/MarkerEditor.js:352
 msgid "Shown above the title in the marker popup."
 msgstr "Отображается над заголовком во всплывающем окне маркера."
+
+#. Plugin Name of the plugin
+#: yamap-block-gutenberg.php
+#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:414
+msgid "Yandex Maps for Gutenberg"
+msgstr "Яндекс Карты для Gutenberg"
+
+#. Author URI of the plugin
+#: yamap-block-gutenberg.php
+msgid "https://lokotkov.dev"
+msgstr "https://lokotkov.dev"
+
+#: includes/Admin/Settings.php:66
+msgid "Global settings for Yandex Maps for Gutenberg."
+msgstr "Общие настройки Яндекс Карт для Gutenberg."
+
+#: yamap-block-gutenberg.php:27
+msgid "Yandex Maps for Gutenberg requires PHP 7.4 or newer."
+msgstr "Для работы Яндекс Карт для Gutenberg требуется PHP 7.4 или новее."
+
+#: yamap-block-gutenberg.php:42
+msgid "Yandex Maps for Gutenberg requires WordPress 6.6 or newer."
+msgstr "Для работы Яндекс Карт для Gutenberg требуется WordPress 6.6 или новее."

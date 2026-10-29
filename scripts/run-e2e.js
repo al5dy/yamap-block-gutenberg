@@ -251,6 +251,7 @@ try {
 			env: {
 				...process.env,
 				GUYAMAP_E2E_BASE_URL: siteUrl,
+				GUYAMAP_E2E_POST_ID: temporaryPageId,
 				GUYAMAP_E2E_USERNAME: username,
 				GUYAMAP_E2E_PASSWORD: password,
 				GUYAMAP_E2E_LAYOUT_POST_ID: temporaryPageId,

@@ -609,5 +609,5 @@ remove_filter( 'guyamap_yandex_api_key', $guyamap_empty_key_filter );
 remove_filter( 'pre_http_request', $guyamap_http_filter, 10 );
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	WP_CLI::success( 'Map Block for Yandex WordPress smoke test passed.' );
+	WP_CLI::success( 'Yandex Maps for Gutenberg WordPress smoke test passed.' );
 }

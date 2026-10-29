@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name:       Map Block for Yandex
+ * Plugin Name:       Yandex Maps for Gutenberg
  * Plugin URI:        https://github.com/al5dy/yamap-block-gutenberg
  * Description:       A fast, accessible, and extensible Yandex Maps block for the WordPress block editor.
- * Version:           2.0.0
+ * Version:           2.0.1
  * Requires at least: 6.6
  * Requires PHP:      7.4
  * Author:            al5dy
- * Author URI:        https://lokotkov.ru
+ * Author URI:        https://lokotkov.dev
  * License:           GPL-3.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       yamap-block-gutenberg
@@ -24,7 +24,7 @@ if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 		static function () {
 			?>
 			<div class="notice notice-error">
-				<p><?php esc_html_e( 'Map Block for Yandex requires PHP 7.4 or newer.', 'yamap-block-gutenberg' ); ?></p>
+				<p><?php esc_html_e( 'Yandex Maps for Gutenberg requires PHP 7.4 or newer.', 'yamap-block-gutenberg' ); ?></p>
 			</div>
 			<?php
 		}
@@ -39,7 +39,7 @@ if ( isset( $GLOBALS['wp_version'] ) && version_compare( $GLOBALS['wp_version'],
 		static function () {
 			?>
 			<div class="notice notice-error">
-				<p><?php esc_html_e( 'Map Block for Yandex requires WordPress 6.6 or newer.', 'yamap-block-gutenberg' ); ?></p>
+				<p><?php esc_html_e( 'Yandex Maps for Gutenberg requires WordPress 6.6 or newer.', 'yamap-block-gutenberg' ); ?></p>
 			</div>
 			<?php
 		}
@@ -48,7 +48,7 @@ if ( isset( $GLOBALS['wp_version'] ) && version_compare( $GLOBALS['wp_version'],
 	return;
 }
 
-defined( 'GUYAMAP_VERSION' ) || define( 'GUYAMAP_VERSION', '2.0.0' );
+defined( 'GUYAMAP_VERSION' ) || define( 'GUYAMAP_VERSION', '2.0.1' );
 defined( 'GUYAMAP_BOOTSTRAP_CONTRACT_VERSION' ) || define( 'GUYAMAP_BOOTSTRAP_CONTRACT_VERSION', '1.0.0' );
 defined( 'GUYAMAP_PLUGIN_FILE' ) || define( 'GUYAMAP_PLUGIN_FILE', __FILE__ );
 defined( 'GUYAMAP_PLUGIN_PATH' ) || define( 'GUYAMAP_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );

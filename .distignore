@@ -1,13 +1,46 @@
+# Metadata for WordPress tooling that honors .distignore.
+# The canonical production allowlist is package.json "files", enforced by
+# scripts/plugin-zip.js and scripts/verify-package.js; this file is not used
+# to select release contents.
 /.git
 /.github
 /.idea
+/.vscode
+/.release-baseline
 /node_modules
 /vendor
 /tests
-/.distignore
-/.gitignore
+/docs
+/src
+/scripts
+/dist
+/production
+/output
+/test-results
+/playwright-report
+/AGENTS.md
+/README.md
+/composer.json
 /composer.lock
+/package.json
+/package-lock.json
 /phpcs.xml.dist
 /phpunit.xml.dist
-/webpack.config.js
-npm-debug.log*
+/playwright.config.js
+/eslint.config.cjs
+/.distignore
+/.gitignore
+*.zip
+*.tar
+*.tar.gz
+*.log
+*.sql
+*.sqlite
+*.bak
+*.backup
+*.tmp
+*.temp
+*.orig
+*.rej
+.env
+.env.*

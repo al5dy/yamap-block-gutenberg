@@ -1,78 +1,84 @@
+process.env.TZ = 'UTC';
+
 const fs = require( 'fs' );
 const path = require( 'path' );
+const { execFileSync } = require( 'child_process' );
 const AdmZip = require( 'adm-zip' );
+const { getReleaseFiles, PLUGIN_SLUG } = require( './release-files' );
+const { validateVersions } = require( './check-versions' );
 
-const projectRoot = process.cwd();
-const packagePath = path.join( projectRoot, 'package.json' );
-const packageData = JSON.parse( fs.readFileSync( packagePath, 'utf8' ) );
-const rootFolder = packageData.name;
-const outputPath = path.join( projectRoot, `${ rootFolder }.zip` );
-const entries = new Set();
+const projectRoot = path.resolve( __dirname, '..' );
+const version = validateVersions( projectRoot );
+const { files } = getReleaseFiles( projectRoot );
+const epochSource =
+	process.env.SOURCE_DATE_EPOCH ||
+	execFileSync( 'git', [ 'log', '-1', '--format=%ct' ], {
+		cwd: projectRoot,
+		encoding: 'utf8',
+	} ).trim();
+const epoch = Number( epochSource );
+if ( ! Number.isSafeInteger( epoch ) || epoch < 0 ) {
+	throw new Error( `Invalid SOURCE_DATE_EPOCH: ${ epochSource }` );
+}
+const timestamp = new Date(
+	Math.max( 315532800, Math.floor( epoch / 2 ) * 2 ) * 1000
+);
+const distDirectory = path.resolve(
+	projectRoot,
+	process.env.GUYAMAP_DIST_DIR || 'dist'
+);
+const outputPath = path.join(
+	distDirectory,
+	`${ PLUGIN_SLUG }-${ version }.zip`
+);
+fs.mkdirSync( distDirectory, { recursive: true } );
 
-const addEntry = ( relativePath ) => {
-	const normalized = path.normalize( relativePath ).replace( /[\\/]+$/, '' );
-	if (
-		! normalized ||
-		path.isAbsolute( normalized ) ||
-		normalized === '..' ||
-		normalized.startsWith( `..${ path.sep }` )
-	) {
-		throw new Error( `Unsafe release path: ${ relativePath }` );
-	}
-
-	const absolutePath = path.resolve( projectRoot, normalized );
-	if (
-		absolutePath !== projectRoot &&
-		! absolutePath.startsWith( `${ projectRoot }${ path.sep }` )
-	) {
-		throw new Error(
-			`Release path escapes the project: ${ relativePath }`
+if ( ! process.env.GUYAMAP_DIST_DIR ) {
+	fs.readdirSync( distDirectory )
+		.filter( ( file ) =>
+			/^yamap-block-gutenberg-.*\.zip(?:\.sha256)?$/.test( file )
+		)
+		.forEach( ( file ) =>
+			fs.unlinkSync( path.join( distDirectory, file ) )
 		);
-	}
-
-	const stats = fs.lstatSync( absolutePath );
-	if ( stats.isSymbolicLink() ) {
-		throw new Error(
-			`Release paths cannot be symlinks: ${ relativePath }`
-		);
-	}
-
-	if ( stats.isDirectory() ) {
-		fs.readdirSync( absolutePath )
-			.sort()
-			.forEach( ( child ) => addEntry( path.join( normalized, child ) ) );
-		return;
-	}
-
-	if ( ! stats.isFile() ) {
-		throw new Error( `Unsupported release entry: ${ relativePath }` );
-	}
-
-	entries.add( normalized.split( path.sep ).join( '/' ) );
-};
-
-if ( ! Array.isArray( packageData.files ) ) {
-	throw new Error(
-		'package.json must define an explicit release files list.'
-	);
 }
 
-packageData.files.forEach( addEntry );
-
 const zip = new AdmZip();
-[ ...entries ].sort().forEach( ( relativePath ) => {
-	const zipDirectory = path.posix.dirname( relativePath );
-	zip.addLocalFile(
-		path.join( projectRoot, ...relativePath.split( '/' ) ),
-		path.posix.join( rootFolder, zipDirectory === '.' ? '' : zipDirectory )
+const directories = new Set( [ PLUGIN_SLUG ] );
+files.forEach( ( relativePath ) => {
+	let directory = path.posix.dirname( relativePath );
+	while ( directory !== '.' ) {
+		directories.add( directory );
+		directory = path.posix.dirname( directory );
+	}
+} );
+
+const addEntry = ( entryName, content, permissions ) => {
+	const entry = zip.addFile( entryName, content, '', permissions );
+	entry.header.time = timestamp;
+};
+[ ...directories ]
+	.sort()
+	.forEach( ( directory ) =>
+		addEntry(
+			`${ PLUGIN_SLUG }/${
+				directory === PLUGIN_SLUG ? '' : `${ directory }/`
+			}`,
+			Buffer.alloc( 0 ),
+			0o755
+		)
+	);
+files.forEach( ( relativePath ) => {
+	addEntry(
+		`${ PLUGIN_SLUG }/${ relativePath }`,
+		fs.readFileSync(
+			path.join( projectRoot, ...relativePath.split( '/' ) )
+		),
+		0o644
 	);
 } );
 
-if ( fs.existsSync( outputPath ) ) {
-	fs.unlinkSync( outputPath );
-}
-
 zip.writeZip( outputPath );
 process.stdout.write(
-	`Created ${ path.basename( outputPath ) } with ${ entries.size } files.\n`
+	`Created ${ outputPath } with ${ files.length } files (SOURCE_DATE_EPOCH=${ epoch }).\n`
 );
