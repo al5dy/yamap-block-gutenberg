@@ -63,7 +63,7 @@ final class Settings {
 			self::OPTION_NAME,
 			array(
 				'type'              => 'object',
-				'description'       => __( 'Global settings for Map Block for Yandex.', 'yamap-block-gutenberg' ),
+				'description'       => __( 'Global settings for Yandex Maps for Gutenberg.', 'yamap-block-gutenberg' ),
 				'sanitize_callback' => array( $this, 'sanitize' ),
 				'default'           => $this->get_defaults(),
 				'show_in_rest'      => false,
@@ -177,7 +177,7 @@ final class Settings {
 		}
 
 		wp_add_privacy_policy_content(
-			__( 'Map Block for Yandex', 'yamap-block-gutenberg' ),
+			__( 'Yandex Maps for Gutenberg', 'yamap-block-gutenberg' ),
 			wp_kses_post( $content )
 		);
 	}
@@ -411,7 +411,7 @@ final class Settings {
 		);
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Map Block for Yandex', 'yamap-block-gutenberg' ); ?></h1>
+			<h1><?php esc_html_e( 'Yandex Maps for Gutenberg', 'yamap-block-gutenberg' ); ?></h1>
 			<?php $this->render_api_key_check(); ?>
 			<form action="options.php" method="post">
 				<?php

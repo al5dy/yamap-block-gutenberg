@@ -1,119 +1,115 @@
-=== Map Block for Yandex ===
+=== Yandex Maps for Gutenberg ===
 Contributors: al5dy
-Tags: yandex maps, map, gutenberg, block, markers
+Tags: yandex maps, gutenberg, map block, markers, clustering
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-A fast, accessible Yandex Maps block with live editing, responsive layouts, markers and clustering.
+Add responsive Yandex Maps to WordPress with a Gutenberg block, custom markers, clustering and live preview.
 
 == Description ==
 
-Map Block for Yandex is a native WordPress block powered by Yandex Maps JavaScript API v3. Create independent, responsive maps and configure them from the block inspector with a live Gutenberg preview.
+Yandex Maps for Gutenberg adds interactive maps to WordPress without shortcodes or custom code. Insert the **Yandex Map** block, set its location and appearance in the inspector, and watch the live preview.
 
-= Highlights =
+This is an independent community plugin, not affiliated with, endorsed by, or sponsored by Yandex. It uses the Yandex Maps JavaScript API under Yandex's API terms.
 
-* Add multiple independent maps to any post or page.
-* Keep each map isolated in a Web Component with Shadow DOM so theme styles cannot break it.
-* Update center, zoom, camera and appearance live from the Gutenberg inspector.
-* Keep the editor preview locked against dragging, wheel zoom and other direct map gestures.
-* Use responsive width, height, minimum height, aspect ratio, wide and full-width alignment without horizontal overflow.
-* Configure center, zoom range, tilt, azimuth, map mode and automatic, light or dark theme.
-* Enable selected map behaviors and lightweight zoom, geolocation and fullscreen controls.
-* Add, duplicate, search and remove structured markers.
-* Choose marker icons from a searchable catalog of the bundled artwork.
-* Customize marker coordinates, labels, hover and focus hints, descriptions, links, colors, icons, images, sizes and stacking order.
-* Group markers with optional client-side clustering.
-* Apply Yandex map customization rules; the editor checks them against the documented schema and explains what is wrong with a rule.
-* Lazy-load maps near the viewport or require a visitor click before connecting to Yandex.
-* Disable the loading overlay, or customize a spinner, bouncing-dots or pulse preloader and map reveal.
-* Provide keyboard-visible controls, accessible labels, useful error states and a no-JavaScript fallback link.
-* Tell administrators why a map failed to load and verify the API key from the settings screen.
-* Preserve and migrate blocks created by versions 1.0.0 and 1.0.1.
+= Made for WordPress editors =
 
-The plugin does not enqueue the Yandex SDK site-wide. A shared loader is used per document and each block owns an independently disposable map instance. Optional clustering is loaded only when required. Inline marker data is normalized and limited to 1,000 markers and an approximately 1 MiB rendered configuration.
+* Configure maps visually in Gutenberg.
+* Add multiple independent maps to posts and pages.
+* Use custom markers, popups, links and bundled SVG icons, with optional clustering.
+* Choose responsive dimensions, aspect ratio and wide or full-width alignment.
+* Adjust camera, zoom, theme, behaviors and controls.
+* Work with classic and block themes without theme-specific CSS.
 
-You must supply a Yandex Maps JavaScript API v3 browser key and select a Yandex plan suitable for your use. Restrict the key by HTTP Referer in the Yandex developer dashboard. Browser API keys are necessarily visible to browsers and must not be treated as secrets.
+= Performance, privacy and accessibility =
+
+Map assets load only where the block is used; maps initialize near the viewport or after a visitor clicks **Activate map**. Each map uses a Web Component with keyboard controls, reduced-motion handling, accessible errors and a Yandex Maps fallback.
+
+= Map customization =
+
+Create structured markers with coordinates, titles, descriptions, categories, addresses, safe links, colors, image icons, sizes and stacking order. Advanced users can apply validated Yandex customization JSON. Inline maps support up to 1,000 markers with client-side clustering; large store-locator datasets are not included.
+
+A Yandex Maps JavaScript API v3 browser key is required. Browser keys are public by design: restrict yours by HTTP Referer in the Yandex developer dashboard.
+
+= How it works =
+
+1. Add the **Yandex Map** block in Gutenberg.
+2. Configure the map in the block inspector while the preview updates.
+3. Publish. The frontend loads the shared Yandex SDK only when needed, with an independent controller per map.
 
 == Installation ==
 
-1. Install the plugin through Plugins > Add New, or upload it to `/wp-content/plugins/`.
-2. Activate **Map Block for Yandex**.
-3. Open Settings > Yandex Maps and enter a Yandex Maps JavaScript API v3 key.
-4. Restrict the key to your site's HTTP Referers in the Yandex developer dashboard.
-5. Add the **Yandex Map** block in the block editor.
+1. In WordPress, open **Plugins > Add New**, search for **Yandex Maps for Gutenberg**, then install and activate it, or upload the plugin ZIP.
+2. Create a **Yandex Maps JavaScript API v3** key in the [Yandex Developer Dashboard](https://developer.tech.yandex.ru/).
+3. Restrict the key to your site's HTTP Referers, and include staging domains only when they need maps.
+4. Open **Settings > Yandex Maps**, enter the key and select the map language. Use **Check API key** to verify it for this site.
+5. Add the **Yandex Map** block to a post or page and configure it in the inspector.
 
 == Frequently Asked Questions ==
 
 = Is an API key required? =
 
-Yes. Yandex Maps JavaScript API v3 requires a browser API key. When a key is missing or the SDK fails, the block displays an accessible error and fallback link instead of a blank map.
+Yes. A missing or rejected key produces an accessible error and fallback link rather than a blank map.
 
-= Why does the map say "The map could not be loaded"? =
+= Why does the map say "The map could not be loaded."? =
 
-Visitors always see this short message and a link to Yandex Maps. Administrators additionally see the cause on the page and in the block editor. The most common cause is an API key that Yandex does not accept for the current domain: a key restricted by HTTP Referer works only on the listed domains, so it stops working after a domain change or on a staging copy. Open Settings > Yandex Maps and use **Check API key**; the plugin asks Yandex and reports whether the key is accepted for this site. If it is rejected, add the domain shown on that screen to the key's HTTP Referer restrictions in the Yandex developer dashboard.
-
-Other reported causes are a missing key, a network problem or content blocker in the browser, a Content Security Policy that blocks `api-maps.yandex.ru`, and a timeout.
+Administrators see the cause and a settings link. Common causes are a missing key, HTTP Referer restrictions that omit the current domain, network blockers, Content Security Policy, or a timeout. Use **Check API key** under **Settings > Yandex Maps**.
 
 = Why can I not drag or zoom the map in the editor? =
 
-The Gutenberg preview is intentionally non-interactive so block selection and editing remain predictable. Change the viewport and other settings in the inspector; the preview updates immediately without reloading the editor. The behaviors you enable remain available on the published frontend.
+The preview is intentionally gesture-locked so block editing remains predictable. Use the inspector; enabled behaviors still work on the published page.
 
-= Can I disable or customize the loading animation? =
+= Can I use several maps on one page? =
 
-Yes. In Loading and interaction, disable the frontend overlay to reveal the map surface immediately. When enabled, choose a spinner, bouncing dots or pulse and customize its colors, size, accessible text and reveal duration.
-
-= Can I use more than one map on a page? =
-
-Yes. The SDK loads once and each map maintains its own configuration and lifecycle.
+Yes. The SDK is shared per document realm, while each block has independent settings and lifecycle.
 
 = Does it work with classic and block themes? =
 
-Yes. WordPress block supports control the outer layout, while the map surface is isolated in Shadow DOM. Full-width mode uses a viewport-safe layout and does not create horizontal page scrolling.
+Yes. WordPress block supports control layout, and Shadow DOM isolates the map from theme CSS. A light-DOM fallback covers older environments.
+
+= Can I customize markers and loading? =
+
+Yes. Use the bundled icon catalog or a safe HTTP(S) image URL, and configure popup content and hints. Loading can be lazy or click-activated, with an optional spinner, dots or pulse preloader.
 
 = Can I add arbitrary marker HTML or JavaScript? =
 
 No. Marker content is rendered as text, URLs are restricted to safe HTTP(S) values, and executable code is never stored in block attributes.
 
-= Can the block hold a very large store-locator data set? =
+= Is this a large store-locator solution? =
 
-Inline markers are intended for normal editorial maps and are limited to 1,000 per block. Large locators require bounded server-side viewport queries and are not included in this plugin.
+No. Inline markers are limited to 1,000 per block. Server-side viewport queries, large datasets and locator cards are not included.
 
 == Screenshots ==
 
-1. A Yandex map in Gutenberg with live inspector controls and a gesture-locked preview.
+1. A Yandex map in Gutenberg with live inspector controls and a locked preview.
 2. A responsive published map with markers and frontend controls.
 
 == External services ==
 
-This plugin connects to Yandex Maps JavaScript API v3 only on pages containing a map block. By default, the connection begins when the map approaches the viewport. Administrators can enable click-to-activate mode so the connection begins only after visitor interaction.
+The plugin loads [Yandex Maps JavaScript API v3](https://yandex.com/maps-api/docs/js-api/) from `https://api-maps.yandex.ru/v3/` on pages that contain a map. Requests include the public browser key and map locale. Yandex receives technical data such as IP address, user agent and referring page; tiles and interactions may cause further Yandex requests. Yandex Maps is a Yandex product; this plugin is independent. See the [Yandex Maps API terms](https://yandex.com/dev/commercial/doc/en/) and [privacy policy](https://yandex.com/legal/confidential/en/).
 
-Requests are made to `https://api-maps.yandex.ru/v3/` and include the configured browser API key and map locale. Yandex receives ordinary technical request data such as the visitor's IP address, user agent and referring page according to its policies. Map tiles and enabled map interactions may make additional requests to Yandex. Browser geolocation is requested only after a visitor activates the geolocation control and grants permission.
+When settings are saved or **Check API key** is used, the WordPress server sends the key, locale and site address to the same endpoint. One diagnostic probe may follow a browser SDK failure to distinguish a rejected key from an unreachable service. These checks carry no visitor content.
 
-Yandex Maps API terms: https://yandex.com/dev/commercial/doc/en/
+The Yandex SDK may send its own performance and error reports to `https://log.api-maps.yandex.ru`; the plugin cannot disable those.
 
-Yandex privacy policy: https://yandex.com/legal/confidential/en/
-
-The service is required for the interactive map. An accessible fallback link remains available when the service cannot load or JavaScript is disabled.
-
-When an administrator saves the settings or chooses **Check API key**, the WordPress server sends one request with the configured key, map locale and site address to `https://api-maps.yandex.ru/v3/` to learn whether Yandex accepts the key for this site. No visitor data is involved.
-
-When the SDK fails to load in a browser, the plugin repeats the same request once to tell a rejected key from an unreachable service. It goes to the same Yandex address the browser already contacted and carries no additional data.
-
-The Yandex SDK also reports its own loading times and errors to `https://log.api-maps.yandex.ru`. These reports are sent by the SDK, not by the plugin, and contain the page address and technical details of the browser and its graphics hardware. The plugin cannot switch them off; when such a report cannot be delivered, the browser console shows a failed request to that address and the map keeps working.
-
-Editors may optionally specify an external marker-image URL. The visitor's browser then requests that URL, and its host receives ordinary technical request data. Built-in marker icons are served locally by the plugin.
+Browser geolocation is requested only after a visitor uses the geolocation control and grants permission. If an editor configures an external marker-image URL, the visitor's browser contacts that host. Bundled marker icons are served locally.
 
 == Privacy ==
 
-The plugin does not create visitor profiles, set tracking cookies, contact a license server or send post content to the plugin author. Marker content remains in WordPress. The configured public browser API key is sent to Yandex as described above.
-
-Site owners should disclose their use of Yandex Maps in their privacy notice and use click-to-activate mode where prior consent is required.
+The plugin does not create visitor profiles, set tracking cookies, contact a license server or send post content to the plugin author. Marker content remains in WordPress. Site owners should disclose Yandex Maps in their privacy notice and use click-to-activate where prior consent is required.
 
 == Changelog ==
+
+= 2.0.1 =
+
+* Renamed the plugin to Yandex Maps for Gutenberg without changing its block or stored-data identifiers.
+* Rewrote the developer and WordPress.org documentation.
+* Standardized source audits, quality checks, deterministic packaging and GitHub release infrastructure.
+* Improved clean-install release testing and WordPress.org SVN staging.
 
 = 2.0.0 =
 
@@ -157,6 +153,10 @@ Site owners should disclose their use of Yandex Maps in their privacy notice and
 * Initial release.
 
 == Upgrade Notice ==
+
+= 2.0.1 =
+
+This release updates the public plugin name, documentation and release infrastructure. Existing maps and block identifiers remain compatible.
 
 = 2.0.0 =
 

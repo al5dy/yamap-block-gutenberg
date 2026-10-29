@@ -1,6 +1,6 @@
 {
 	"name": "al5dy/gutenberg-yandex-maps",
-	"description": "Development tooling for the Map Block for Yandex plugin.",
+	"description": "Development tooling for the Yandex Maps for Gutenberg plugin.",
 	"type": "wordpress-plugin",
 	"license": "GPL-3.0-or-later",
 	"require": {

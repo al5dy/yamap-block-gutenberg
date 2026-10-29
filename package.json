@@ -1,7 +1,7 @@
 {
 	"name": "yamap-block-gutenberg",
-	"version": "2.0.0",
-	"description": "A performant, extensible Yandex Maps block for WordPress.",
+	"version": "2.0.1",
+	"description": "Yandex Maps for Gutenberg — a fast, accessible WordPress map block with markers and clustering.",
 	"license": "GPL-3.0-or-later",
 	"private": true,
 	"files": [
@@ -9,6 +9,7 @@
 		"build/",
 		"includes/",
 		"languages/",
+		"LICENSE",
 		"LICENSES/",
 		"readme.txt",
 		"third-party-notices.txt",
@@ -30,7 +31,15 @@
 		"test:e2e:direct": "playwright test",
 		"test:e2e:headed": "GUYAMAP_E2E_HEADED=1 node scripts/run-e2e.js",
 		"test:e2e:browsers": "GUYAMAP_E2E_BROWSERS=chromium,firefox,webkit node scripts/run-e2e.js",
+		"test:package": "bash scripts/test-package-smoke.sh",
+		"test:plugin-check": "bash scripts/test-plugin-check.sh",
 		"plugin-zip": "node scripts/plugin-zip.js",
+		"verify:package": "node scripts/verify-package.js",
+		"audit:source": "node scripts/audit-source.js",
+		"check:versions": "node scripts/check-versions.js",
+		"i18n:build": "bash scripts/build-translations.sh",
+		"i18n:check": "bash scripts/check-translations.sh",
+		"release": "bash scripts/release-wordpress-org.sh",
 		"icons:manifest": "node scripts/generate-icon-manifest.js",
 		"icons:check": "node scripts/generate-icon-manifest.js --check",
 		"icons:verify": "node scripts/vendor-icons.js",
@@ -48,6 +57,6 @@
 		"@wordpress/i18n": "6.26.0",
 		"@wordpress/scripts": "34.1.0",
 		"@yandex/ymaps3-default-ui-theme": "0.0.25",
-		"adm-zip": "0.5.18"
+		"adm-zip": "0.6.1"
 	}
 }

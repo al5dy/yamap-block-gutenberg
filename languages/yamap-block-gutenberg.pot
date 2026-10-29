@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Map Block for Yandex 2.0.0\n"
+"Project-Id-Version: Yandex Maps for Gutenberg 2.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yamap-block-gutenberg\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-13T12:48:18+02:00\n"
+"POT-Creation-Date: 2026-10-29T08:47:04+01:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: yamap-block-gutenberg\n"
@@ -18,7 +18,7 @@ msgstr ""
 #: yamap-block-gutenberg.php
 #: includes/Admin/Settings.php:180
 #: includes/Admin/Settings.php:414
-msgid "Map Block for Yandex"
+msgid "Yandex Maps for Gutenberg"
 msgstr ""
 
 #. Plugin URI of the plugin
@@ -38,11 +38,11 @@ msgstr ""
 
 #. Author URI of the plugin
 #: yamap-block-gutenberg.php
-msgid "https://lokotkov.ru"
+msgid "https://lokotkov.dev"
 msgstr ""
 
 #: includes/Admin/Settings.php:66
-msgid "Global settings for Map Block for Yandex."
+msgid "Global settings for Yandex Maps for Gutenberg."
 msgstr ""
 
 #: includes/Admin/Settings.php:75
@@ -191,6 +191,7 @@ msgstr ""
 #: includes/Block/Map_Block.php:260
 #: includes/Block/Map_Block.php:561
 #: includes/Support/Config_Normalizer.php:870
+#: build/index.js:13
 #: src/components/InspectorPanels.js:864
 #: src/components/InspectorPanels.js:981
 #: src/components/MapPreview.js:57
@@ -199,6 +200,7 @@ msgstr ""
 
 #: includes/Block/Map_Block.php:287
 #: includes/Support/Config_Normalizer.php:332
+#: build/index.js:13
 #: src/components/MapPreview.js:192
 msgid "Interactive map"
 msgstr ""
@@ -293,6 +295,7 @@ msgid "Only site administrators see these details."
 msgstr ""
 
 #: includes/Block/Map_Block.php:602
+#: build/index.js:13
 #: src/components/MapPreview.js:180
 #: src/components/MapPreview.js:242
 msgid "Open map settings"
@@ -303,56 +306,292 @@ msgid "Settings"
 msgstr ""
 
 #: yamap-block-gutenberg.php:27
-msgid "Map Block for Yandex requires PHP 7.4 or newer."
+msgid "Yandex Maps for Gutenberg requires PHP 7.4 or newer."
 msgstr ""
 
 #: yamap-block-gutenberg.php:42
-msgid "Map Block for Yandex requires WordPress 6.6 or newer."
+msgid "Yandex Maps for Gutenberg requires WordPress 6.6 or newer."
+msgstr ""
+
+#: build/index.js:1
+#: src/components/JsonControl.js:32
+msgid "Enter valid JSON before applying this value."
+msgstr ""
+
+#: build/index.js:1
+#: src/components/JsonControl.js:44
+msgid "The value must be a JSON array."
+msgstr ""
+
+#: build/index.js:1
+#: src/components/JsonControl.js:48
+msgid "The value must be a JSON object."
+msgstr ""
+
+#: build/index.js:1
+#: src/components/IconPicker.js:63
+msgid "Type to search the bundled icons."
+msgstr ""
+
+#: build/index.js:1
+#: src/components/IconPicker.js:67
+msgid "Icon"
+msgstr ""
+
+#: build/index.js:1
+#: src/components/MarkerEditor.js:211
+msgid "Add at map center"
+msgstr ""
+
+#. translators: %d: maximum number of markers.
+#: build/index.js:2
+#: src/components/MarkerEditor.js:219
+#, js-format
+msgid "A map shows at most %d markers. Markers beyond this limit are not displayed."
+msgstr ""
+
+#: build/index.js:2
+#: src/components/MarkerEditor.js:232
+msgid "Search markers"
+msgstr ""
+
+#: build/index.js:2
+#: src/components/MarkerEditor.js:240
+msgid "Map markers"
+msgstr ""
+
+#. translators: %d: marker number.
+#: build/index.js:3
+#: src/components/MarkerEditor.js:267
+#, js-format
+msgid "Marker %d"
+msgstr ""
+
+#. translators: 1: visible marker count, 2: matching marker count.
+#: build/index.js:4
+#: src/components/MarkerEditor.js:288
+#, js-format
+msgid "Showing the first %1$d of %2$d matching markers."
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:300
+msgid "Add a marker at the current map center, then edit its coordinates in this panel."
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:312
+msgid "Title"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:321
+msgid "Short tooltip shown on hover and keyboard focus."
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:325
+msgid "Hint"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:333
+msgid "Description"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:343
+msgid "Address"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:352
+msgid "Shown above the title in the marker popup."
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:356
+msgid "Category"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:365
+msgid "Link URL"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:373
+msgid "Link label"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:382
+msgid "Open link in a new tab"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:393
+msgid "Latitude"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:403
+msgid "Longitude"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:417
+msgid "Hide outside viewport"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:426
+msgid "Z-index"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:439
+msgid "Icon type"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:443
+msgid "Default marker"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:450
+msgid "Custom image"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:474
+msgid "Marker size"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:483
+msgid "Normal"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:490
+msgid "Small"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:497
+msgid "Micro"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:513
+msgid "Shown when the image cannot be loaded."
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:519
+msgid "Marker color"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:531
+msgid "Image URL"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:543
+msgid "Icon width"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:558
+msgid "Icon height"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:573
+msgid "Horizontal offset"
+msgstr ""
+
+#: build/index.js:4
+#: src/components/MarkerEditor.js:591
+msgid "Vertical offset"
+msgstr ""
+
+#. translators: %s: marker title.
+#: build/index.js:5
+#: src/components/MarkerEditor.js:158
+#, js-format
+msgid "%s (copy)"
+msgstr ""
+
+#: build/index.js:5
+#: src/components/MarkerEditor.js:161
+msgid "Marker copy"
+msgstr ""
+
+#: build/index.js:5
+#: src/components/MarkerEditor.js:619
+msgid "Duplicate marker"
+msgstr ""
+
+#: build/index.js:5
+#: src/components/MarkerEditor.js:629
+msgid "Remove marker"
 msgstr ""
 
 #. translators: %d: rule number.
+#: build/index.js:6
 #: src/components/customization-messages.js:21
 #, js-format
 msgid "Rule %d must be an object."
 msgstr ""
 
 #. translators: 1: rule number, 2: property path, for example stylers[0].glow.
+#: build/index.js:7
 #: src/components/customization-messages.js:27
 #, js-format
 msgid "Rule %1$d: \"%2$s\" is not a supported styler property."
 msgstr ""
 
 #. translators: %d: rule number.
+#: build/index.js:8
 #: src/components/customization-messages.js:37
 #, js-format
 msgid "Rule %d needs at least one styler with a supported property."
 msgstr ""
 
 #. translators: %d: maximum number of rules.
+#: build/index.js:9
 #: src/components/customization-messages.js:46
 #, js-format
 msgid "A style can contain at most %d rules."
 msgstr ""
 
 #. translators: 1: rule number, 2: maximum number of stylers.
+#: build/index.js:10
 #: src/components/customization-messages.js:55
 #, js-format
 msgid "Rule %1$d has more than %2$d stylers."
 msgstr ""
 
 #. translators: %d: rule number.
+#: build/index.js:11
 #: src/components/customization-messages.js:65
 #, js-format
 msgid "The style is too large: rule %d and the rules after it do not fit."
 msgstr ""
 
 #. translators: 1: rule number, 2: property path, for example stylers[0].color.
+#: build/index.js:12
 #: src/components/customization-messages.js:74
 #, js-format
 msgid "Rule %1$d: \"%2$s\" has an unsupported value."
 msgstr ""
 
 #. translators: %d: number of further problems.
+#: build/index.js:13
 #: src/components/customization-messages.js:100
 #, js-format
 msgid "And %d more problem."
@@ -360,636 +599,563 @@ msgid_plural "And %d more problems."
 msgstr[0] ""
 msgstr[1] ""
 
+#: build/index.js:13
 #: src/components/customization-messages.js:133
 msgid "This style is too long for raster tiles, so the map stays empty. Shorten the style or use the vector rendering mode."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/customization-messages.js:137
 msgid "This style is too long for raster tiles. Devices that cannot draw the vector map will show an empty map."
 msgstr ""
 
-#: src/components/IconPicker.js:63
-msgid "Type to search the bundled icons."
-msgstr ""
-
-#: src/components/IconPicker.js:67
-msgid "Icon"
-msgstr ""
-
+#: build/index.js:13
 #: src/components/InspectorPanels.js:34
 msgid "Drag"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:36
 msgid "Mouse-wheel zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:39
 msgid "Pinch zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:41
 msgid "Double-click zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:44
 msgid "Mouse tilt"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:46
 msgid "Mouse rotation"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:49
 msgid "Magnifier"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:51
 msgid "One-finger zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:55
 msgid "Pinch rotation"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:58
 msgid "Pan and tilt"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:174
 msgid "Enter a number with a unit: px, %, em, rem, vh, vw, vmin, vmax or ch."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:231
 msgid "Viewport"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:235
 msgid "Center latitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:248
 msgid "Center longitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:264
 msgid "Zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:275
 msgid "Minimum zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:288
 msgid "Maximum zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:304
 msgid "Camera tilt"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:316
 msgid "Camera azimuth"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:329
 msgid "Container"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:332
 msgid "Use a valid CSS length, for example 100% or 960px."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:337
 msgid "Width"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:345
 msgid "Use a valid CSS length, for example 480px or 60vh."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:350
 msgid "Height"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:359
 msgid "Minimum height"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:367
 msgid "Leave empty for a free-form height, or use a ratio such as 16 / 9. A ratio replaces the height and minimum height."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:371
 msgid "Enter a ratio of two positive numbers, for example 16 / 9."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:375
 msgid "Aspect ratio"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:386
 msgid "Map appearance"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:391
 msgid "Rendering mode"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:397
 #: src/components/InspectorPanels.js:420
 #: src/components/InspectorPanels.js:597
 msgid "Automatic"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:401
 msgid "Raster"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:405
 msgid "Vector"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:414
 msgid "Map theme"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:424
 msgid "Light"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:428
 msgid "Dark"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:436
 msgid "Advanced Yandex map customization rules. A rule selects map objects with \"tags\", \"types\" and \"elements\" and changes them with \"stylers\"."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:440
 msgid "Customization JSON"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:458
 msgid "Behaviors"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:461
 msgid "These behaviors apply on the frontend. The editor preview is intentionally controlled only from this sidebar."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:481
 msgid "Controls"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:486
 msgid "Zoom control"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:496
 msgid "Geolocation control"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:507
 msgid "Fullscreen control"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:518
 msgid "Controls position"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:524
 msgid "Right"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:528
 msgid "Left"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:538
 msgid "Advanced map options"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:543
 msgid "Copyrights position"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:554
 msgid "Bottom right"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:561
 msgid "Bottom left"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:565
 msgid "Top right"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:569
 msgid "Top left"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:578
 msgid "Show scale in copyrights"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:591
 msgid "Zoom rounding"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:601
 msgid "Smooth"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:605
 msgid "Snap"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:614
 msgid "Zoom strategy"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:620
 msgid "Zoom to pointer"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:627
 msgid "Zoom to center"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:639
 msgid "Keep the area larger than the visible map at the minimum zoom, otherwise the map cannot stay inside it."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:643
 msgid "Restrict map area"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:655
 msgid "West longitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:668
 msgid "North latitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:681
 msgid "East longitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:694
 msgid "South latitude"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:711
 msgid "Fit viewport to markers"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:721
 msgid "Top margin"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:722
 msgid "Right margin"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:723
 msgid "Bottom margin"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:724
 msgid "Left margin"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:742
 msgid "Markers"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:757
 msgid "Clustering"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:762
 msgid "Enable clustering"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:768
 msgid "Cluster grid size"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:778
 msgid "Maximum clustering zoom"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:793
 msgid "Cluster color"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:804
 msgid "Loading and interaction"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:810
 msgid "These options apply on the published page. The editor preview always loads the map right away."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:818
 msgid "Lazy-load the map"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:824
 msgid "Intersection Observer margin, for example 300px."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:828
 msgid "Enter one to four px or % values, for example 300px or 200px 0px."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:832
 msgid "Preload distance"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:842
 msgid "Require click to activate"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:853
 msgid "When disabled, the map is shown immediately without a loading overlay."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:857
 msgid "Show preloader"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:873
 msgid "Preloader style"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:880
 msgid "Spinner"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:887
 msgid "Bouncing dots"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:894
 msgid "Pulse"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:907
 msgid "Loader color"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:923
 msgid "Background color"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:940
 msgid "Loader size"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:953
 msgid "Fade-in duration in milliseconds."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:957
 msgid "Transition duration"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:972
 msgid "Accessible loading text"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:990
 msgid "Accessibility and fallback"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:998
 msgid "Accessible label"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/InspectorPanels.js:1007
 msgid "Error and no-JavaScript link text"
 msgstr ""
 
-#: src/components/JsonControl.js:32
-msgid "Enter valid JSON before applying this value."
-msgstr ""
-
-#: src/components/JsonControl.js:44
-msgid "The value must be a JSON array."
-msgstr ""
-
-#: src/components/JsonControl.js:48
-msgid "The value must be a JSON object."
-msgstr ""
-
-#: src/components/MapPreview.js:172
-msgid "Add a Yandex Maps API key to display the interactive preview."
-msgstr ""
-
-#: src/components/MapPreview.js:176
-msgid "Yandex Map"
-msgstr ""
-
+#: build/index.js:13
 #: src/components/MapPreview.js:201
 msgid "Loading map preview…"
 msgstr ""
 
+#: build/index.js:13
 #: src/components/MapPreview.js:213
 msgid "The map preview could not be loaded."
 msgstr ""
 
+#: build/index.js:13
 #: src/components/MapPreview.js:235
 msgid "Retry map preview"
 msgstr ""
 
-#. translators: %s: marker title.
-#: src/components/MarkerEditor.js:158
-#, js-format
-msgid "%s (copy)"
+#: build/index.js:13
+#: src/components/MapPreview.js:172
+msgid "Add a Yandex Maps API key to display the interactive preview."
 msgstr ""
 
-#: src/components/MarkerEditor.js:161
-msgid "Marker copy"
+#: build/index.js:13
+#: src/components/MapPreview.js:176
+msgid "Yandex Map"
 msgstr ""
 
-#: src/components/MarkerEditor.js:211
-msgid "Add at map center"
-msgstr ""
-
-#. translators: %d: maximum number of markers.
-#: src/components/MarkerEditor.js:219
-#, js-format
-msgid "A map shows at most %d markers. Markers beyond this limit are not displayed."
-msgstr ""
-
-#: src/components/MarkerEditor.js:232
-msgid "Search markers"
-msgstr ""
-
-#: src/components/MarkerEditor.js:240
-msgid "Map markers"
-msgstr ""
-
-#. translators: %d: marker number.
-#: src/components/MarkerEditor.js:267
-#, js-format
-msgid "Marker %d"
-msgstr ""
-
-#. translators: 1: visible marker count, 2: matching marker count.
-#: src/components/MarkerEditor.js:288
-#, js-format
-msgid "Showing the first %1$d of %2$d matching markers."
-msgstr ""
-
-#: src/components/MarkerEditor.js:300
-msgid "Add a marker at the current map center, then edit its coordinates in this panel."
-msgstr ""
-
-#: src/components/MarkerEditor.js:312
-msgid "Title"
-msgstr ""
-
-#: src/components/MarkerEditor.js:321
-msgid "Short tooltip shown on hover and keyboard focus."
-msgstr ""
-
-#: src/components/MarkerEditor.js:325
-msgid "Hint"
-msgstr ""
-
-#: src/components/MarkerEditor.js:333
-msgid "Description"
-msgstr ""
-
-#: src/components/MarkerEditor.js:343
-msgid "Address"
-msgstr ""
-
-#: src/components/MarkerEditor.js:352
-msgid "Shown above the title in the marker popup."
-msgstr ""
-
-#: src/components/MarkerEditor.js:356
-msgid "Category"
-msgstr ""
-
-#: src/components/MarkerEditor.js:365
-msgid "Link URL"
-msgstr ""
-
-#: src/components/MarkerEditor.js:373
-msgid "Link label"
-msgstr ""
-
-#: src/components/MarkerEditor.js:382
-msgid "Open link in a new tab"
-msgstr ""
-
-#: src/components/MarkerEditor.js:393
-msgid "Latitude"
-msgstr ""
-
-#: src/components/MarkerEditor.js:403
-msgid "Longitude"
-msgstr ""
-
-#: src/components/MarkerEditor.js:417
-msgid "Hide outside viewport"
-msgstr ""
-
-#: src/components/MarkerEditor.js:426
-msgid "Z-index"
-msgstr ""
-
-#: src/components/MarkerEditor.js:439
-msgid "Icon type"
-msgstr ""
-
-#: src/components/MarkerEditor.js:443
-msgid "Default marker"
-msgstr ""
-
-#: src/components/MarkerEditor.js:450
-msgid "Custom image"
-msgstr ""
-
-#: src/components/MarkerEditor.js:474
-msgid "Marker size"
-msgstr ""
-
-#: src/components/MarkerEditor.js:483
-msgid "Normal"
-msgstr ""
-
-#: src/components/MarkerEditor.js:490
-msgid "Small"
-msgstr ""
-
-#: src/components/MarkerEditor.js:497
-msgid "Micro"
-msgstr ""
-
-#: src/components/MarkerEditor.js:513
-msgid "Shown when the image cannot be loaded."
-msgstr ""
-
-#: src/components/MarkerEditor.js:519
-msgid "Marker color"
-msgstr ""
-
-#: src/components/MarkerEditor.js:531
-msgid "Image URL"
-msgstr ""
-
-#: src/components/MarkerEditor.js:543
-msgid "Icon width"
-msgstr ""
-
-#: src/components/MarkerEditor.js:558
-msgid "Icon height"
-msgstr ""
-
-#: src/components/MarkerEditor.js:573
-msgid "Horizontal offset"
-msgstr ""
-
-#: src/components/MarkerEditor.js:591
-msgid "Vertical offset"
-msgstr ""
-
-#: src/components/MarkerEditor.js:619
-msgid "Duplicate marker"
-msgstr ""
-
-#: src/components/MarkerEditor.js:629
-msgid "Remove marker"
-msgstr ""
-
+#: build/block.json
 #: src/block.json
 msgctxt "block title"
 msgid "Yandex Map"
 msgstr ""
 
+#: build/block.json
 #: src/block.json
 msgctxt "block description"
 msgid "A fast, accessible Yandex map with markers and clustering."
 msgstr ""
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "map"
 msgstr ""
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "yandex"
 msgstr ""
 
+#: build/block.json
 #: src/block.json
 msgctxt "block keyword"
 msgid "location"
