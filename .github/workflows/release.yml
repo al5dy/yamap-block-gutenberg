@@ -49,6 +49,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # gh release create resolves the repository and verifies the tag through
+      # git, so the tag and the branch it belongs to must be present locally.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/download-artifact@v8
         with:
           name: yamap-block-gutenberg-zip
